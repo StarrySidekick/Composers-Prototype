@@ -1,0 +1,21 @@
+{
+  "id": "brass-02-crossroads",
+  "name": "Crossroads",
+  "wing": "brass",
+  "hint": "One wave, two locks. The tee divides the wave and adds an output — that's the whole solution.",
+  "maxWaves": 1,
+  "music": { "root": 7, "mode": "mixolydian", "bpm": 116, "timeSignature": 4, "mood": "confident" },
+  "layout": [
+    "##############",
+    "#............#",
+    "#.@..-T--7...#",
+    "#.....|..|...#",
+    "#.....*..|...#",
+    "#........L-*.#",
+    "#............#",
+    "#####D########",
+    "#............#",
+    "#.....X......#",
+    "##############"
+  ]
+}

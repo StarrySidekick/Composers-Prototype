@@ -1,0 +1,33 @@
+{
+  "id": "keys-01-keyboard-floor",
+  "name": "The Keyboard Floor",
+  "wing": "keys",
+  "hint": "Two locks. Step on K to swing the mallet; press B on the note lock to hear the phrase it wants.",
+  "maxWaves": 1,
+  "music": { "root": 5, "mode": "lydian", "bpm": 96, "timeSignature": 4, "mood": "mysterious" },
+  "legend": {
+    "1": { "type": "pianokey", "degree": 0 },
+    "2": { "type": "pianokey", "degree": 1 },
+    "3": { "type": "pianokey", "degree": 2 },
+    "4": { "type": "pianokey", "degree": 3 },
+    "5": { "type": "pianokey", "degree": 4 },
+    "K": { "type": "pianokey", "degree": 0, "group": "w" },
+    "m": { "type": "mallet", "rot": 0, "group": "w" },
+    "n": { "type": "notelock", "sequence": [2, 1, 0] }
+  },
+  "layout": [
+    "##############",
+    "#............#",
+    "#.@..........#",
+    "#............#",
+    "#..m........*#",
+    "#............#",
+    "#..K.........#",
+    "#............#",
+    "#..12345.....#",
+    "#.......n....#",
+    "#####D########",
+    "#.....X......#",
+    "##############"
+  ]
+}

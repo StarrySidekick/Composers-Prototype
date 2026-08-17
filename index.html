@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#241f18">
+<title>Composer's Key — Prototype</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎼</text></svg>">
+</head>
+<body>
+
+<header class="bar">
+  <div class="brand">Composer's Key <span>prototype</span></div>
+  <select id="room-select" aria-label="Room"></select>
+  <div class="spacer"></div>
+  <button id="metronome" class="chip" title="Metronome (M)">metro</button>
+  <button id="mute" class="chip">mute</button>
+  <button id="reset" class="chip" title="Reset room (R)">reset</button>
+  <button id="toggle-editor" class="chip primary">editor</button>
+</header>
+
+<main>
+  <section class="play">
+    <div class="hud">
+      <div class="hud-item"><label>key</label><span id="hud-key">C ionian</span></div>
+      <div class="hud-item"><label>tempo</label><span id="hud-tempo">120 bpm</span></div>
+      <div class="hud-item"><label>mood</label><span id="hud-mood">content</span></div>
+      <div class="hud-item"><label>waves</label><span id="hud-waves" class="waves">○</span></div>
+    </div>
+
+    <div class="stage-wrap">
+      <canvas id="stage"></canvas>
+      <div id="toast" class="toast"></div>
+    </div>
+
+    <p id="room-hint" class="room-hint"></p>
+
+    <div class="gameboy">
+      <div class="dpad">
+        <button id="pad-up"    class="pad up">▲</button>
+        <button id="pad-left"  class="pad left">◀</button>
+        <button id="pad-right" class="pad right">▶</button>
+        <button id="pad-down"  class="pad down">▼</button>
+      </div>
+      <div class="face">
+        <button id="btn-b" class="round b">B</button>
+        <button id="btn-a" class="round a">A</button>
+      </div>
+    </div>
+
+    <p class="keys-help">
+      <b>WASD/arrows</b> move &amp; face · <b>Space</b> fire a sound wave (A) ·
+      <b>E</b> interact / strike (B) · <b>R</b> reset · <b>M</b> metronome
+    </p>
+  </section>
+
+  <aside class="editor">
+    <h2>Room</h2>
+    <div class="grid2">
+      <label>name<input id="ed-name" type="text"></label>
+      <label>wing<select id="ed-wing"></select></label>
+      <label>key<select id="ed-root"></select></label>
+      <label>mode<select id="ed-mode"></select></label>
+      <label>mood<select id="ed-mood"></select></label>
+      <label>max waves<input id="ed-waves" type="number" min="1" max="5" step="1"></label>
+    </div>
+    <label class="wide">tempo — <output id="ed-bpm-out">120</output> bpm
+      <input id="ed-bpm" type="range" min="50" max="220" step="1">
+    </label>
+
+    <h2>Layout</h2>
+    <textarea id="layout" spellcheck="false" rows="14"></textarea>
+
+    <h2>Legend overrides <small>(JSON, merged over the defaults)</small></h2>
+    <textarea id="legend" spellcheck="false" rows="5">{}</textarea>
+
+    <div class="row">
+      <button id="ed-copy" class="chip">copy JSON</button>
+      <button id="ed-download" class="chip">download .json</button>
+    </div>
+
+    <h2>Characters</h2>
+    <div id="legend-hint" class="legend-hint"></div>
+  </aside>
+</main>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
