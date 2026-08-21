@@ -1,0 +1,26 @@
+{
+  "id": "percussion-01-the-kit",
+  "name": "The Kit",
+  "wing": "percussion",
+  "hint": "Bass drums kick the wave clockwise, toms counter-clockwise. The cymbal gives a halved wave its energy back. The kettle drum is tuned with B — find the phrase the lock wants.",
+  "maxWaves": 1,
+  "music": { "root": 4, "mode": "phrygian", "bpm": 108, "timeSignature": 4, "mood": "tense" },
+  "legend": {
+    "n": { "type": "notelock", "sequence": [3, 4, 5] }
+  },
+  "layout": [
+    "##############",
+    "#............#",
+    "#.@..T.....b.#",
+    "#....|.......#",
+    "#....c.......#",
+    "#....*.......#",
+    "#............#",
+    "#............#",
+    "#.*........b.#",
+    "#....pn......#",
+    "######D#######",
+    "#.....X......#",
+    "##############"
+  ]
+}

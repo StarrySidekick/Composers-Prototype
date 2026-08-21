@@ -2,7 +2,7 @@
 
 A browser harness for prototyping *Composer's Key* mechanics fast, then porting the ones
 that survive into the Unity project. No build step, no dependencies, no engine — open a
-page, draw a room as text, hear it immediately.
+page, paint a room, hear it immediately.
 
 It doubles as the seed for a smaller, self-contained, mobile-friendly music game if one
 of these prototypes turns out to want its own life.
@@ -26,13 +26,37 @@ Then open <http://localhost:8080>. On GitHub Pages it just works — see *Publis
 | E or F | **B** — interact / melee strike the tile you're facing |
 | R | reset the room |
 | M | metronome |
+| Ctrl/⌘ Z | undo an edit (Ctrl ⇧ Z / Ctrl Y to redo) |
 
 On touch, the same six inputs are the on-screen Game Boy at the bottom. Everything is
 designed touch-first, per GDD §9 — nothing here can be authored that a phone can't play.
 
 ## Author
 
-Hit **editor**. A room is an ASCII drawing plus a legend:
+Hit **build**. Pick a piece out of the palette, draw it onto the room, and play it — the
+room never reloads, so it keeps its tempo, its open doors and its lit locks while you
+build in it.
+
+| Tool | |
+|---|---|
+| ✎ paint | drag to draw. Right-click (or Ctrl-click) erases with any tool selected |
+| ▭ rect | drag out a filled rectangle — walls and floors in one gesture |
+| ⌫ erase | back to floor |
+| ↻ rotate | tap a tile to turn it 90° |
+| ⊙ pick | tap a tile to load it into the brush |
+| ☝ select | tap a tile to edit it without painting over it |
+
+Tap any tile and the **Tile** panel offers exactly the properties that tile has — a
+lock's group, a mallet's direction, a kettle drum's tuning, the degrees a note lock wants.
+Those become per-tile `overrides` in the room JSON, so the ASCII drawing stays readable
+instead of sprouting a new legend character for every variation. Where a character
+already means the thing you asked for — a rotated elbow is a `J` — the editor uses it.
+
+**build** / **play** switches between painting on the canvas and driving Coda around it;
+the panel stays open either way. **width** / **height** resize the room in place.
+
+A room is still an ASCII drawing plus a legend, and *Layout as text* at the bottom of the
+panel is still the fastest way to move one between machines or read a diff:
 
 ```json
 {
@@ -50,13 +74,23 @@ Hit **editor**. A room is an ASCII drawing plus a legend:
 }
 ```
 
-Type into the layout box and the room reloads live — the loop from "idea for a puzzle" to
-"playing that puzzle" is a few seconds. **copy JSON** / **download .json** gets it out;
-drop the file in `rooms/` and add a line to `rooms/manifest.json` to keep it.
+Both views are live and always in sync. **copy** / **.json** gets the room out; drop the
+file in `rooms/` and add a line to `rooms/manifest.json` to keep it.
 
 The full character list is in the editor panel under *Characters*. Legend entries can be
 overridden or added per room, so a room can define `"1"` as a piano key tuned to a
 particular degree without touching the defaults.
+
+## Art
+
+Every tile draws itself with canvas calls and always will — but each one also names a
+sprite key, and if the sprite store has an image for that key it is used instead. With no
+`assets/manifest.json` (the state this repo ships in) nothing changes.
+
+The editor's **Assets** panel bakes the prototype's own line art into a complete
+placeholder set, packs it into an atlas PNG at whatever tile size you ask for, and takes
+dropped PNGs — a folder of Unity exports lands in the right slots by filename. See
+[docs/ASSETS.md](docs/ASSETS.md).
 
 ## What's modelled
 
@@ -69,6 +103,16 @@ Faithful to the GDD and to the Unity architecture, deliberately:
 - **Face-action instruments.** Every routing tile is a table of four local-space faces —
   block, pass, redirect 90° CW/CCW, reflect, play-and-absorb — rotated into the world.
   Same table as `BrassTube.cs` and `Drum.cs`.
+- **Horns you can build and detune.** Straight, elbow, tee, cross, mouthpiece, bell, plus
+  a **valve** (B rotates the flow), a **slide** (B pulls it out — more horn, lower note)
+  and a **mute** (B seats it — quieter, buzzier, and the horn it feeds sounds muted).
+- **A kit, not a drum.** Bass drum kicks a wave 90° clockwise, tom counter-clockwise,
+  snare reflects it, hi-hat passes it and ticks, cymbal passes it and hands back the
+  energy a tee took, timpani is pitched, absorbs, and retunes with B — the one piece of
+  percussion a note lock will listen to.
+- **Tubing knows what it's joined to.** A horn's length is traced through open edges, not
+  flood-filled by adjacency, so two runs that merely touch stay two instruments with two
+  pitches. A cross is a bridge, not a join: it carries a wave over and lengthens nothing.
 - **Musical state per room.** Key, mode, tempo, time signature, mood. Every pitch anything
   plays is snapped to the room's scale, which is why solving a room sounds like music
   without the player knowing any.
@@ -88,14 +132,16 @@ index.html          shell + virtual Game Boy
 src/core/           beat clock, musical state, sound wave, room, doodad base, directions
 src/doodads/        brass, strings, percussion, keys, locks, structure
 src/audio/          Web Audio synths — the FMOD stand-in
-src/render/         canvas renderer + wing palettes
-src/editor.js       live ASCII room editor
+src/render/         canvas renderer, wing palettes, sprite store, placeholder baker
+src/editor/         the room editor — catalog, canvas painting, panel
 rooms/*.json        the rooms, plus manifest.json
+assets/             sprites, if there are any — optional
 docs/PORTING.md     how each piece maps back to the Unity project
+docs/ASSETS.md      the sprite pipeline, both directions
 ```
 
-`window.CK` exposes `{ game, audio, renderer }` in the console for poking at a running
-simulation: `CK.game.room.music.bpm = 160`.
+`window.CK` exposes `{ game, audio, renderer, assets }` in the console for poking at a
+running simulation: `CK.game.room.music.bpm = 160`.
 
 ## Publishing
 
@@ -107,5 +153,6 @@ Push, then in **Settings → Pages** choose *Deploy from a branch*, branch `main
 
 See [docs/PORTING.md](docs/PORTING.md). Naming was chosen to make this mechanical:
 `SoundWaveState`, `MusicalState`, `FaceAction`, `measureLength`, `onWaveEntered` all
-correspond one-to-one. The one real trap is the Y axis — screen space here is +y down,
+correspond one-to-one. Everything under `src/editor/` is prototype-only and should not
+be ported. The one real trap is the Y axis — screen space here is +y down,
 Unity 2D is +y up, which mirrors every CW/CCW rotation.

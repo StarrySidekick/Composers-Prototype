@@ -157,6 +157,94 @@ body.editing .editor {
   white-space: pre-wrap; font-family: ui-monospace, Menlo, monospace;
 }
 
+/* ---- editor: mode row ---- */
+.ed-modes { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg-btn {
+  background: var(--bg2); color: var(--dim); border: 0; cursor: pointer;
+  font: inherit; padding: 5px 12px;
+}
+.seg-btn.on { background: var(--gold); color: #241f18; font-weight: 600; }
+
+/* ---- editor: tools ---- */
+.tools { display: flex; gap: 4px; flex-wrap: wrap; }
+.tool {
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer;
+  background: var(--bg2); color: var(--ink); border: 1px solid var(--line);
+  font-size: 15px; line-height: 1; display: flex; align-items: center; justify-content: center;
+}
+.tool:hover { border-color: var(--gold); }
+.tool.on { background: var(--gold); color: #241f18; border-color: var(--gold); }
+.tool:disabled { opacity: .35; cursor: default; }
+
+/* ---- editor: palette ---- */
+.pal-group {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--dim); margin: 10px 0 4px;
+}
+.pal-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.brush {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: 58px; padding: 4px 2px; cursor: pointer;
+  background: var(--bg2); color: var(--dim);
+  border: 1px solid var(--line); border-radius: 6px;
+  font: inherit; font-size: 10px; line-height: 1.1; text-align: center;
+}
+.brush > span { width: 100%; overflow-wrap: anywhere; }
+.brush:hover { border-color: var(--gold); color: var(--ink); }
+.brush.on { border-color: var(--gold); background: #3a3118; color: var(--hot); }
+.brush-art {
+  width: 34px; height: 34px; border-radius: 3px;
+  background: #e8dcc0; image-rendering: pixelated;
+}
+
+/* ---- editor: inspector ---- */
+.inspector { display: grid; gap: 5px; }
+.insp-head { display: flex; align-items: center; gap: 6px; }
+.insp-head code {
+  color: var(--hot); background: var(--bg2); border-radius: 4px;
+  padding: 0 5px; font-family: ui-monospace, Menlo, monospace;
+}
+.insp-field {
+  display: grid !important; grid-template-columns: 92px 1fr; align-items: center; gap: 8px;
+}
+.insp-field input[type=checkbox] { justify-self: start; width: 16px; height: 16px; }
+.muted { color: var(--dim); font-size: 12px; margin: 2px 0; }
+
+/* ---- editor: assets ---- */
+.row.wrap { flex-wrap: wrap; }
+label.inline {
+  flex-direction: row !important; align-items: center; gap: 5px;
+  text-transform: none !important; letter-spacing: 0 !important; font-size: 12px !important;
+}
+label.inline input[type=number] { width: 62px; }
+.dropzone {
+  margin-top: 8px; padding: 12px 10px; text-align: center; font-size: 12px;
+  color: var(--dim); border: 1px dashed var(--line); border-radius: 8px;
+}
+.dropzone.over { border-color: var(--gold); color: var(--hot); }
+.dropzone code { color: var(--hot); font-family: ui-monospace, Menlo, monospace; }
+.slots { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 8px; }
+.slots-head { width: 100%; margin: 0 0 2px; }
+.slot {
+  font: 11px/1 ui-monospace, Menlo, monospace; cursor: pointer;
+  background: var(--bg2); color: var(--dim);
+  border: 1px solid var(--line); border-radius: 4px; padding: 3px 5px;
+}
+.slot:hover { border-color: var(--gold); }
+.slot.filled { color: var(--hot); border-color: #6a5a2e; }
+
+/* ---- editor: folded text views ---- */
+.ed-fold { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 8px; }
+.ed-fold summary {
+  cursor: pointer; font-size: 11px; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--dim);
+}
+.ed-fold[open] summary { margin-bottom: 8px; }
+
+/* Painting must not be fought over by the browser's own gestures. */
+body.building #stage { cursor: crosshair; touch-action: none; }
+
 /* ---- mobile ---- */
 @media (max-width: 860px), (pointer: coarse) {
   .gameboy { display: flex; }
@@ -164,8 +252,10 @@ body.editing .editor {
   main { flex-direction: column; }
   body.editing .editor {
     width: auto; flex: 1 1 auto; border-left: 0; border-top: 1px solid var(--line);
-    max-height: 50vh;
+    max-height: 52vh;
   }
-  body.editing .gameboy { display: none; }
+  /* The panel can stay open while you play — only build mode takes the pad's room. */
+  body.editing.building .gameboy { display: none; }
   .brand span { display: none; }
+  .brush { width: 52px; }
 }

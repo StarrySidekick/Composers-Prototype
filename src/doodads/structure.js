@@ -35,6 +35,8 @@ class Door extends Doodad {
   get blocksWave() { return !this.open; }
   set blocksWave(_) {}
 
+  get spriteKey() { return this.open ? 'door.open' : 'door'; }
+
   onWaveEntered(wave, ctx) {
     if (this.open) wave.pass(); else wave.destroy();
   }
@@ -74,6 +76,7 @@ class KeyShift extends Doodad {
     this.walkable = true;
     this.delta = spec.delta ?? 1;
   }
+  get spriteKey() { return this.delta > 0 ? 'keyshift.up' : 'keyshift.down'; }
   onWaveEntered(wave, ctx) { wave.pass(); }
   onPlayerEnter(ctx) {
     ctx.room.music.shiftKey(this.delta);

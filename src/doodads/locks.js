@@ -31,6 +31,8 @@ class TriggerLock extends Doodad {
     this.glow = 0;
   }
 
+  get spriteKey() { return this.lit ? 'lock.lit' : 'lock'; }
+
   onWaveEntered(wave, ctx) {
     this.lit = true;
     this.glow = 1;
@@ -81,6 +83,20 @@ class NoteLock extends Doodad {
     this.progress = 0;
     this.lastHeard = null;
     this.glow = 0;
+  }
+
+  get spriteKey() { return this.lit ? 'notelock.lit' : 'notelock'; }
+
+  // Progress pips belong on top of whatever art the lock ends up with.
+  overlay(c, s, ctx) {
+    const p = PALETTE.wing(ctx.room.wing);
+    const n = this.sequence.length;
+    for (let i = 0; i < n; i++) {
+      c.beginPath();
+      c.arc(s * (0.28 + (i * 0.44) / Math.max(1, n - 1)), s * 0.72, s * 0.05, 0, Math.PI * 2);
+      c.fillStyle = i < this.progress ? p.hot : p.ink;
+      c.fill();
+    }
   }
 
   // The game feeds every melodic note here (see Game's audio.onNote hook).
@@ -136,18 +152,11 @@ class NoteLock extends Doodad {
     c.strokeStyle = p.accent;
     c.lineWidth = 2;
     c.strokeRect(s * 0.14, s * 0.14, s * 0.72, s * 0.72);
-    // progress pips
-    const n = this.sequence.length;
-    for (let i = 0; i < n; i++) {
-      c.beginPath();
-      c.arc(s * (0.28 + (i * 0.44) / Math.max(1, n - 1)), s * 0.72, s * 0.05, 0, Math.PI * 2);
-      c.fillStyle = i < this.progress ? p.hot : p.ink;
-      c.fill();
-    }
     c.fillStyle = p.ink;
     c.font = `${Math.round(s * 0.34)}px ui-monospace, monospace`;
     c.textAlign = 'center';
     c.fillText('♫', s * 0.5, s * 0.52);
+    this.overlay(c, s, ctx);
     this.glow *= 0.9;
   }
 }

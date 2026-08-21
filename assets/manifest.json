@@ -1,0 +1,7 @@
+{
+  "_": "Sprite slots for the prototype. Empty is valid — every tile draws itself when no sprite is found. See docs/ASSETS.md.",
+  "tileSize": 32,
+  "sheets": {},
+  "sprites": {},
+  "unity": {}
+}

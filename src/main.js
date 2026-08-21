@@ -1,34 +1,48 @@
 import { AudioEngine } from './audio/audio-engine.js';
 import { Renderer } from './render/renderer.js';
+import { AssetStore } from './render/assets.js';
 import { Game } from './game.js';
 import { bindInput } from './input.js';
-import { buildEditor } from './editor.js';
+import { buildEditor } from './editor/index.js';
 
 const $ = (id) => document.getElementById(id);
 
 const audio = new AudioEngine();
-const renderer = new Renderer($('stage'));
+const assets = new AssetStore();
+const renderer = new Renderer($('stage'), assets);
 const game = new Game(audio, renderer);
 
 // Console handle — poke at the sim while it runs: CK.game.room.music.bpm = 160
-window.CK = { game, audio, renderer };
+window.CK = { game, audio, renderer, assets };
 
 let manifest = [];
 let editor = null;
+let building = false;
 
 async function boot() {
+  // Sprites are optional: an empty (or absent) assets/manifest.json just means every
+  // tile keeps drawing itself, which is the state this repo ships in.
+  await assets.load();
+
   manifest = await fetch('rooms/manifest.json').then(r => r.json());
   $('room-select').innerHTML = manifest
     .map(r => `<option value="${r.file}">${r.name}</option>`).join('');
 
   await loadRoomFile(manifest[0].file);
 
-  editor = buildEditor(game, {
+  editor = buildEditor(game, renderer, assets, {
     layoutBox: $('layout'), legendBox: $('legend'), hintBox: $('legend-hint'),
+    tools: $('ed-tools'), palette: $('ed-palette'), inspector: $('ed-inspector'),
+    assetsBox: $('ed-assets'),
     roomName: $('ed-name'), wing: $('ed-wing'), bpm: $('ed-bpm'), bpmOut: $('ed-bpm-out'),
     root: $('ed-root'), mode: $('ed-mode'), mood: $('ed-mood'), maxWaves: $('ed-waves'),
+    width: $('ed-width'), height: $('ed-height'), hint: $('ed-hint'),
     copyBtn: $('ed-copy'), downloadBtn: $('ed-download'),
-  }, refreshHud);
+  }, {
+    onReload: refreshHud,
+    onHint: (h) => { $('room-hint').textContent = h; },
+    toast: showToast,
+  });
   editor.syncFromRoom();
 
   bindInput(game, {
@@ -52,9 +66,25 @@ async function boot() {
     e.currentTarget.classList.toggle('on', audio.muted);
     e.currentTarget.textContent = audio.muted ? 'unmute' : 'mute';
   });
+
   $('toggle-editor').addEventListener('click', () => {
-    document.body.classList.toggle('editing');
+    const open = document.body.classList.toggle('editing');
+    setBuild(open);          // opening the panel is almost always "I want to build"
     renderer.resize(game.room);
+  });
+  $('toggle-build').addEventListener('click', () => {
+    if (!building) document.body.classList.add('editing');
+    setBuild(!building);
+    renderer.resize(game.room);
+  });
+  $('ed-mode-build').addEventListener('click', () => setBuild(true));
+  $('ed-mode-play').addEventListener('click', () => setBuild(false));
+
+  window.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z') { e.preventDefault(); (e.shiftKey ? editor.redo : editor.undo)(); }
+    else if (k === 'y') { e.preventDefault(); editor.redo(); }
   });
 
   window.addEventListener('resize', () => renderer.resize(game.room));
@@ -63,7 +93,17 @@ async function boot() {
   game.onToast = showToast;
   game.onRoomComplete = () => showToast('★ Room resolved');
 
+  setBuild(false);
   requestAnimationFrame(loop);
+}
+
+function setBuild(on) {
+  building = !!on;
+  document.body.classList.toggle('building', building);
+  $('toggle-build').classList.toggle('on', building);
+  $('ed-mode-build').classList.toggle('on', building);
+  $('ed-mode-play').classList.toggle('on', !building);
+  editor?.setMode(building ? 'build' : 'play');
 }
 
 async function loadRoomFile(file) {

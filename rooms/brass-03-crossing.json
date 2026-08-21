@@ -1,0 +1,22 @@
+{
+  "id": "brass-03-crossing",
+  "name": "Crossing",
+  "wing": "brass",
+  "hint": "One wave, two locks, and a circuit that has to get past itself. Press B on the slide and the mute to hear what they do to the horn.",
+  "maxWaves": 1,
+  "music": { "root": 4, "mode": "lydian", "bpm": 100, "timeSignature": 4, "mood": "mysterious" },
+  "layout": [
+    "##############",
+    "#............#",
+    "#.@.M-T-S--7.#",
+    "#.....|....|.#",
+    "#.....|....|.#",
+    "#.*-u-+----J.#",
+    "#.....|......#",
+    "#.....*......#",
+    "#............#",
+    "######D#######",
+    "#.....X......#",
+    "##############"
+  ]
+}

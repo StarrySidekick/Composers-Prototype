@@ -60,8 +60,10 @@ export class AudioEngine {
     return g;
   }
 
-  // Main entry point. family selects the voice; midi is already snapped to the room's scale.
-  play({ family = 'brass', midi = 60, intensity = 1, when = 0, modulation = 0 }) {
+  // Main entry point. family selects the voice; midi is already snapped to the room's
+  // scale. `kind` names a percussion piece directly (bass/tom/snare/hat/cymbal); when
+  // it is absent the old modulation-as-drum-selector mapping is used instead.
+  play({ family = 'brass', midi = 60, intensity = 1, when = 0, modulation = 0, kind = null }) {
     if (this.muted) return;
     const t = Math.max(when || this.now, this.now);
     const freq = midiToFreq(midi);
@@ -71,7 +73,8 @@ export class AudioEngine {
       case 'strings':    this._pluck(freq, amp, t); break;
       case 'woodwind':   this._reed(freq, amp, t, modulation); break;
       case 'keys':       this._key(freq, amp, t); break;
-      case 'percussion': this._drum(freq, amp, t, modulation); break;
+      case 'percussion': this._drum(freq, amp, t, modulation, kind); break;
+      case 'timpani':    this._timpani(freq, amp, t, modulation); break;
       case 'sour':       this._brass(freq * 1.03, amp, t, 0.9); break;
       case 'brass':
       default:           this._brass(freq, amp, t, modulation); break;
@@ -216,29 +219,34 @@ export class AudioEngine {
     mod.start(t); mod.stop(t + 1.2);
   }
 
-  // modulation doubles as drum selector: 0 = bass, 0.5 = snare, 1 = hat
-  _drum(freq, amp, t, modulation = 0) {
-    const kind = modulation < 0.25 ? 'bass' : modulation < 0.75 ? 'snare' : 'hat';
+  // `kind` picks the piece of the kit. Without one, modulation still selects:
+  // 0 = bass, 0.5 = snare, 1 = hat, the mapping the first face tables were written to.
+  _drum(freq, amp, t, modulation = 0, kind = null) {
+    kind = kind ?? (modulation < 0.25 ? 'bass' : modulation < 0.75 ? 'snare' : 'hat');
     const env = this.ctx.createGain();
 
-    if (kind === 'bass') {
+    if (kind === 'bass' || kind === 'tom') {
+      // Same membrane, different size: a tom starts higher and falls less far.
+      const tom = kind === 'tom';
+      const f0 = tom ? Math.max(150, freq * 1.6) : Math.max(90, freq);
+      const f1 = tom ? Math.max(80, freq * 0.8) : Math.max(38, freq * 0.35);
       const osc = this.ctx.createOscillator();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(Math.max(90, freq), t);
-      osc.frequency.exponentialRampToValueAtTime(Math.max(38, freq * 0.35), t + 0.13);
-      env.gain.setValueAtTime(amp * 0.85, t);
-      env.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+      osc.frequency.setValueAtTime(f0, t);
+      osc.frequency.exponentialRampToValueAtTime(f1, t + (tom ? 0.09 : 0.13));
+      env.gain.setValueAtTime(amp * (tom ? 0.6 : 0.85), t);
+      env.gain.exponentialRampToValueAtTime(0.0001, t + (tom ? 0.3 : 0.35));
       osc.connect(env);
-      osc.start(t); osc.stop(t + 0.4);
+      osc.start(t); osc.stop(t + 0.45);
     } else {
       const noise = this.ctx.createBufferSource();
       noise.buffer = this._noiseBuffer();
       const bp = this.ctx.createBiquadFilter();
       bp.type = kind === 'snare' ? 'bandpass' : 'highpass';
-      bp.frequency.value = kind === 'snare' ? 1900 : 7000;
+      bp.frequency.value = kind === 'snare' ? 1900 : kind === 'cymbal' ? 5200 : 7000;
       bp.Q.value = kind === 'snare' ? 0.8 : 1;
-      const dur = kind === 'snare' ? 0.19 : 0.055;
-      env.gain.setValueAtTime(amp * (kind === 'snare' ? 0.4 : 0.24), t);
+      const dur = kind === 'snare' ? 0.19 : kind === 'cymbal' ? 1.4 : 0.055;
+      env.gain.setValueAtTime(amp * (kind === 'snare' ? 0.4 : kind === 'cymbal' ? 0.2 : 0.24), t);
       env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       noise.connect(bp); bp.connect(env);
       noise.start(t); noise.stop(t + dur + 0.05);
@@ -256,7 +264,42 @@ export class AudioEngine {
       }
     }
 
-    this._out(env, 1, 0.6);
+    this._out(env, 1, kind === 'cymbal' ? 1 : 0.6);
+  }
+
+  // A tuned kettle drum. Pitched enough to belong to a phrase, which is why the game
+  // feeds it to the note locks and does not feed the rest of the kit to them.
+  _timpani(freq, amp, t) {
+    const f = Math.max(45, Math.min(220, freq));
+    const env = this.ctx.createGain();
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.exponentialRampToValueAtTime(amp * 0.6, t + 0.012);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + 1.05);
+
+    for (const [mult, level] of [[1, 1], [1.5, 0.32], [2.02, 0.18]]) {
+      const osc = this.ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f * mult * 1.05, t);
+      osc.frequency.exponentialRampToValueAtTime(f * mult, t + 0.09);
+      const g = this.ctx.createGain();
+      g.gain.value = level;
+      osc.connect(g); g.connect(env);
+      osc.start(t); osc.stop(t + 1.2);
+    }
+
+    // The mallet's felt thump.
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this._noiseBuffer();
+    const lp = this.ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 900;
+    const ng = this.ctx.createGain();
+    ng.gain.setValueAtTime(amp * 0.22, t);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+    noise.connect(lp); lp.connect(ng); ng.connect(env);
+    noise.start(t); noise.stop(t + 0.12);
+
+    this._out(env, 1, 0.8);
   }
 
   // Metronome tick — the BeatClock made audible while you author a room.

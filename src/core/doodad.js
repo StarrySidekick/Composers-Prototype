@@ -36,6 +36,15 @@ export class Doodad {
 
   get typeName() { return this.constructor.type; }
 
+  // Which sprite this tile wants from the AssetStore. Sub-classes that look different
+  // in different states (an open door, a lit lock) override it. If the store has no
+  // image under that key — the normal case — the renderer calls draw() instead.
+  get spriteKey() { return this.part ? `${this.typeName}.${this.part}` : this.typeName; }
+
+  // Sprites are authored unrotated and rotated by the renderer, the same way draw()
+  // rotates itself. A doodad whose art shouldn't spin returns 0.
+  get spriteRot() { return this.rot; }
+
   // Default matches SoundWave.MoveRoutine: an unhandled blocking tile eats the wave,
   // a non-blocking tile is traversed.
   onWaveEntered(wave, ctx) {
@@ -92,6 +101,10 @@ export class Doodad {
     }
     return count;
   }
+
+  // Drawn on top of the sprite when one exists, and by draw() when one doesn't —
+  // readouts that a picture can't carry, like a timpani's tuning or a key's degree.
+  overlay(c, s, ctx) {}
 
   // Sub-classes override. `c` is translated so (0,0) is the tile's top-left corner.
   draw(c, s, ctx) {

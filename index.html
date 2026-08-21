@@ -18,6 +18,7 @@
   <button id="mute" class="chip">mute</button>
   <button id="reset" class="chip" title="Reset room (R)">reset</button>
   <button id="toggle-editor" class="chip primary">editor</button>
+  <button id="toggle-build" class="chip" title="Paint on the canvas">build</button>
 </header>
 
 <main>
@@ -56,6 +57,25 @@
   </section>
 
   <aside class="editor">
+    <div class="ed-modes">
+      <div class="seg">
+        <button id="ed-mode-build" class="seg-btn">build</button>
+        <button id="ed-mode-play" class="seg-btn">play</button>
+      </div>
+      <span class="spacer"></span>
+      <button id="ed-copy" class="chip" title="Copy the room JSON">copy</button>
+      <button id="ed-download" class="chip" title="Download the room JSON">.json</button>
+    </div>
+
+    <h2>Tools</h2>
+    <div id="ed-tools" class="tools"></div>
+
+    <h2>Palette</h2>
+    <div id="ed-palette" class="palette"></div>
+
+    <h2>Tile</h2>
+    <div id="ed-inspector" class="inspector"></div>
+
     <h2>Room</h2>
     <div class="grid2">
       <label>name<input id="ed-name" type="text"></label>
@@ -64,25 +84,29 @@
       <label>mode<select id="ed-mode"></select></label>
       <label>mood<select id="ed-mood"></select></label>
       <label>max waves<input id="ed-waves" type="number" min="1" max="5" step="1"></label>
+      <label>width<input id="ed-width" type="number" min="3" max="64" step="1"></label>
+      <label>height<input id="ed-height" type="number" min="3" max="64" step="1"></label>
     </div>
     <label class="wide">
       <span>tempo — <output id="ed-bpm-out">120</output> bpm</span>
       <input id="ed-bpm" type="range" min="50" max="220" step="1">
     </label>
+    <label class="wide"><span>hint</span><input id="ed-hint" type="text"></label>
 
-    <h2>Layout</h2>
-    <textarea id="layout" spellcheck="false" rows="14"></textarea>
+    <h2>Assets <small>— sprites, real or placeholder</small></h2>
+    <div id="ed-assets" class="assets"></div>
 
-    <h2>Legend overrides <small>(JSON, merged over the defaults)</small></h2>
-    <textarea id="legend" spellcheck="false" rows="5">{}</textarea>
+    <details class="ed-fold">
+      <summary>Layout as text</summary>
+      <textarea id="layout" spellcheck="false" rows="12"></textarea>
+      <h2>Legend overrides <small>(JSON, merged over the defaults)</small></h2>
+      <textarea id="legend" spellcheck="false" rows="4">{}</textarea>
+    </details>
 
-    <div class="row">
-      <button id="ed-copy" class="chip">copy JSON</button>
-      <button id="ed-download" class="chip">download .json</button>
-    </div>
-
-    <h2>Characters</h2>
-    <div id="legend-hint" class="legend-hint"></div>
+    <details class="ed-fold">
+      <summary>Characters</summary>
+      <div id="legend-hint" class="legend-hint"></div>
+    </details>
   </aside>
 </main>
 

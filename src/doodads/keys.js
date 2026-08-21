@@ -38,6 +38,15 @@ class PianoKey extends Doodad {
   onPlayerEnter(ctx) { this.press_(ctx, 0.9); }
   onPlayerInteract(ctx) { this.press_(ctx, 1); return true; }
 
+  overlay(c, s, ctx) {
+    const p = PALETTE.wing('keys');
+    c.fillStyle = p.ink;
+    c.font = `${Math.round(s * 0.26)}px ui-monospace, monospace`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillText(String(this.degree + 1), s * 0.5, s * 0.52 + this.press * s * 0.06);
+  }
+
   draw(c, s, ctx) {
     const p = PALETTE.wing('keys');
     const d = this.press * s * 0.06;
@@ -46,11 +55,7 @@ class PianoKey extends Doodad {
     c.strokeStyle = p.metal;
     c.lineWidth = 1.5;
     c.strokeRect(s * 0.12, s * 0.1 + d, s * 0.76, s * 0.8);
-    c.fillStyle = p.ink;
-    c.font = `${Math.round(s * 0.26)}px ui-monospace, monospace`;
-    c.textAlign = 'center';
-    c.textBaseline = 'middle';
-    c.fillText(String(this.degree + 1), s * 0.5, s * 0.52 + d);
+    this.overlay(c, s, ctx);
     this.press *= 0.86;
   }
 }

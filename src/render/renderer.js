@@ -7,11 +7,15 @@ import { PALETTE } from './palette.js';
 import { DIR } from '../core/direction.js';
 
 export class Renderer {
-  constructor(canvas) {
+  constructor(canvas, assets = null) {
     this.canvas = canvas;
     this.c = canvas.getContext('2d');
     this.tile = 40;
     this.ox = 0; this.oy = 0;
+    this.assets = assets;
+    // Set by the editor: where the brush is hovering, what is selected, whether the
+    // grid should be loud. Null when playing.
+    this.edit = null;
   }
 
   resize(room) {
@@ -50,7 +54,7 @@ export class Renderer {
         if (!d) continue;
         c.save();
         c.translate(x * s, y * s);
-        d.draw(c, s, game.ctx);
+        this._doodad(d, s, game.ctx);
         c.restore();
       }
     }
@@ -58,8 +62,30 @@ export class Renderer {
     this._waves(game, s, p);
     this._player(game, s, p);
     this._beatPulse(game, s, p);
+    if (this.edit?.active) this._editOverlay(room, s, p);
 
     c.restore();
+  }
+
+  // A tile draws itself unless the asset store has a picture of it. The sprite is
+  // authored unrotated, so the renderer applies `rot` the same way draw() would.
+  _doodad(d, s, ctx) {
+    const sprite = this.assets?.get(d.spriteKey);
+    const c = this.c;
+    if (!sprite) { d.draw(c, s, ctx); return; }
+    c.imageSmoothingEnabled = false;
+    const rot = d.spriteRot;
+    if (rot) {
+      c.save();
+      c.translate(s / 2, s / 2);
+      c.rotate((rot * Math.PI) / 180);
+      c.drawImage(sprite.image, sprite.sx, sprite.sy, sprite.sw, sprite.sh, -s / 2, -s / 2, s, s);
+      c.restore();
+    } else {
+      c.drawImage(sprite.image, sprite.sx, sprite.sy, sprite.sw, sprite.sh, 0, 0, s, s);
+    }
+    c.imageSmoothingEnabled = true;
+    d.overlay(c, s, ctx);
   }
 
   _floor(room, s, p) {
@@ -165,6 +191,49 @@ export class Renderer {
     c.moveTo(d.x * s * 0.18, d.y * s * 0.18);
     c.lineTo(d.x * s * 0.44, d.y * s * 0.44);
     c.stroke();
+    c.restore();
+  }
+
+  // Build mode: a legible grid, the hovered cell, and the selected cell.
+  _editOverlay(room, s, p) {
+    const c = this.c;
+    const { hover, selected, erasing, rect } = this.edit;
+
+    c.save();
+    c.strokeStyle = 'rgba(217,164,65,0.20)';
+    c.lineWidth = 1;
+    for (let x = 0; x <= room.width; x++) {
+      c.beginPath(); c.moveTo(x * s + 0.5, 0); c.lineTo(x * s + 0.5, room.height * s); c.stroke();
+    }
+    for (let y = 0; y <= room.height; y++) {
+      c.beginPath(); c.moveTo(0, y * s + 0.5); c.lineTo(room.width * s, y * s + 0.5); c.stroke();
+    }
+
+    if (selected && room.inBounds(selected.x, selected.y)) {
+      c.strokeStyle = '#ffd97a';
+      c.lineWidth = 2;
+      c.setLineDash([4, 3]);
+      c.strokeRect(selected.x * s + 1, selected.y * s + 1, s - 2, s - 2);
+      c.setLineDash([]);
+    }
+
+    if (rect && rect.a && rect.b) {
+      const x0 = Math.min(rect.a.x, rect.b.x), x1 = Math.max(rect.a.x, rect.b.x);
+      const y0 = Math.min(rect.a.y, rect.b.y), y1 = Math.max(rect.a.y, rect.b.y);
+      c.fillStyle = 'rgba(255,217,122,0.18)';
+      c.fillRect(x0 * s, y0 * s, (x1 - x0 + 1) * s, (y1 - y0 + 1) * s);
+      c.strokeStyle = '#ffd97a';
+      c.lineWidth = 2;
+      c.strokeRect(x0 * s + 1, y0 * s + 1, (x1 - x0 + 1) * s - 2, (y1 - y0 + 1) * s - 2);
+    }
+
+    if (hover && room.inBounds(hover.x, hover.y)) {
+      c.fillStyle = erasing ? 'rgba(180,70,70,0.22)' : 'rgba(255,217,122,0.22)';
+      c.fillRect(hover.x * s, hover.y * s, s, s);
+      c.strokeStyle = erasing ? '#c05a5a' : '#ffd97a';
+      c.lineWidth = 2;
+      c.strokeRect(hover.x * s + 1, hover.y * s + 1, s - 2, s - 2);
+    }
     c.restore();
   }
 
