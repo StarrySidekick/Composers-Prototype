@@ -31,6 +31,18 @@ Then open <http://localhost:8080>. On GitHub Pages it just works — see *Publis
 On touch, the same six inputs are the on-screen Game Boy at the bottom. Everything is
 designed touch-first, per GDD §9 — nothing here can be authored that a phone can't play.
 
+## Debug
+
+**debug** in the top bar opens a testing strip for watching the sim think: pause the
+beat clock (`P`), step it one subdivision (`.`) or one whole beat, and run at ¼×–4×
+speed. While it's open, every live wave is labelled on the canvas with its
+`SoundWaveState` (note name, intensity, modulation) and the strip shows three live
+readouts — the wave list, the note feed exactly as the note locks hear it (drums and
+sour notes marked as inaudible to locks), and every lock's truth: a note lock's wanted
+phrase as note names with the part it has already heard in brackets. Closing the panel
+returns the sim to real time. None of it ports to Unity — it's the prototype's stand-in
+for an inspector window.
+
 ## Author
 
 Hit **build**. Pick a piece out of the palette, draw it onto the room, and play it — the

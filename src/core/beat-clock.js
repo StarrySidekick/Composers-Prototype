@@ -14,10 +14,12 @@ export class BeatClock {
     this.startTime = audioCtx.currentTime;
     this.index = -1; // last fired subdivision
     this.running = false;
+    this.paused = false;
+    this.rate = 1; // debug time-scale; 1 is real time. Not ported — Unity has its own timeScale.
   }
 
   get beatInterval() { return 60 / this.bpm; }
-  get subInterval()  { return this.beatInterval / this.subdivisionsPerBeat; }
+  get subInterval()  { return this.beatInterval / this.subdivisionsPerBeat / this.rate; }
 
   start() {
     this.startTime = this.ctx.currentTime;
@@ -35,11 +37,42 @@ export class BeatClock {
     this.startTime = anchor - this.index * this.subInterval;
   }
 
+  setRate(rate) {
+    if (!rate || rate === this.rate) return;
+    const anchor = this.timeOf(this.index);
+    this.rate = rate;
+    this.startTime = anchor - this.index * this.subInterval;
+  }
+
+  pause() { this.paused = true; }
+
+  resume() {
+    // Rebase so the next subdivision is exactly one interval away — no backlog burst.
+    this.startTime = this.ctx.currentTime - this.index * this.subInterval;
+    this.paused = false;
+  }
+
+  // Fire the next subdivision by hand, wherever the wall clock is. Used by the debug
+  // transport to single-step the sim while paused.
+  stepOnce() {
+    this.index++;
+    const time = this.ctx.currentTime + LOOKAHEAD;
+    // Keep timeOf(index) == now so `phase` animates the step it just took.
+    this.startTime = time - this.index * this.subInterval;
+    return {
+      index: this.index,
+      time,
+      beat: Math.floor(this.index / this.subdivisionsPerBeat),
+      isBeat: this.index % this.subdivisionsPerBeat === 0,
+      beatInBar: Math.floor(this.index / this.subdivisionsPerBeat) % 4,
+    };
+  }
+
   timeOf(index) { return this.startTime + index * this.subInterval; }
 
   // Returns the subdivisions that have come due since the last call.
   poll() {
-    if (!this.running) return [];
+    if (!this.running || this.paused) return [];
     const now = this.ctx.currentTime + LOOKAHEAD;
 
     // A backgrounded tab stops requestAnimationFrame. Without this the clock would

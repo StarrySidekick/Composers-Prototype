@@ -130,20 +130,34 @@ export class Game {
 
   // ---- loop ---------------------------------------------------------------
 
+  // One subdivision of simulation: beat events, then every wave takes its step.
+  processTick(ev) {
+    this.scheduledTime = ev.time;
+    if (ev.isBeat) {
+      this.lastBeat = ev.beat;
+      if (this.metronome) this.audio.click(ev.time, ev.beat % this.room.music.timeSignature === 0);
+      for (const d of this.room.list) d.onBeat(ev.beat, this.ctx);
+    }
+    for (const w of this.waves) w.step(this.ctx);
+    this.waves = this.waves.filter(w => w.alive);
+  }
+
+  // Debug transport. Pause stops the clock (the player can still move and fire —
+  // spawned waves just wait for the next tick); step fires exactly one subdivision.
+  get paused() { return this.clock.paused; }
+  setPaused(on) { on ? this.clock.pause() : this.clock.resume(); }
+
+  stepOnce() {
+    if (!this.room) return;
+    this.processTick(this.clock.stepOnce());
+    this.scheduledTime = 0;
+  }
+
   update() {
     if (!this.room) return;
     this.clock.setBpm(this.room.music.bpm);
 
-    for (const ev of this.clock.poll()) {
-      this.scheduledTime = ev.time;
-      if (ev.isBeat) {
-        this.lastBeat = ev.beat;
-        if (this.metronome) this.audio.click(ev.time, ev.beat % this.room.music.timeSignature === 0);
-        for (const d of this.room.list) d.onBeat(ev.beat, this.ctx);
-      }
-      for (const w of this.waves) w.step(this.ctx);
-      this.waves = this.waves.filter(w => w.alive);
-    }
+    for (const ev of this.clock.poll()) this.processTick(ev);
     this.scheduledTime = 0;
 
     // smooth the player sprite toward its tile

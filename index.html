@@ -17,6 +17,7 @@
   <button id="metronome" class="chip" title="Metronome (M)">metro</button>
   <button id="mute" class="chip">mute</button>
   <button id="reset" class="chip" title="Reset room (R)">reset</button>
+  <button id="toggle-debug" class="chip" title="Sim transport &amp; state readouts (P pauses)">debug</button>
   <button id="toggle-editor" class="chip primary">editor</button>
   <button id="toggle-build" class="chip" title="Paint on the canvas">build</button>
 </header>
@@ -34,6 +35,8 @@
       <canvas id="stage"></canvas>
       <div id="toast" class="toast"></div>
     </div>
+
+    <div id="debug" class="debug" hidden></div>
 
     <p id="room-hint" class="room-hint"></p>
 

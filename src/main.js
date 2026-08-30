@@ -4,6 +4,7 @@ import { AssetStore } from './render/assets.js';
 import { Game } from './game.js';
 import { bindInput } from './input.js';
 import { buildEditor } from './editor/index.js';
+import { buildDebug } from './debug.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -17,6 +18,7 @@ window.CK = { game, audio, renderer, assets };
 
 let manifest = [];
 let editor = null;
+let debug = null;
 let building = false;
 
 async function boot() {
@@ -44,6 +46,10 @@ async function boot() {
     toast: showToast,
   });
   editor.syncFromRoom();
+
+  debug = buildDebug(game, renderer, {
+    panel: $('debug'), toggleBtn: $('toggle-debug'),
+  });
 
   bindInput(game, {
     'pad-up': $('pad-up'), 'pad-down': $('pad-down'),
@@ -139,6 +145,7 @@ function loop() {
   renderer.draw(game);
   $('hud-waves').textContent = '◉'.repeat(game.activeWaves).padEnd(game.room.maxWaves, '○');
   refreshHudLight();
+  debug?.update();
   requestAnimationFrame(loop);
 }
 

@@ -5,6 +5,7 @@
 
 import { PALETTE } from './palette.js';
 import { DIR } from '../core/direction.js';
+import { midiName } from '../core/music.js';
 
 export class Renderer {
   constructor(canvas, assets = null) {
@@ -16,6 +17,8 @@ export class Renderer {
     // Set by the editor: where the brush is hovering, what is selected, whether the
     // grid should be loud. Null when playing.
     this.edit = null;
+    // Debug overlay: per-wave state labels. Toggled by the debug panel.
+    this.debug = false;
   }
 
   resize(room) {
@@ -141,9 +144,36 @@ export class Renderer {
       c.arc(0, 0, r * 1.8, 0, Math.PI * 2);
       c.lineWidth = 1.5;
       c.stroke();
+
+      if (this.debug) this._waveLabel(w, s, p);
       c.restore();
     }
     c.globalAlpha = 1;
+  }
+
+  // Debug: the wave's SoundWaveState, pinned to the wave. Pitch as a note name,
+  // intensity and modulation as bars would be unreadable at this size — numbers win.
+  _waveLabel(w, s, p) {
+    const c = this.c;
+    c.globalAlpha = 1;
+
+    // heading arrow
+    c.strokeStyle = '#ffffff';
+    c.lineWidth = 2;
+    c.beginPath();
+    c.moveTo(0, 0);
+    c.lineTo(w.dir.x * s * 0.45, w.dir.y * s * 0.45);
+    c.stroke();
+
+    const text = `${midiName(w.state.pitch)} i${w.state.intensity.toFixed(2)} m${w.state.modulation.toFixed(2)}`;
+    c.font = `${Math.max(9, Math.round(s * 0.24))}px ui-monospace, monospace`;
+    c.textAlign = 'center';
+    const wd = c.measureText(text).width + 6;
+    const yy = -s * 0.5;
+    c.fillStyle = 'rgba(24,20,14,0.85)';
+    c.fillRect(-wd / 2, yy - s * 0.28, wd, s * 0.32);
+    c.fillStyle = '#ffd97a';
+    c.fillText(text, 0, yy - s * 0.04);
   }
 
   _player(game, s, p) {
