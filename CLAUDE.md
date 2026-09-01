@@ -28,12 +28,27 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
 - Rooms are fetched, so `file://` won't work — `python3 -m http.server 8080`.
 - Everything a doodad plays is snapped to the room's scale via `MusicalState.getNote`.
   Never call the audio engine with a raw frequency; go through a scale degree.
+- **`SoundWave.step` calls `doodad.receiveWave`, not `onWaveEntered`.** The base class
+  runs the busy-check, melee routing and beat hold there first (mirroring the sealed
+  `InstrumentBase.OnWaveEntered`). `onWaveEntered` is still what you override.
+- **Legend characters collide silently.** `DEFAULT_LEGEND` is an object literal, so a
+  repeated character just wins and the earlier doodad loses its slot with no warning.
+  Check the existing set before claiming one.
 - **A horn's length is traced through open edges** (`BrassTube.traceHorn`), not
   flood-filled by family like `measureLength`. Tubes that touch but aren't joined are
   separate instruments. `edges` in the brass `PARTS` table is what decides that, and it
   is in local space like the face table.
 - **Editor edits mutate the live room; they never reload it.** `Room.setTileChar` /
   `setOverride` rebuild one tile. Reloading would reset every lock and door mid-build.
+
+## Assets
+
+`assets/` holds real art and audio copied from the Unity project — see the tables in
+`docs/PORTING.md` and `docs/ASSETS.md` before changing any of it. Rotation, ink colour
+and square padding are **baked into the PNGs**, not applied in code, because
+`AssetStore` blits a slice verbatim. The horn samples are named an octave low; the
+measured pitches live in `src/audio/sampler.js`. All of it is optional — delete
+`assets/` and the harness runs on `draw()` and the synth voices.
 
 ## Adding a doodad
 

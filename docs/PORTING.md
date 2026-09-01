@@ -80,6 +80,47 @@ written by hand.
 note locks hear. The timpani plays on family `timpani` precisely so that it is *not*
 excluded — it is the one piece of the kit that can answer a phrase.
 
+## Assets carried over from Unity
+
+Copied out of `Assets/` in the Unity project, not authored here. The `unity` block in
+`assets/manifest.json` records where each slot came from, so re-exporting after an art
+change is a scripted copy rather than archaeology.
+
+| Prototype | Unity source | Baked in |
+|---|---|---|
+| `assets/sprites/*.png` | `Assets/Sprites` | rotation, ink colour, square padding — see below |
+| `assets/audio/{cello,horn}/*.m4a` | `Assets/Sounds/{Cello,Horn}` | 32-bit float WAV → AAC 96 kbps (7.6 MB → 276 KB) |
+| `assets/audio/perc/*.m4a` | `Assets/Sounds/Bass Drum.wav`, `Click.wav` | same |
+| `assets/concept/*.png` | `Assets/Sprites/Untitled_Artwork*` | nothing — concept art, referenced by no slot |
+
+Three transforms are baked into the sprite files rather than carried in code, because
+`AssetStore` blits a slice verbatim and that is the right contract to keep:
+
+- **Rotation.** The tube art is drawn *vertical* at rest — `Tube Straight.png` connects
+  top+bottom and `Tube Elbow.png` is a "┌" — while `assets/` is authored unrotated and
+  the renderer applies `spriteRot`. The straight, elbow and string are turned 90° CW
+  once, on disk, so `brass.straight` connects left+right and `brass.elbow` is the "┐"
+  that `PARTS.elbow.edges` describes. **The mouthpiece and flare are already horizontal
+  in the source and must not be turned** — their cup and bell already match
+  `edges: ['right']` and `edges: ['left']`.
+- **Colour.** The source is white line-work on transparency, which Unity tints per
+  object with `SpriteRenderer.color`. The store blits untinted, so white would be
+  invisible on parchment: the ink (`#3a3226`) is baked in, and `lock.lit` is a second
+  bake of the same fork in `#c8791a`. The cost is that sprites no longer follow the
+  wing palettes the way `draw()` does.
+- **Squareness.** `Key.png` is 51×102 and `ProtoPlayer.png` is 100×140. The store blits
+  into a square tile, so both are padded to square rather than squashed.
+
+**The horn samples are misnamed by an octave.** Every file was pitch-detected by
+autocorrelation rather than trusted: `Cello/C2..C3` really is MIDI 36–48, but
+`Horn/C2..C3` is MIDI **48–60**. `src/audio/sampler.js` encodes the measured pitches.
+Fix the names on the Unity side and that table has to move with them.
+
+13 of the 34 sprite slots are filled — the ones there is art for. The rest fall through
+to `draw()`, which is the designed behaviour, not a gap to rush. `player` and `wave` are
+extra keys outside `spriteSlots()`; the store resolves any key, but the editor's
+drop-zone matcher only offers the enumerated ones.
+
 ## Conventions carried over verbatim
 
 **Face naming.** A face is named by the wave's *direction of travel in the doodad's local
@@ -96,6 +137,31 @@ octave 5 is middle C (60) — identical to `MusicalState.GetNote`.
 
 **String length thresholds.** 1–2 tiles violin (oct 5), 3–4 viola (4), 5–6 cello (3),
 7+ bass (2). Straight from `String.cs`.
+
+**Melee strike.** `Asta.StrikeAt` spawns a wave on the struck tile tagged
+`WaveSource.MeleeStrike`, offers it to the instrument, then destroys it — it never
+travels. `Game.strikeAt` does the same. Instruments opt in by overriding
+`onMeleeStrike`; the base declines, because in Unity a wall implements no interface at
+all. `BrassTube` takes a strike only on the mouthpiece tile *and* only on a face that
+isn't `Block` — every other tube tile has non-Block faces purely to route real waves,
+so the face action alone can't identify the mouthpiece.
+
+**Sealed wave entry.** `SoundWave.step` calls `doodad.receiveWave`, never
+`onWaveEntered` — the base runs the busy-check, melee routing and beat hold first,
+exactly as `InstrumentBase.OnWaveEntered` does before handing off to
+`ApplyWaveInteraction`. `onWaveEntered` stays the doodad extension point, so the
+subclasses did not need Unity's `ApplyWaveInteraction` rename.
+
+**Wave hold.** `holdBeats > 0` parks an incoming wave for N beats before resolving it,
+and an instrument that is already holding destroys the next wave to arrive. Ticked from
+`Game.update` via `tickHold`, kept separate from `onBeat` so a subclass overriding
+`onBeat` can never strand a held wave.
+
+**Player face actions.** `canPlayerEnterFrom(dir)` mirrors
+`IPlayerFaceInteractable.CanPlayerEnterFrom` and uses the *same* face-naming rule as
+waves: moving right consults the `right` face, matching
+`Strumentino.GetPlayerFaceAction`. `Room.canEnter` consults it and falls back to the
+plain `solid` flag for doodads without the hook.
 
 **Karplus-Strong decay.** The per-pluck decay is solved so every pitch reaches −60 dB in
 the same wall-clock time, because decay is applied once per delay-line cycle rather than

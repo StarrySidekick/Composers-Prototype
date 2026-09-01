@@ -69,6 +69,7 @@ export const GROUPS = [
   },
   {
     id: 'puzzle', label: 'Locks', brushes: [
+      { char: 'i', label: 'strumentino', hint: 'blank per-face instrument — set faces / playerFaces in the legend' },
       { char: '*', label: 'lock', hint: 'lit by any wave' },
       { char: 'n', label: 'note lock', hint: 'wants a phrase — press B to hear it' },
     ],

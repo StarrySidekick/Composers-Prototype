@@ -5,3 +5,4 @@ import './strings.js';
 import './percussion.js';
 import './keys.js';
 import './locks.js';
+import './strumentino.js';

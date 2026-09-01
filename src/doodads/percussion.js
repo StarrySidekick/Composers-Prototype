@@ -75,6 +75,8 @@ class Drum extends Doodad {
     this.applyFaceAction(action, wave, ctx);
   }
 
+  onMeleeStrike(wave, ctx) { this.strike(wave.state.intensity, ctx); return true; }
+
   // Timpani are tuned by hand — press B to walk the drum up the room's scale.
   // Everything else just sounds when you hit it.
   onPlayerInteract(ctx) {

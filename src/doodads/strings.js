@@ -47,6 +47,7 @@ class StringSegment extends Doodad {
 
   // Strumming works from any tile, any face — this is Coda deliberately plucking.
   onPlayerInteract(ctx) { this.pluck(1, ctx); return true; }
+  onMeleeStrike(wave, ctx) { this.pluck(wave.state.intensity, ctx); return true; }
 
   onPlayerEnter(ctx) { this.pluck(0.45, ctx); }
 

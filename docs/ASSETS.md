@@ -85,6 +85,22 @@ The atlas is baked in the current room's **wing** palette, because walls, doors 
 are wing-tinted. Export one per wing if you need all of them; the filename carries the
 wing (`placeholders-brass.png`).
 
+## What is in assets/ right now
+
+The Unity project's own art, filling 13 of the slots — brass straight/elbow/mouthpiece/
+flare, string, peg, wall, door, drum.bass, mallet, pianokey, lock and lock.lit — plus two
+keys that are not tiles: `player` and `wave`. Everything else still draws itself.
+
+Those PNGs are **not** byte-copies of `Assets/Sprites`. Rotation, ink colour and square
+padding are baked into them, and the reasoning is in
+[PORTING.md](PORTING.md#assets-carried-over-from-unity). Two things to know before you
+re-export anything:
+
+- The tube art is drawn vertical in Unity and has been turned 90° here. The mouthpiece
+  and flare are drawn horizontal and have *not*.
+- The art is white line-work; the ink colour is baked in because the store blits
+  untinted. Sprites therefore do not follow the wing palettes — `draw()` still does.
+
 ## Bringing real art in from Unity
 
 There is no path from this repo to the Unity project — it is a separate tree — so this is

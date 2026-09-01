@@ -131,6 +131,20 @@ export class Renderer {
       c.save();
       c.translate(x, y);
       c.globalAlpha = a;
+
+      // Coda and the wave are not tiles, so they have no slot in spriteSlots() —
+      // but the store resolves any key, so they read from `player` and `wave`
+      // the same way a doodad does, and fall back to the drawing below.
+      const art = this.assets?.get('wave');
+      if (art) {
+        const pulse = 1.25 + 0.15 * Math.sin(t * Math.PI);
+        c.rotate(Math.atan2(w.dir.y, w.dir.x));
+        c.scale(pulse, pulse);
+        c.drawImage(art.image, art.sx, art.sy, art.sw, art.sh, -s / 2, -s / 2, s, s);
+        c.restore();
+        continue;
+      }
+
       c.strokeStyle = w.state.modulation > 0.5 ? '#8b3a52' : p.hot;
       c.lineWidth = Math.max(2, s * 0.09);
       c.beginPath();
@@ -155,6 +169,27 @@ export class Renderer {
 
     c.save();
     c.translate(x, y + bob);
+
+    const art = this.assets?.get('player');
+    if (art) {
+      // ProtoPlayer.png is taller than a tile — Coda stands on the tile centre and
+      // is flipped to face left rather than rotated.
+      const h = s * 1.3;
+      c.save();
+      if (pl.facing === 'left') c.scale(-1, 1);
+      c.drawImage(art.image, art.sx, art.sy, art.sw, art.sh, -h / 2, -h * 0.62, h, h);
+      c.restore();
+
+      const dd = DIR[pl.facing];
+      c.strokeStyle = p.metalHi;
+      c.lineWidth = Math.max(2, s * 0.07);
+      c.beginPath();
+      c.moveTo(dd.x * s * 0.22, dd.y * s * 0.22);
+      c.lineTo(dd.x * s * 0.48, dd.y * s * 0.48);
+      c.stroke();
+      c.restore();
+      return;
+    }
 
     // ghost body
     c.beginPath();

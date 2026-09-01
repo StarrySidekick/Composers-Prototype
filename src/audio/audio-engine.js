@@ -5,6 +5,7 @@
 // In Unity these calls become FMOD event instances with the same parameters.
 
 import { midiToFreq } from '../core/music.js';
+import { Sampler } from './sampler.js';
 
 export class AudioEngine {
   constructor() {
@@ -35,6 +36,12 @@ export class AudioEngine {
     fb.connect(delay);
     damp.connect(this.master);
 
+    // Recorded cello/horn/drum from the Unity project. Until load() resolves —
+    // and for any note too far outside a bank's one sampled octave — the synth
+    // voices below carry the sound, so the harness never waits on the network.
+    this.sampler = new Sampler(this.ctx);
+    this.useSamples = true;
+
     this.muted = false;
     this._ksCache = new Map();
     this.onNote = null; // (midi, family) => void — the note-lock listener hooks in here
@@ -45,6 +52,51 @@ export class AudioEngine {
   }
 
   get now() { return this.ctx.currentTime; }
+
+  // Family -> sample bank. Woodwind has no recorded set yet, so it stays synth.
+  static SAMPLE_BANK = { brass: 'horn', strings: 'cello' };
+
+  async loadSamples() {
+    await this.sampler.load();
+    return this.sampler.ready;
+  }
+
+  // An input node already wired to master (+ reverb send). Sample playback needs
+  // the destination up front, where the synth voices can connect at the end.
+  _bus(gain = 1, sendAmt = 1) {
+    const g = this.ctx.createGain();
+    g.gain.value = gain;
+    g.connect(this.master);
+    if (sendAmt > 0) {
+      const s = this.ctx.createGain();
+      s.gain.value = sendAmt;
+      g.connect(s);
+      s.connect(this.send);
+    }
+    return g;
+  }
+
+  // Returns true when a real sample covered the note. False means "not loaded,
+  // no bank for this family, or too far outside the sampled octave" — the caller
+  // then falls through to the synth voice.
+  _playSampled(family, midi, amp, t, modulation, kind) {
+    if (!this.useSamples || !this.sampler.ready) return false;
+
+    if (family === 'percussion') {
+      // Only the bass drum was recorded; the rest of the kit stays synthesised.
+      const piece = kind ?? (modulation < 0.25 ? 'bass' : modulation < 0.75 ? 'snare' : 'hat');
+      if (piece !== 'bass') return false;
+      return !!this.sampler.playOneShot('bass-drum', {
+        gain: amp * 0.9, when: t, destination: this._bus(1, 0.6),
+      });
+    }
+
+    const bank = AudioEngine.SAMPLE_BANK[family];
+    if (!bank) return false;
+    return !!this.sampler.play(bank, midi, {
+      gain: amp * 0.5, when: t, destination: this._bus(1, family === 'strings' ? 1.0 : 0.9),
+    });
+  }
 
   _out(node, gain = 1, sendAmt = 1) {
     const g = this.ctx.createGain();
@@ -68,6 +120,11 @@ export class AudioEngine {
     const t = Math.max(when || this.now, this.now);
     const freq = midiToFreq(midi);
     const amp = Math.max(0.02, Math.min(1, intensity));
+
+    if (this._playSampled(family, midi, amp, t, modulation, kind)) {
+      if (this.onNote) this.onNote(midi, family);
+      return;
+    }
 
     switch (family) {
       case 'strings':    this._pluck(freq, amp, t); break;
@@ -305,6 +362,11 @@ export class AudioEngine {
   // Metronome tick — the BeatClock made audible while you author a room.
   click(t, accent = false) {
     if (this.muted) return;
+    if (this.useSamples && this.sampler.ready &&
+        this.sampler.playOneShot('click', {
+          gain: accent ? 0.5 : 0.28, when: t, rate: accent ? 1.25 : 1,
+          destination: this._bus(1, 0),
+        })) return;
     const osc = this.ctx.createOscillator();
     osc.type = 'square';
     osc.frequency.value = accent ? 1600 : 1050;

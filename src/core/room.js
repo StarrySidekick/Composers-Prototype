@@ -46,6 +46,10 @@ export const DEFAULT_LEGEND = {
   'k': { type: 'pianokey' },
   'm': { type: 'mallet', rot: 0 },
 
+  // blank-slate per-face instrument (Strumentino.cs). Every face passes waves and
+  // blocks Coda until the room overrides it — see the editor's character list.
+  'i': { type: 'strumentino' },
+
   // puzzle
   '*': { type: 'lock' },
   'n': { type: 'notelock' },
@@ -129,6 +133,17 @@ export class Room {
     if (!this.inBounds(x, y)) return false;
     const d = this.doodadAt(x, y);
     return !d || !d.solid;
+  }
+
+  // IPlayerFaceInteractable.CanPlayerEnterFrom — a doodad can be solid from one
+  // side and open from another, which is what makes a per-face Strumentino work.
+  // Doodads without the hook fall back to the plain solid flag.
+  canEnter(x, y, dir) {
+    if (!this.inBounds(x, y)) return false;
+    const d = this.doodadAt(x, y);
+    if (!d) return true;
+    if (typeof d.canPlayerEnterFrom === 'function') return d.canPlayerEnterFrom(dir);
+    return !d.solid;
   }
 
   each(fn) { for (const d of this.list) fn(d); }

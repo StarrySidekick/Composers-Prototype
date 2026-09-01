@@ -45,6 +45,14 @@ export function localFace(worldDir, rot = 0) {
 
 export const FACES = ['top', 'right', 'bottom', 'left'];
 
+// What a face does to Coda walking into it. Mirrors PlayerFaceAction.cs — every
+// instrument face carries both a wave behaviour and a player behaviour.
+export const PlayerFaceAction = Object.freeze({
+  Block:       'block',        // Coda cannot enter from this direction
+  PassThrough: 'passThrough',  // Coda walks on freely
+  PlayNote:    'playNote',     // stepping onto this face sounds a note
+});
+
 // What a face does to a wave travelling into it.
 export const FaceAction = Object.freeze({
   Block:         'block',          // wave is destroyed

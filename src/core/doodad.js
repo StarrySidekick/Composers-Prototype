@@ -3,6 +3,7 @@
 // the tile-prefab system that produces a wall also produce an oboe (GDD §6.1).
 
 import { FaceAction, localFace, rotate, rotateCW, rotateCCW, reverse } from './direction.js';
+import { WaveSource } from './sound-wave.js';
 
 const registry = new Map();
 
@@ -32,6 +33,12 @@ export class Doodad {
     this.solid = true;           // blocks the player
     this.blocksWave = true;      // a wave that reaches this tile resolves here
     this.walkable = false;
+
+    // InstrumentBase.holdBeats — park an incoming wave for N beats before
+    // resolving it, so a puzzle can be timed against the metronome. 0 = immediate.
+    this.holdBeats = spec.holdBeats ?? 0;
+    this._heldWave = null;
+    this._holdLeft = 0;
   }
 
   get typeName() { return this.constructor.type; }
@@ -45,11 +52,48 @@ export class Doodad {
   // rotates itself. A doodad whose art shouldn't spin returns 0.
   get spriteRot() { return this.rot; }
 
+  // The sealed entry point, matching InstrumentBase.OnWaveEntered: busy-check,
+  // melee routing and the beat hold all happen here, and only then does the
+  // subclass's onWaveEntered run. SoundWave.step calls this — never override it.
+  receiveWave(wave, ctx) {
+    if (this._heldWave) { wave.destroy(); return; }   // an instrument mid-hold eats the next wave
+
+    if (wave.state.source === WaveSource.MeleeStrike) {
+      this.onMeleeStrike(wave, ctx);
+      return;
+    }
+
+    if (this.holdBeats <= 0) { this.onWaveEntered(wave, ctx); return; }
+
+    this._heldWave = wave;
+    this._holdLeft = this.holdBeats;
+    wave.held = true;
+  }
+
+  // Ticked once per beat by Game.update, separately from onBeat so that a
+  // subclass overriding onBeat can never accidentally strand a held wave.
+  tickHold(beat, ctx) {
+    if (!this._heldWave) return;
+    if (--this._holdLeft > 0) return;
+    const w = this._heldWave;
+    this._heldWave = null;
+    w.held = false;
+    if (w.alive) this.onWaveEntered(w, ctx);
+  }
+
+  get holding() { return !!this._heldWave; }
+
   // Default matches SoundWave.MoveRoutine: an unhandled blocking tile eats the wave,
   // a non-blocking tile is traversed.
   onWaveEntered(wave, ctx) {
     if (this.blocksWave) wave.destroy();
   }
+
+  // Asta.StrikeAt handed this tile a non-travelling wave. In Unity only
+  // InstrumentBase subclasses see this at all — a wall implements no interface —
+  // so here the default is to decline and let the strike fall through to the tile
+  // Coda is standing on. Instruments opt in by overriding.
+  onMeleeStrike(wave, ctx) { return false; }
 
   // B button / melee strike, from the tile Coda is facing.
   onPlayerInteract(ctx) { return false; }

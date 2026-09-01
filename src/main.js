@@ -24,6 +24,10 @@ async function boot() {
   // tile keeps drawing itself, which is the state this repo ships in.
   await assets.load();
 
+  // Recorded cello/horn/drum from the Unity project. Optional and non-blocking:
+  // a failed load just leaves the synth voices in charge.
+  const samples = audio.loadSamples().catch(err => console.warn('[samples]', err));
+
   manifest = await fetch('rooms/manifest.json').then(r => r.json());
   $('room-select').innerHTML = manifest
     .map(r => `<option value="${r.file}">${r.name}</option>`).join('');
@@ -54,6 +58,12 @@ async function boot() {
   $('room-select').addEventListener('change', async (e) => {
     await loadRoomFile(e.target.value);
     editor.syncFromRoom();
+  });
+
+  $('samples').addEventListener('click', (e) => {
+    audio.useSamples = !audio.useSamples;
+    e.currentTarget.textContent = audio.useSamples ? 'live' : 'synth';
+    e.currentTarget.classList.toggle('on', audio.useSamples);
   });
 
   $('reset').addEventListener('click', () => { game.reload(); editor.syncFromRoom(); });
@@ -95,6 +105,11 @@ async function boot() {
 
   setBuild(false);
   requestAnimationFrame(loop);
+
+  await samples;
+  $('samples').textContent = audio.sampler.ready ? 'live' : 'synth';
+  $('samples').classList.toggle('on', audio.sampler.ready);
+  $('samples').disabled = !audio.sampler.ready;
 }
 
 function setBuild(on) {

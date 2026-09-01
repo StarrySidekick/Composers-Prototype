@@ -9,7 +9,7 @@
 //      lengthens the run exactly as it does on a trombone.
 
 import { Doodad, defineDoodad } from '../core/doodad.js';
-import { FaceAction, DIR, dirName, rotate } from '../core/direction.js';
+import { FaceAction, DIR, dirName, localFace, rotate } from '../core/direction.js';
 import { PALETTE } from '../render/palette.js';
 
 const B = FaceAction.Block;
@@ -205,6 +205,16 @@ class BrassTube extends Doodad {
     this.applyFaceAction(action, wave, ctx, (w, c) => this.playNote(w, c));
   }
 
+  // Only the mouthpiece takes a strike, and only on a face that isn't Block —
+  // every other tile in a tube has non-Block faces purely to route real waves
+  // through it, so the face action alone can't identify the mouthpiece.
+  onMeleeStrike(wave, ctx) {
+    if (!this.isMouthpiece) return false;
+    if (this.faces[this.faceFor(wave)] === FaceAction.Block) return false;
+    this.playNote(wave, ctx);
+    return true;
+  }
+
   onPlayerInteract(ctx) {
     if (this.part === 'valve') {
       // Valve: compress it to change the direction of the flow of sound.
@@ -227,7 +237,9 @@ class BrassTube extends Doodad {
       return true;
     }
     if (!this.isMouthpiece) return false;
-    // Blowing the mouthpiece launches a wave into the tube.
+    // Blowing the mouthpiece launches a wave into the tube — but only from a face
+    // that would actually accept one. Same gating as BrassTube.StartSustain.
+    if (this.faces[localFace(ctx.player.dir, this.rot)] === FaceAction.Block) return false;
     this.flash = 1;
     ctx.spawnWaveFromDoodad(this, ctx.player.dir);
     return true;

@@ -1,11 +1,28 @@
 // The sound wave — a discrete, beat-stepped entity carrying a small state struct.
 // NOT a physics object. Mirrors SoundWave.cs + SoundWaveState.cs.
 
+// Mirrors WaveSource.cs. MeleeStrike is the important one: Asta.StrikeAt spawns a
+// wave on the struck tile, offers it to the instrument and destroys it immediately,
+// so it never travels. Instruments opt in or out by checking for it.
 export const WaveSource = Object.freeze({
   ComposersKey: 'composersKey',
-  Instrument:   'instrument',
+  MeleeStrike:  'meleeStrike',
+  Horn:         'horn',
+  Woodwind:     'woodwind',
+  String:       'string',
+  Drum:         'drum',
   Mallet:       'mallet',
+  // Harness-only: the brass tee divides a wave and this tags the new branch.
   Split:        'split',
+});
+
+// Which source a doodad's own emissions carry, by family.
+export const SOURCE_FOR_FAMILY = Object.freeze({
+  brass: WaveSource.Horn,
+  woodwind: WaveSource.Woodwind,
+  strings: WaveSource.String,
+  percussion: WaveSource.Drum,
+  keys: WaveSource.Mallet,
 });
 
 export class SoundWaveState {
@@ -37,6 +54,8 @@ export class SoundWave {
     this.state = state;
     this.alive = true;
     this.age = 0;
+    // Set while an instrument is holding this wave (InstrumentBase.holdBeats).
+    this.held = false;
   }
 
   // Called by doodads from onWaveEntered.
@@ -47,7 +66,7 @@ export class SoundWave {
 
   // Advance one tile. `ctx` is the room context handed to doodads.
   step(ctx) {
-    if (!this.alive) return;
+    if (!this.alive || this.held) return;
     this.prevX = this.x; this.prevY = this.y;
     this.age++;
 
@@ -60,7 +79,10 @@ export class SoundWave {
     this.state.tilesTraversed++;
 
     const d = ctx.room.doodadAt(nx, ny);
-    if (d) d.onWaveEntered(this, ctx);
+    // receiveWave, not onWaveEntered — the base class runs the hold and
+    // melee-strike routing first, exactly as InstrumentBase.OnWaveEntered does
+    // before it hands off to ApplyWaveInteraction.
+    if (d) d.receiveWave(this, ctx);
 
     // Safety net for authoring mistakes — a wave that loops forever in a closed
     // tube circuit would otherwise pin the audio engine.

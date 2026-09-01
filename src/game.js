@@ -1,5 +1,5 @@
 import { BeatClock } from './core/beat-clock.js';
-import { SoundWave, SoundWaveState, WaveSource } from './core/sound-wave.js';
+import { SoundWave, SoundWaveState, WaveSource, SOURCE_FOR_FAMILY } from './core/sound-wave.js';
 import { Room, facingDir } from './core/room.js';
 import { DIR } from './core/direction.js';
 import './doodads/index.js';
@@ -66,7 +66,9 @@ export class Game {
         }),
       spawnWave: (x, y, dir, state) => this.spawnWave(x, y, dir, state),
       spawnWaveFromDoodad: (d, dir) =>
-        this.spawnWave(d.x, d.y, dir, new SoundWaveState({ source: WaveSource.Instrument })),
+        this.spawnWave(d.x, d.y, dir, new SoundWaveState({
+          source: SOURCE_FOR_FAMILY[d.family] ?? WaveSource.ComposersKey,
+        })),
       toast: (msg) => this.toast(msg),
       onRoomComplete: () => this.onRoomComplete?.(),
     };
@@ -90,10 +92,12 @@ export class Game {
     this.setFacing(dirName);
     const nx = this.player.x + d.x;
     const ny = this.player.y + d.y;
-    if (!this.room.isWalkable(nx, ny)) return;
+    // canEnter, not isWalkable — per-face blocking (IPlayerFaceInteractable) means
+    // a tile can be enterable from one side and solid from another.
+    if (!this.room.canEnter(nx, ny, d)) return;
     this.player.x = nx; this.player.y = ny;
     const t = this.room.doodadAt(nx, ny);
-    if (t) t.onPlayerEnter(this.ctx);
+    if (t) t.onPlayerEnter(this.ctx, d);
   }
 
   // A button — fire a sound wave from the Composer's Key.
@@ -112,14 +116,31 @@ export class Game {
     });
   }
 
-  // B button — melee strike / interact with the tile Coda faces.
+  // B button. Same priority order as PlayerController: IPlayerInteractable first,
+  // then the melee strike — Asta.StrikeAt spawns a wave on the target tile tagged
+  // WaveSource.MeleeStrike, offers it to the instrument and destroys it. The wave
+  // never travels; instruments opt in by handling that source.
   interact() {
     const tx = this.player.x + this.player.dir.x;
     const ty = this.player.y + this.player.dir.y;
+
     const d = this.room.doodadAt(tx, ty);
     if (d && d.onPlayerInteract(this.ctx)) return;
+    if (d && this.strikeAt(d, this.player.dir)) return;
+
     const under = this.room.doodadAt(this.player.x, this.player.y);
     if (under && under.onPlayerInteract(this.ctx)) return;
+    if (under) this.strikeAt(under, this.player.dir);
+  }
+
+  // Asta.StrikeAt. Returns whether the instrument took the strike.
+  strikeAt(doodad, dir) {
+    const st = new SoundWaveState({ source: WaveSource.MeleeStrike });
+    st.pitch = this.room.music.getNote(0, 4);
+    const wave = new SoundWave(doodad.x, doodad.y, dir, st);
+    const took = doodad.onMeleeStrike(wave, this.ctx) !== false;
+    wave.destroy();   // silently — no travel, no destroy event
+    return took;
   }
 
   spawnWave(x, y, dir, state = SoundWaveState.default) {
@@ -139,7 +160,7 @@ export class Game {
       if (ev.isBeat) {
         this.lastBeat = ev.beat;
         if (this.metronome) this.audio.click(ev.time, ev.beat % this.room.music.timeSignature === 0);
-        for (const d of this.room.list) d.onBeat(ev.beat, this.ctx);
+        for (const d of this.room.list) { d.onBeat(ev.beat, this.ctx); d.tickHold(ev.beat, this.ctx); }
       }
       for (const w of this.waves) w.step(this.ctx);
       this.waves = this.waves.filter(w => w.alive);

@@ -1,7 +1,40 @@
 {
-  "_": "Sprite slots for the prototype. Empty is valid — every tile draws itself when no sprite is found. See docs/ASSETS.md.",
-  "tileSize": 32,
+  "_": "Real art from the Unity project. See docs/ASSETS.md for the slot contract and docs/PORTING.md for what was baked into these files and why.",
+  "tileSize": 51,
   "sheets": {},
-  "sprites": {},
-  "unity": {}
+  "sprites": {
+    "brass.straight":   { "src": "sprites/brass_straight.png" },
+    "brass.elbow":      { "src": "sprites/brass_elbow.png" },
+    "brass.mouthpiece": { "src": "sprites/brass_mouthpiece.png" },
+    "brass.flare":      { "src": "sprites/brass_flare.png" },
+    "string":           { "src": "sprites/string.png" },
+    "peg":              { "src": "sprites/peg.png" },
+    "wall":             { "src": "sprites/wall.png" },
+    "door":             { "src": "sprites/door.png" },
+    "drum.bass":        { "src": "sprites/drum_bass.png" },
+    "mallet":           { "src": "sprites/mallet.png" },
+    "pianokey":         { "src": "sprites/pianokey.png" },
+    "lock":             { "src": "sprites/lock.png" },
+    "lock.lit":         { "src": "sprites/lock_lit.png" },
+
+    "player":           { "src": "sprites/player.png" },
+    "wave":             { "src": "sprites/wave.png" }
+  },
+  "unity": {
+    "brass.straight":   "Assets/Sprites/Tube Straight.png",
+    "brass.elbow":      "Assets/Sprites/Tube Elbow.png",
+    "brass.mouthpiece": "Assets/Sprites/Mouthpiece.png",
+    "brass.flare":      "Assets/Sprites/Flare.png",
+    "string":           "Assets/Sprites/Fat_String.png",
+    "peg":              "Assets/Sprites/Peg.png",
+    "wall":             "Assets/Sprites/Pushable_Block - Copy.png",
+    "door":             "Assets/Sprites/Door.png",
+    "drum.bass":        "Assets/Sprites/Bounce Drum.png",
+    "mallet":           "Assets/Sprites/Mallet.png",
+    "pianokey":         "Assets/Sprites/Key.png",
+    "lock":             "Assets/Sprites/Tuning_Fork.png",
+    "lock.lit":         "Assets/Sprites/Tuning_Fork.png",
+    "player":           "Assets/Sprites/ProtoPlayer.png",
+    "wave":             "Assets/Sprites/Sound Wave Static.png"
+  }
 }
