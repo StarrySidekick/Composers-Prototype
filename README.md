@@ -8,6 +8,11 @@ It doubles as the seed for a smaller, self-contained, mobile-friendly music game
 of these prototypes turns out to want its own life.
 
 ## Run it
+A regression harness lives at `test/rooms.mjs` — serve the root, then
+`node test/rooms.mjs`. It plays every room in the manifest and checks that no
+legend character is claimed twice and that nothing plays a pitch outside its
+room's scale. See CLAUDE.md for what it does and does not prove.
+
 
 Rooms are loaded with `fetch`, so it needs a server (any server):
 

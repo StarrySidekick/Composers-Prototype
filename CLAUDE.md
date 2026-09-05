@@ -66,7 +66,34 @@ measured pitches live in `src/audio/sampler.js`. All of it is optional — delet
 
 ## Testing
 
-There's no test runner. Verify in the browser: `window.CK` exposes `{ game, audio,
+**There is a runner now: `node test/rooms.mjs`** — serve the repo root on :8080
+first. It plays every room in the manifest and checks the two things that break
+silently in a port like this: a legend character claimed twice (an object
+literal just lets the later one win), and a doodad playing a pitch that never
+came through the room's scale.
+
+Three things about it worth knowing before you change it:
+
+- **It fires from where a player would stand.** The first version fired from
+  the room's spawn point, the wave died on step 0, and every room passed having
+  proved nothing. It now walks the grid, stands next to each doodad on every
+  side there is room to stand, and fires in — hundreds of shots per room, with
+  circuits up to 39 steps. `can actually be played into` and `carries a wave
+  further than one tile` exist so that going vacuous again fails loudly instead
+  of passing quietly.
+- **`game.loadRoom` takes the parsed room, not a path.** Hand it a string and
+  you get an empty 1×1 room that fires nothing and fails nothing. That was the
+  cause of the vacuous first version.
+- **The scale check catches a doodad bypassing the scale, not a broken scale.**
+  The legal set is built from the room's own `MusicalState`, so a fault inside
+  `getNote` shifts both sides together and passes. Proved by injection both
+  ways. If you want the other half, it wants pinning a couple of rooms'
+  expected pitches to literals.
+
+Headless Chromium cannot decode the real samples, so it filters that one error
+by exact message and still fails on anything else.
+
+Beyond that, verify in the browser: `window.CK` exposes `{ game, audio,
 renderer, assets }`, and `game.update()` can be driven manually in a loop to step the
 simulation faster than real time. Raising `game.room.music.bpm` is the quickest way to
 fast-forward a wave circuit.
