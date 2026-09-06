@@ -126,7 +126,7 @@ no-dependency rule is about what ships, and `tools/` does not.
 It has already asked one question worth an answer: **Keys 01 — The Keyboard
 Floor produces two distinct pitches, and all six of its `pianokey` pieces plus
 its `mallet` are reached but sound nothing.** That may be correct — a key may
-want striking rather than a wave passing through — but it is a odd result for a
+want striking rather than a wave passing through — but it is an odd result for a
 room named after its keyboard, and nothing else would have surfaced it.
 
 Beyond that, verify in the browser: `window.CK` exposes `{ game, audio,

@@ -35,6 +35,21 @@ better editor, a level format that is quicker to write by hand, a way to see at
 a glance whether a room actually plays — all of that serves the thing he
 actually wants to sit down and do.
 
+**The third of those exists now**: `node tools/room-report.mjs`, written
+2026-09-06. `test/rooms.mjs` says whether a room is broken; this says what a room
+*does* — its pitch range, how far its circuits run, which piece carries it, and
+the piece no shot from anywhere a player can stand can reach. Nothing in it
+passes or fails, on purpose.
+
+It found one thing on its first honest run worth an answer: **Keys 01 produces
+two distinct pitches, and all six of its piano keys are reached without
+sounding.** Possibly correct, possibly not, and nothing else in the repo would
+have said so.
+
+**Still missing from the loop:** a faster way to *write* a room, and any way to
+judge whether one is fun without a person playing it. The report can say a room
+is thin; it cannot say a room is boring.
+
 ## Something that needs Timothy
 
 **The GDD should come into this repo.** It currently lives at
