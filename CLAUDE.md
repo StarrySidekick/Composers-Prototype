@@ -1,5 +1,11 @@
 # Composer's Key — Prototyping
 
+> **Read [`INTENT.md`](INTENT.md) first.** It records what this project is for
+> and what Timothy wants next, in his own words, dated. Where it disagrees with
+> this file about *direction* it is newer and wins; where it disagrees about
+> *mechanics* — how the code works, what was decided deliberately, the
+> invariants — this file wins.
+
 Fast-iteration browser harness for *Composer's Key* mechanics. Ports back into the Unity
 project at `~/Desktop/Development/Unity Games/Composer's Key - 2026`. May also become a
 smaller standalone mobile music game.
@@ -92,6 +98,36 @@ Three things about it worth knowing before you change it:
 
 Headless Chromium cannot decode the real samples, so it filters that one error
 by exact message and still fails on anything else.
+
+### And a report, for when you are making rooms rather than fixing them
+
+`node tools/room-report.mjs` (same server, optional name filter) answers the
+other question: not "is this room broken" but **"is this room any good"**. It
+drives the rooms the same way and prints, per room, the pitches it can produce,
+how far its circuits run, which piece carries it, and the two lines worth
+reading:
+
+- **NEVER HIT** — a piece no shot from anywhere a player can stand ever reaches.
+  Nearly always a level-design mistake, and invisible in the editor, because the
+  piece is sitting right there looking placed.
+- **mute** — reached, but sounded nothing. Correct for a lock, a peg or a
+  keyshift; a question for an instrument.
+
+**Nothing in it passes or fails**, on purpose. It is a thing to read while
+authoring, and a room can be a good room and score badly on any line.
+
+Two things about it: walls, doors and exits are filtered out of the findings as
+a display choice, since sixty walls bury the one piece that matters; and a note
+played on a later beat hold rather than inside `receiveWave` counts in the
+totals but is not attributed to its doodad. It needs Playwright like the
+harness does, and like the harness it is not part of the site — the no-build,
+no-dependency rule is about what ships, and `tools/` does not.
+
+It has already asked one question worth an answer: **Keys 01 — The Keyboard
+Floor produces two distinct pitches, and all six of its `pianokey` pieces plus
+its `mallet` are reached but sound nothing.** That may be correct — a key may
+want striking rather than a wave passing through — but it is an odd result for a
+room named after its keyboard, and nothing else would have surfaced it.
 
 Beyond that, verify in the browser: `window.CK` exposes `{ game, audio,
 renderer, assets }`, and `game.update()` can be driven manually in a loop to step the
