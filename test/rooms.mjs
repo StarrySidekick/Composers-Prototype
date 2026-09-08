@@ -5,11 +5,14 @@
    was asked for, step the waves by hand, and drive the clock rather than
    waiting on it. This is that recipe, over every room in the manifest.
 
-   Why it exists: this repo is a port, and the two things most likely to break
-   it are silent. A legend character claimed twice just wins, and the earlier
+   Why it exists: this repo is a port, and the things most likely to break it
+   are silent. A legend character claimed twice just wins, and the earlier
    doodad loses its slot with no warning. A doodad handed a raw frequency plays
-   perfectly and is out of key. Neither raises an error; both surface as a room
-   that sounds wrong, weeks later, with nothing to point at.
+   perfectly and is out of key. A room dropped in rooms/ with no line in
+   manifest.json just never gets tested, or looked at by anyone reading the
+   list. None of these raise an error; all three surface as a room that sounds
+   wrong, or a room nobody knew was untested, weeks later, with nothing to
+   point at.
 
    **It fires from where a player would stand.** The first version of this file
    fired from the room's spawn point, the wave died on step 0, and every room
@@ -25,7 +28,8 @@
 
    Serve the repo root on :8080, then `node test/rooms.mjs`.
 */
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 const EXEC = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
@@ -48,6 +52,26 @@ ok('the legend has entries to check', claimed.length > 10, `${claimed.length}`);
 const dupes = [...new Set(claimed.filter((c, i) => claimed.indexOf(c) !== i))];
 ok('no legend character is claimed twice', dupes.length === 0,
    dupes.length ? `'${dupes.join("', '")}' claimed more than once` : '');
+
+/* --- the manifest against the folder, read from disk ---------------------
+   Both directions of the same silent bug: a room dropped in rooms/ with no
+   line in manifest.json never gets fired at by this harness or read by
+   room-report — it just sits there, untested, looking exactly like every
+   room that IS covered. And a manifest line whose file is missing (renamed,
+   moved, typo'd) fails silently too — fetch() 404s inside the page and
+   loadRoom happily builds the empty-1x1-room trap CLAUDE.md already warns
+   about. Neither direction throws on its own; this is the only place that
+   reads both lists and says whether they agree. */
+const roomsDir = fileURLToPath(new URL('../rooms/', import.meta.url));
+const onDisk = new Set(readdirSync(roomsDir).filter(f => f.endsWith('.json') && f !== 'manifest.json'));
+const manifestSrc = JSON.parse(readFileSync(roomsDir + 'manifest.json', 'utf8'));
+const listedFiles = new Set(manifestSrc.map(e => e.file));
+const orphaned = [...onDisk].filter(f => !listedFiles.has(f));
+const dangling = manifestSrc.map(e => e.file).filter(f => !onDisk.has(f));
+ok('every room file is listed in the manifest', orphaned.length === 0,
+   orphaned.length ? `${orphaned.join(', ')} — dropped in rooms/ but never added to manifest.json` : '');
+ok('every manifest entry points to a real file', dangling.length === 0,
+   dangling.length ? `${dangling.join(', ')} listed in manifest.json but not in rooms/` : '');
 
 const browser = await chromium.launch({ executablePath: EXEC });
 const page = await browser.newPage();

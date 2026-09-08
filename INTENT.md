@@ -46,9 +46,19 @@ two distinct pitches, and all six of its piano keys are reached without
 sounding.** Possibly correct, possibly not, and nothing else in the repo would
 have said so.
 
-**Still missing from the loop:** a faster way to *write* a room, and any way to
-judge whether one is fun without a person playing it. The report can say a room
-is thin; it cannot say a room is boring.
+**A first piece of "faster to write" exists now, 2026-09-08:**
+`node tools/new-room.mjs <id> [wing]` scaffolds a room — the bordered box, the
+`rooms/<id>.json` file, and the `manifest.json` line, in one step. That last
+part is the one worth naming: `test/rooms.mjs` now also checks that `rooms/`
+and `manifest.json` agree on the same file list, because a room saved and
+never added to the manifest was invisible to both the harness and the report,
+silently, and that is exactly the kind of bug this project keeps finding by
+hand. This is authoring-speed for the box a room starts in, not for what goes
+in it — placing pieces is still the editor's job and still the slow part.
+
+**Still missing from the loop:** a faster way to *fill* a room once it's
+scaffolded, and any way to judge whether one is fun without a person playing
+it. The report can say a room is thin; it cannot say a room is boring.
 
 ## Something that needs Timothy
 

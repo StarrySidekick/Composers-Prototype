@@ -9,9 +9,11 @@ of these prototypes turns out to want its own life.
 
 ## Run it
 A regression harness lives at `test/rooms.mjs` — serve the root, then
-`node test/rooms.mjs`. It plays every room in the manifest and checks that no
-legend character is claimed twice and that nothing plays a pitch outside its
-room's scale. See CLAUDE.md for what it does and does not prove.
+`node test/rooms.mjs`. It plays every room in the manifest, checks that no
+legend character is claimed twice, that nothing plays a pitch outside its
+room's scale, and that `rooms/` and `manifest.json` list exactly the same
+files — a room saved to one and not the other is otherwise invisible to every
+tool here. See CLAUDE.md for what it does and does not prove.
 
 
 Rooms are loaded with `fetch`, so it needs a server (any server):
@@ -37,6 +39,12 @@ On touch, the same six inputs are the on-screen Game Boy at the bottom. Everythi
 designed touch-first, per GDD §9 — nothing here can be authored that a phone can't play.
 
 ## Author
+
+`node tools/new-room.mjs <id> [wing]` scaffolds one — a bordered box with a
+spawn and an exit, filed in `rooms/` and added to `rooms/manifest.json` in the
+same step, so the two can't drift the way a hand edit can. It plays (firing at
+all sounds Coda's own casting note) but there is nothing IN it yet; that's
+what the editor is for.
 
 Hit **build**. Pick a piece out of the palette, draw it onto the room, and play it — the
 room never reloads, so it keeps its tempo, its open doors and its lit locks while you
