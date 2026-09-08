@@ -99,6 +99,22 @@ Three things about it worth knowing before you change it:
 Headless Chromium cannot decode the real samples, so it filters that one error
 by exact message and still fails on anything else.
 
+It also checks, before the browser even opens, that `rooms/*.json` and
+`rooms/manifest.json` list exactly the same files. Both directions of that
+disagreement are silent otherwise: a room saved to `rooms/` and never added to
+the manifest is never fired at by this harness or read by the room report —
+it just sits there, looking exactly like a room that is covered.
+
+### Scaffolding a room
+
+`node tools/new-room.mjs <id> [wing]` writes `rooms/<id>.json` (a bordered box
+with a spawn and an exit) and adds it to the manifest in the same step, so
+those two files cannot drift apart the way typing them by hand can. `<id>`
+becomes the filename too — kebab-case, matching every id already in `rooms/`.
+The box it writes passes `test/rooms.mjs` on Coda's own casting note before
+anything is built into it; `tools/room-report.mjs <id>` is what tells you it's
+still empty (0 pieces, 1 pitch).
+
 ### And a report, for when you are making rooms rather than fixing them
 
 `node tools/room-report.mjs` (same server, optional name filter) answers the
