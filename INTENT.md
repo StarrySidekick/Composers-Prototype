@@ -46,9 +46,27 @@ two distinct pitches, and all six of its piano keys are reached without
 sounding.** Possibly correct, possibly not, and nothing else in the repo would
 have said so.
 
-**Still missing from the loop:** a faster way to *write* a room, and any way to
-judge whether one is fun without a person playing it. The report can say a room
-is thin; it cannot say a room is boring.
+**The report moved into the editor, 2026-09-09.** The gap wasn't the sweep
+itself — it was that reading it meant leaving the browser, opening a
+terminal, and running node + Playwright, which is a cost you only pay once
+in a while rather than after every tile you place. The same sweep now lives
+in `src/core/analyze.js`, imported by both the node tool (unchanged output —
+diffed byte-for-byte against the pre-refactor version) and a **Report**
+section in the editor panel: press *check room* and the same NEVER HIT /
+mute findings show up as chips, each one click-to-jump — it selects the
+tile and switches into build mode, which is the thing the CLI output could
+only describe in words. It never touches the room you're standing in: it
+builds a disposable `Room` from a JSON snapshot, so a sweep that lights ten
+locks doesn't light the ten locks in front of you (verified: the same room's
+lock is provably unlit before and after a check). This was the biggest
+still-open piece of "a way to see at a glance whether a room actually
+plays" — it's now available at the moment you'd actually reach for it.
+
+**Still missing from the loop:** a faster way to *write* a room by hand (the
+visual editor already answers most of this; the ASCII-plus-legend format
+itself hasn't gotten faster), and any way to judge whether one is fun without
+a person playing it. The report can say a room is thin; it cannot say a room
+is boring.
 
 ## Something that needs Timothy
 

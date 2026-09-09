@@ -37,7 +37,7 @@ async function boot() {
   editor = buildEditor(game, renderer, assets, {
     layoutBox: $('layout'), legendBox: $('legend'), hintBox: $('legend-hint'),
     tools: $('ed-tools'), palette: $('ed-palette'), inspector: $('ed-inspector'),
-    assetsBox: $('ed-assets'),
+    assetsBox: $('ed-assets'), reportBox: $('ed-report'),
     roomName: $('ed-name'), wing: $('ed-wing'), bpm: $('ed-bpm'), bpmOut: $('ed-bpm-out'),
     root: $('ed-root'), mode: $('ed-mode'), mood: $('ed-mood'), maxWaves: $('ed-waves'),
     width: $('ed-width'), height: $('ed-height'), hint: $('ed-hint'),
@@ -46,6 +46,11 @@ async function boot() {
     onReload: refreshHud,
     onHint: (h) => { $('room-hint').textContent = h; },
     toast: showToast,
+    // A Report finding is a tile the room-report tool always had to be told
+    // about by hand; here you can just go to it. Switches into build mode
+    // (a jump is always "I want to go fix this") and selects the tile, which
+    // also makes the Tile panel above show that piece's own properties.
+    onJump: (x, y) => { setBuild(true); editor?.paint.select(x, y); },
   });
   editor.syncFromRoom();
 
