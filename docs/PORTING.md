@@ -38,6 +38,7 @@ the vector maths literally. Copy the *intent* (`Redirect90CW`), not the arithmet
 | room JSON `music` block | `Core/RoomData.cs` |
 | `src/render/assets.js`, `src/render/sprite-baker.js` | nothing — Unity has its own sprites; see [ASSETS.md](ASSETS.md) |
 | `src/editor/` | nothing — prototype-only authoring |
+| `src/core/analyze.js` | nothing — the room-sweep tooling behind `tools/room-report.mjs` and the editor's Report panel. It lives under `src/core/` rather than `src/editor/` only because it imports `Room` directly instead of going through `Game`; it is not gameplay code and Unity gets no equivalent. |
 
 ## Written here first — reconcile before porting
 

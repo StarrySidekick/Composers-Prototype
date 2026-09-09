@@ -18,19 +18,22 @@
      node tools/room-report.mjs           # every room in the manifest
      node tools/room-report.mjs brass-01  # just the ones whose name matches
 
-   Same driving technique as the harness: stand behind every doodad on every
-   side there is room to stand, fire in, and step the clock by hand. Nothing is
-   waited for.
+   The sweep itself — stand behind every doodad on every side there is room to
+   stand, fire in, step the clock by hand — lives in src/core/analyze.js now,
+   not here. It is imported with a dynamic import() *inside the page* this
+   script already has open, rather than re-derived a second time: the editor's
+   Report panel needs the identical sweep, and two copies of "how a room gets
+   driven" is exactly the kind of thing that quietly stops agreeing with
+   itself. This file is left holding what's actually specific to a terminal:
+   the browser launch, the manifest walk, and turning the summary into text.
 */
 import { chromium } from 'playwright';
 
 const EXEC = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8080/';
-const STEPS = 60;
 const filter = process.argv[2] || '';
 
 const pad = (s, n) => String(s).padEnd(n);
-const median = (a) => a.length ? [...a].sort((x, y) => x - y)[a.length >> 1] : 0;
 const NOTE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const spell = (m) => `${NOTE[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
 
@@ -51,96 +54,18 @@ if (!manifest.length) {
 }
 
 for (const entry of manifest) {
-  const r = await page.evaluate(async ({ file, steps }) => {
-    const g = window.CK.game, a = window.CK.audio;
-    g.loadRoom(await fetch(`rooms/${file}`).then((x) => x.json()));
-    const room = g.room, music = room.music;
+  const r = await page.evaluate(async ({ file }) => {
+    const { analyzeRoomJSON } = await import('./src/core/analyze.js');
+    const json = await fetch(`rooms/${file}`).then((x) => x.json());
+    return analyzeRoomJSON(json);
+  }, { file: entry.file });
 
-    /* Every doodad on the grid, and a wrapper on each one's receiveWave.
-       CLAUDE.md is explicit that SoundWave.step calls receiveWave and not
-       onWaveEntered — the base class does its busy-check and melee routing
-       there first — so this is the seam that sees every arrival, including the
-       ones a doodad chooses to ignore. */
-    const pieces = [];
-    for (let y = 0; y < room.height; y++) {
-      for (let x = 0; x < room.width; x++) {
-        const d = room.doodadAt(x, y);
-        if (d) pieces.push({ x, y, type: d.constructor?.type || 'unknown', d, hits: 0, notes: 0 });
-      }
-    }
-    let inside = null;
-    for (const p of pieces) {
-      const original = p.d.receiveWave?.bind(p.d);
-      if (!original) continue;
-      p.d.receiveWave = (...args) => {
-        p.hits++;
-        const was = inside; inside = p;
-        try { return original(...args); } finally { inside = was; }
-      };
-    }
-
-    const heard = [];
-    const realPlay = a.play.bind(a);
-    a.play = (o) => {
-      heard.push({ midi: o.midi, family: o.family, from: inside ? pieces.indexOf(inside) : -1 });
-      if (inside) inside.notes++;
-      a.onNote?.(o.midi, o.family);
-    };
-
-    const DIRS = { right: [1, 0], left: [-1, 0], down: [0, 1], up: [0, -1] };
-    const travels = [];
-    let shots = 0, stands = new Set(), dud = 0;
-    for (const p of pieces) {
-      for (const [name, [dx, dy]] of Object.entries(DIRS)) {
-        const px = p.x - dx, py = p.y - dy;
-        if (!room.inBounds(px, py) || room.doodadAt(px, py)) continue;
-        g.player.x = px; g.player.y = py; g.setFacing(name);
-        g.waves = [];
-        const before = heard.length;
-        g.fire(); shots++; stands.add(`${px},${py}`);
-        let s = 0;
-        for (; s < steps && g.waves.length; s++) {
-          g.clock.index++;
-          for (const w of g.waves) w.step(g.ctx);
-          g.waves = g.waves.filter((w) => w.alive);
-        }
-        travels.push(s);
-        if (heard.length === before) dud++;
-        g.waves = [];
-      }
-    }
-    a.play = realPlay;
-
-    const midis = heard.map((n) => n.midi).filter(Number.isFinite);
-    return {
-      size: [room.width, room.height],
-      scale: music.label || `${music.root} ${music.mode}`,   /* a getter, not a method */
-      shots, stands: stands.size, dud,
-      travels,
-      notes: heard.length,
-      distinct: [...new Set(midis)].sort((x, y) => x - y),
-      families: [...new Set(heard.map((n) => n.family))].filter(Boolean),
-      pieces: pieces.map((p) => ({ x: p.x, y: p.y, type: p.type, hits: p.hits, notes: p.notes }))
-    };
-  }, { file: entry.file, steps: STEPS });
-
-  /* Walls, doors and exits are geometry. They are doodads, they are most of
-     every room, and they are silent by design — so reporting them as findings
-     buries the one or two pieces that actually matter under sixty walls. This
-     is a display filter and nothing more: it makes no claim about what those
-     types do. */
-  const STRUCTURAL = new Set(['wall', 'door', 'exit']);
-  const parts = r.pieces.filter((p) => !STRUCTURAL.has(p.type));
-  const walls = r.pieces.length - parts.length;
-
-  const silent = parts.filter((p) => p.hits === 0);
-  const mute = parts.filter((p) => p.hits > 0 && p.notes === 0);
-  const busiest = [...parts].sort((a, b) => b.notes - a.notes).slice(0, 3).filter((p) => p.notes);
+  const { parts, walls, silent, mute, busiest } = r;
 
   console.log(`\n${entry.name}`);
   console.log(`  ${r.size[0]}x${r.size[1]} · ${r.scale} · ${parts.length} pieces (+${walls} wall/door/exit)`);
   console.log(`  ${pad('shots', 12)}${r.shots} from ${r.stands} standable squares · ${r.dud} made no sound`);
-  console.log(`  ${pad('circuits', 12)}longest ${Math.max(0, ...r.travels)} · median ${median(r.travels)}`);
+  console.log(`  ${pad('circuits', 12)}longest ${r.longest} · median ${r.median}`);
   console.log(`  ${pad('pitches', 12)}${r.distinct.length} distinct` +
     (r.distinct.length ? ` (${spell(r.distinct[0])}–${spell(r.distinct[r.distinct.length - 1])})` : '') +
     ` · ${r.notes} notes heard`);

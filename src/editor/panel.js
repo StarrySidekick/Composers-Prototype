@@ -4,7 +4,8 @@
 
 import { GROUPS, propsFor, specForChar, legendDoc, PLAYER_CHAR } from './catalog.js';
 import { renderSpec, spriteKeys, bakeAtlas, bakeSessionSprites } from '../render/sprite-baker.js';
-import { NOTE_NAMES } from '../core/music.js';
+import { NOTE_NAMES, midiName } from '../core/music.js';
+import { analyzeRoomJSON } from '../core/analyze.js';
 
 const TOOLS = [
   { id: 'paint',  label: '✎',  title: 'Paint (drag to draw)' },
@@ -17,7 +18,7 @@ const TOOLS = [
 
 const PREVIEW = 34;
 
-export function buildPanel(game, paint, assets, els, { onEdit, toast } = {}) {
+export function buildPanel(game, paint, assets, els, { onEdit, toast, onJump } = {}) {
   const previews = [];   // { canvas, spec } — redrawn when the wing or sprites change
 
   // ---- tools --------------------------------------------------------------
@@ -190,6 +191,70 @@ export function buildPanel(game, paint, assets, els, { onEdit, toast } = {}) {
     i.value = v ?? '';
     i.addEventListener('change', () => onChange(i.value || undefined));
     return i;
+  }
+
+  // ---- report ---------------------------------------------------------------
+  // The same sweep node tools/room-report.mjs runs from a terminal (see
+  // src/core/analyze.js) — "stand behind every doodad on every side there is
+  // room to stand, fire in, see what got hit". It runs against a throwaway
+  // Room built from a JSON snapshot, never the live one: firing waves through
+  // the real room would light every lock and open every door it reaches,
+  // which is exactly the reload CLAUDE.md says the editor must never do to a
+  // room mid-build. It's a snapshot, not a live check — press the button
+  // again after changing anything.
+
+  els.report.innerHTML = `
+    <div class="row wrap">
+      <button class="chip" id="ed-check">check room</button>
+      <span class="muted">fires from every side of every piece — never touches this room</span>
+    </div>
+    <div id="ed-report-out"></div>`;
+
+  const reportOut = els.report.querySelector('#ed-report-out');
+
+  els.report.querySelector('#ed-check').addEventListener('click', () => {
+    reportOut.innerHTML = renderReport();
+    reportOut.querySelectorAll('[data-jump]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const [x, y] = btn.dataset.jump.split(',').map(Number);
+        onJump?.(x, y);
+        refresh();
+      });
+    });
+  });
+
+  function renderReport() {
+    let r;
+    try { r = analyzeRoomJSON(game.room.toJSON(game.player)); }
+    catch (e) { return `<p class="muted">Couldn't sweep this room: ${escapeHtml(e.message)}</p>`; }
+
+    const findings = (list, cls) => list.map((p) =>
+      `<button class="rep-chip ${cls}" data-jump="${p.x},${p.y}" title="jump to ${p.x},${p.y}">` +
+      `${escapeHtml(p.type)} @${p.x},${p.y}</button>`).join('');
+    const pitchRange = r.distinct.length
+      ? ` (${midiName(r.distinct[0])}–${midiName(r.distinct[r.distinct.length - 1])})` : '';
+
+    let html = `
+      <p class="rep-line">${r.size[0]}×${r.size[1]} · ${escapeHtml(r.scale)} · ${r.parts.length} pieces` +
+      ` <span class="muted">(+${r.walls} wall/door/exit)</span></p>
+      <p class="rep-line">${r.shots} shots from ${r.stands} standable squares · ${r.dud} made no sound</p>
+      <p class="rep-line">circuits — longest ${r.longest}, median ${r.median}</p>
+      <p class="rep-line">${r.distinct.length} distinct pitches${pitchRange} · ${r.notes} notes heard</p>
+      <p class="rep-line">${escapeHtml(r.families.join(', ') || 'no families heard')}</p>`;
+
+    if (r.silent.length) {
+      html += `<p class="rep-head bad">NEVER HIT <span class="muted">— no shot from anywhere a player can
+        stand reaches these</span></p><div class="rep-chips">${findings(r.silent, 'bad')}</div>`;
+    }
+    if (r.mute.length) {
+      html += `<p class="rep-head">mute <span class="muted">— reached, but sounded nothing. Correct for a
+        lock or a peg; worth a look for an instrument.</span></p>
+        <div class="rep-chips">${findings(r.mute, 'mute')}</div>`;
+    }
+    if (!r.silent.length && !r.mute.length) {
+      html += `<p class="muted">Every piece is reachable and sounds.</p>`;
+    }
+    return html;
   }
 
   // ---- assets -------------------------------------------------------------

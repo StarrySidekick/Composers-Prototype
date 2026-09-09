@@ -7,6 +7,7 @@
   --line: #3d3529;
   --gold: #d9a441;
   --hot: #ffd97a;
+  --bad: #c05a5a;
 }
 
 * { box-sizing: border-box; }
@@ -233,6 +234,25 @@ label.inline input[type=number] { width: 62px; }
 }
 .slot:hover { border-color: var(--gold); }
 .slot.filled { color: var(--hot); border-color: #6a5a2e; }
+
+/* ---- editor: report ---- */
+.report { font-size: 12px; }
+.rep-line { margin: 3px 0; }
+.rep-head {
+  margin: 10px 0 4px; font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--hot);
+}
+.rep-head.bad { color: var(--bad); }
+.rep-chips { display: flex; flex-wrap: wrap; gap: 3px; }
+.rep-chip {
+  font: 11px/1 ui-monospace, Menlo, monospace; cursor: pointer;
+  background: var(--bg2); color: var(--dim);
+  border: 1px solid var(--line); border-radius: 4px; padding: 3px 5px;
+}
+.rep-chip:hover { border-color: var(--gold); color: var(--ink); }
+.rep-chip.bad { border-color: #6a3535; color: #e08a8a; }
+.rep-chip.bad:hover { border-color: var(--bad); color: var(--ink); }
+.rep-chip.mute { border-color: #6a5a2e; color: var(--hot); }
 
 /* ---- editor: folded text views ---- */
 .ed-fold { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 8px; }

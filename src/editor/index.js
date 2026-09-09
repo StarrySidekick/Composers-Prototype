@@ -24,8 +24,8 @@ export function buildEditor(game, renderer, assets, els, hooks = {}) {
 
   const panel = buildPanel(game, paint, assets, {
     tools: els.tools, palette: els.palette, inspector: els.inspector,
-    assets: els.assetsBox, legendHint: els.hintBox,
-  }, { toast });
+    assets: els.assetsBox, legendHint: els.hintBox, report: els.reportBox,
+  }, { toast, onJump: hooks.onJump });
 
   // ---- populate the fixed selects ----------------------------------------
 
