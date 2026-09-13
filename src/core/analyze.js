@@ -36,11 +36,17 @@ export const STRUCTURAL = new Set(['wall', 'door', 'exit']);
 // aren't part of a melody a note lock listens for) — see game.js if this
 // ever needs to grow a field; `ctx.player` is a stub, kept only because a
 // couple of onPlayerInteract handlers read it and it costs nothing to have.
+//
+// `audio.play` has to be here too, not just `ctx.play` — game.js's real
+// buildContext() sets both to the same underlying audio.play(), and a note
+// lock's hint phrase (locks.js) calls ctx.audio.play directly rather than
+// ctx.play. Driving onPlayerInteract (below) without this throws the moment
+// a note lock is swept, because the stub audio object had no play method.
 function shadowCtx(room, waves, onPlay) {
   const ctx = {
     room,
     player: { x: 0, y: 0, dir: { x: 1, y: 0 }, facing: 'right' },
-    audio: { now: 0 },
+    audio: { now: 0, play: (o) => ctx.play(o) },
     play(o) {
       onPlay(o);
       if (o.family === 'percussion' || o.family === 'sour') return;
@@ -75,22 +81,27 @@ export function sweepRoom(room) {
   for (let y = 0; y < room.height; y++) {
     for (let x = 0; x < room.width; x++) {
       const d = room.doodadAt(x, y);
-      if (d) pieces.push({ x, y, type: d.constructor?.type || 'unknown', d, hits: 0, notes: 0 });
+      if (d) pieces.push({ x, y, type: d.constructor?.type || 'unknown', d, hits: 0, entered: 0, interacted: 0, notes: 0 });
     }
   }
+
+  // Every doer routes through here, so `inside` (and therefore which piece a
+  // note gets attributed to) is right regardless of whether the sound came
+  // from a wave arriving, Coda walking onto the tile, or Coda pressing B.
+  let inside = null;
+  const track = (p, key, fn) => {
+    p[key]++;
+    const was = inside; inside = p;
+    try { return fn(); } finally { inside = was; }
+  };
 
   // Wrap each piece's receiveWave (not onWaveEntered — SoundWave.step calls
   // receiveWave, and the base class's busy-check and melee routing happen
   // there first) so every arrival is seen, including ones a doodad ignores.
-  let inside = null;
   for (const p of pieces) {
     const original = p.d.receiveWave?.bind(p.d);
     if (!original) continue;
-    p.d.receiveWave = (...args) => {
-      p.hits++;
-      const was = inside; inside = p;
-      try { return original(...args); } finally { inside = was; }
-    };
+    p.d.receiveWave = (...args) => track(p, 'hits', () => original(...args));
   }
 
   const waves = [];
@@ -124,6 +135,20 @@ export function sweepRoom(room) {
       }
       travels.push(s);
       if (heard.length === before) dud++;
+
+      /* A wave is one way into a tile. Coda himself is another: walking onto
+         it (Game.move -> onPlayerEnter, gated by canEnter exactly as a real
+         move is — a per-face IPlayerFaceInteractable can open one side and
+         not another) and pressing B while facing it (Game.interact ->
+         onPlayerInteract, which doesn't care whether the tile is solid).
+         Keys & mallets, strings and key-shifts are all walked-on or struck
+         rather than wave-triggered by design (keys.js's own header comment
+         says so), and without this every one of them read as a mute
+         instrument rather than as the floor-instrument it actually is. */
+      if (room.canEnter(p.x, p.y, { x: dx, y: dy })) {
+        track(p, 'entered', () => p.d.onPlayerEnter(ctx, { x: dx, y: dy }));
+      }
+      track(p, 'interacted', () => p.d.onPlayerInteract(ctx));
     }
   }
 
@@ -135,7 +160,10 @@ export function sweepRoom(room) {
     notes: heard.length,
     distinct: [...new Set(midis)].sort((a, b) => a - b),
     families: [...new Set(heard.map((n) => n.family))].filter(Boolean),
-    pieces: pieces.map((p) => ({ x: p.x, y: p.y, type: p.type, hits: p.hits, notes: p.notes })),
+    pieces: pieces.map((p) => ({
+      x: p.x, y: p.y, type: p.type,
+      hits: p.hits, entered: p.entered, interacted: p.interacted, notes: p.notes,
+    })),
   };
 }
 
@@ -147,8 +175,12 @@ const median = (a) => (a.length ? [...a].sort((x, y) => x - y)[a.length >> 1] : 
 export function summarize(r) {
   const parts = r.pieces.filter((p) => !STRUCTURAL.has(p.type));
   const walls = r.pieces.length - parts.length;
-  const silent = parts.filter((p) => p.hits === 0);
-  const mute = parts.filter((p) => p.hits > 0 && p.notes === 0);
+  // Reached is any of the three ways in: a wave arrived, Coda walked onto it,
+  // or Coda pressed B at it. A piece is only NEVER HIT if none of the three
+  // ever landed from anywhere a player can actually stand.
+  const reached = (p) => p.hits > 0 || p.entered > 0 || p.interacted > 0;
+  const silent = parts.filter((p) => !reached(p));
+  const mute = parts.filter((p) => reached(p) && p.notes === 0);
   const busiest = [...parts].sort((a, b) => b.notes - a.notes).slice(0, 3).filter((p) => p.notes);
   return {
     ...r, parts, walls, silent, mute, busiest,

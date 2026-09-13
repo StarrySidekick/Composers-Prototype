@@ -126,11 +126,21 @@ reading:
 - **NEVER HIT** — a piece no shot from anywhere a player can stand ever reaches.
   Nearly always a level-design mistake, and invisible in the editor, because the
   piece is sitting right there looking placed.
-- **mute** — reached, but sounded nothing. Correct for a lock, a peg or a
-  keyshift; a question for an instrument.
+- **mute** — reached, but sounded nothing. Correct for a lock's body, a peg or
+  a brass tube segment with no mouthpiece; a question for anything else.
 
 **Nothing in it passes or fails**, on purpose. It is a thing to read while
 authoring, and a room can be a good room and score badly on any line.
+
+**"Reached" is three ways in, not one.** A wave arriving is `receiveWave`, but
+Coda himself gets there two more ways — walking onto the tile (`onPlayerEnter`,
+gated by `canEnter` exactly as a real move is, so a per-face-blocked side is
+correctly not tried) and pressing B while facing it (`onPlayerInteract`, which
+doesn't care whether the tile is solid). The report drives all three from every
+standable square, because keys, mallets, strings and key-shifts are walked-on
+or struck rather than wave-triggered **by design** — see `src/doodads/keys.js`'s
+own header comment — and a report that only fired waves called every one of
+them mute. It doesn't; this was the tool's gap, not theirs. Fixed 2026-09-13.
 
 Two things about it: walls, doors and exits are filtered out of the findings as
 a display choice, since sixty walls bury the one piece that matters; and a note
@@ -139,11 +149,16 @@ totals but is not attributed to its doodad. It needs Playwright like the
 harness does, and like the harness it is not part of the site — the no-build,
 no-dependency rule is about what ships, and `tools/` does not.
 
-It has already asked one question worth an answer: **Keys 01 — The Keyboard
-Floor produces two distinct pitches, and all six of its `pianokey` pieces plus
-its `mallet` are reached but sound nothing.** That may be correct — a key may
-want striking rather than a wave passing through — but it is an odd result for a
-room named after its keyboard, and nothing else would have surfaced it.
+It asked one real question on its first run, and the fix above answers it:
+**Keys 01 — The Keyboard Floor** no longer reports its `pianokey`s, its `mallet`
+or its `notelock` as mute — the room was always correct (the hint literally
+says "Step on K to swing the mallet"); the report just wasn't simulating a
+step. Once it did, every piece in **Keys 01** and **Strings 01** reads
+"every piece is reachable and sounds", and the walked-on/struck pieces
+disappeared from every other room's mute list too (Brass 01's strings,
+Sandbox's key, mallet, note lock, key-shifts and strings). What's left in
+every mute list now is exactly the structural kind — brass tube bodies with
+no mouthpiece, and pegs — which is what the line was supposed to mean.
 
 Beyond that, verify in the browser: `window.CK` exposes `{ game, audio,
 renderer, assets }`, and `game.update()` can be driven manually in a loop to step the
