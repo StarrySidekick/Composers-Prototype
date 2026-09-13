@@ -65,18 +65,22 @@ for (const entry of manifest) {
     for (let y = 0; y < room.height; y++) {
       for (let x = 0; x < room.width; x++) {
         const d = room.doodadAt(x, y);
-        if (d) pieces.push({ x, y, type: d.constructor?.type || 'unknown', d, hits: 0, notes: 0 });
+        if (d) pieces.push({ x, y, type: d.constructor?.type || 'unknown', d, hits: 0, entered: 0, interacted: 0, notes: 0 });
       }
     }
     let inside = null;
+    // Every doer routes through here, so a.play (below) always knows which
+    // piece is on the stack regardless of whether the sound came from a wave
+    // arriving, Coda walking onto the tile, or Coda pressing B at it.
+    const track = (p, key, fn) => {
+      p[key]++;
+      const was = inside; inside = p;
+      try { return fn(); } finally { inside = was; }
+    };
     for (const p of pieces) {
       const original = p.d.receiveWave?.bind(p.d);
       if (!original) continue;
-      p.d.receiveWave = (...args) => {
-        p.hits++;
-        const was = inside; inside = p;
-        try { return original(...args); } finally { inside = was; }
-      };
+      p.d.receiveWave = (...args) => track(p, 'hits', () => original(...args));
     }
 
     const heard = [];
@@ -107,6 +111,20 @@ for (const entry of manifest) {
         travels.push(s);
         if (heard.length === before) dud++;
         g.waves = [];
+
+        /* A wave is one way into a tile. Coda himself is another: walking
+           onto it (Game.move -> onPlayerEnter, gated the same way canEnter
+           gates a real move — a per-face IPlayerFaceInteractable can open one
+           side and not another) and pressing B while facing it (Game.interact
+           -> onPlayerInteract, which doesn't care whether the tile is solid).
+           Keys & mallets, strings and key-shifts are all walked-on rather than
+           wave-struck by design (keys.js's own header comment says so), and
+           without this every one of them read as a mute instrument rather
+           than as the floor-instrument it actually is. */
+        if (room.canEnter(p.x, p.y, g.player.dir)) {
+          track(p, 'entered', () => p.d.onPlayerEnter(g.ctx, g.player.dir));
+        }
+        track(p, 'interacted', () => p.d.onPlayerInteract(g.ctx));
       }
     }
     a.play = realPlay;
@@ -120,7 +138,10 @@ for (const entry of manifest) {
       notes: heard.length,
       distinct: [...new Set(midis)].sort((x, y) => x - y),
       families: [...new Set(heard.map((n) => n.family))].filter(Boolean),
-      pieces: pieces.map((p) => ({ x: p.x, y: p.y, type: p.type, hits: p.hits, notes: p.notes }))
+      pieces: pieces.map((p) => ({
+        x: p.x, y: p.y, type: p.type,
+        hits: p.hits, entered: p.entered, interacted: p.interacted, notes: p.notes,
+      })),
     };
   }, { file: entry.file, steps: STEPS });
 
@@ -133,8 +154,12 @@ for (const entry of manifest) {
   const parts = r.pieces.filter((p) => !STRUCTURAL.has(p.type));
   const walls = r.pieces.length - parts.length;
 
-  const silent = parts.filter((p) => p.hits === 0);
-  const mute = parts.filter((p) => p.hits > 0 && p.notes === 0);
+  // Reached is any of the three ways in: a wave arrived, Coda walked onto it,
+  // or Coda pressed B at it. A piece is only NEVER HIT if none of the three
+  // ever landed from anywhere a player can actually stand.
+  const reached = (p) => p.hits > 0 || p.entered > 0 || p.interacted > 0;
+  const silent = parts.filter((p) => !reached(p));
+  const mute = parts.filter((p) => reached(p) && p.notes === 0);
   const busiest = [...parts].sort((a, b) => b.notes - a.notes).slice(0, 3).filter((p) => p.notes);
 
   console.log(`\n${entry.name}`);

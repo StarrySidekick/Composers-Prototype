@@ -46,9 +46,21 @@ two distinct pitches, and all six of its piano keys are reached without
 sounding.** Possibly correct, possibly not, and nothing else in the repo would
 have said so.
 
+**Answered, 2026-09-13: the room was right and the report was wrong.**
+`src/doodads/keys.js` says outright that piano keys are walked on, not struck
+by waves — but the report only ever fired waves, so anything meant to be
+walked onto or pressed (a key, a mallet, a string, a key-shift, a note lock's
+hint phrase) read as mute regardless of whether it worked. The report now also
+drives `onPlayerEnter` and `onPlayerInteract` from every standable square, the
+same way it already drove waves. Keys 01 and Strings 01 now both read "every
+piece is reachable and sounds"; every other room's mute list lost every
+walked-on piece it used to wrongly carry, and kept only the genuinely silent
+structural ones (a brass tube's body, a peg). See `tools/room-report.mjs` and
+CLAUDE.md's "And a report" section for the mechanism.
+
 **Still missing from the loop:** a faster way to *write* a room, and any way to
-judge whether one is fun without a person playing it. The report can say a room
-is thin; it cannot say a room is boring.
+judge whether one is fun without a person playing it. The report can now say a
+room is thin or silently mistargeted; it still cannot say a room is boring.
 
 ## Something that needs Timothy
 
