@@ -68,6 +68,14 @@ already means the thing you asked for — a rotated elbow is a `J` — the edito
 **build** / **play** switches between painting on the canvas and driving Coda around it;
 the panel stays open either way. **width** / **height** resize the room in place.
 
+The **Report** section is `tools/room-report.mjs`, without leaving the browser: press
+*check room* and it fires from every side of every piece, the same sweep the terminal
+version runs (`src/core/analyze.js`, shared by both), and prints the same NEVER HIT / mute
+findings — but here each one is a chip you can click, which selects the tile and switches
+into build mode instead of just naming a coordinate. It sweeps a disposable copy of the
+room, never the one you're standing in, so a check can't light a lock or open a door in
+front of you; press it again after changing anything; it doesn't reflect edits on its own.
+
 A room is still an ASCII drawing plus a legend, and *Layout as text* at the bottom of the
 panel is still the fastest way to move one between machines or read a diff:
 
