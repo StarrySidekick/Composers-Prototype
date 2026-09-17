@@ -110,8 +110,9 @@ reading:
 - **NEVER HIT** — a piece no shot from anywhere a player can stand ever reaches.
   Nearly always a level-design mistake, and invisible in the editor, because the
   piece is sitting right there looking placed.
-- **mute** — reached, but sounded nothing. Correct for a lock, a peg or a
-  keyshift; a question for an instrument.
+- **mute** — reached, but sounded nothing, by wave OR by walking onto it OR by
+  pressing B facing it. Correct for a lock, a peg or a door; a question for an
+  instrument.
 
 **Nothing in it passes or fails**, on purpose. It is a thing to read while
 authoring, and a room can be a good room and score badly on any line.
@@ -123,11 +124,22 @@ totals but is not attributed to its doodad. It needs Playwright like the
 harness does, and like the harness it is not part of the site — the no-build,
 no-dependency rule is about what ships, and `tools/` does not.
 
-It has already asked one question worth an answer: **Keys 01 — The Keyboard
-Floor produces two distinct pitches, and all six of its `pianokey` pieces plus
-its `mallet` are reached but sound nothing.** That may be correct — a key may
-want striking rather than a wave passing through — but it is an odd result for a
-room named after its keyboard, and nothing else would have surfaced it.
+**It drives both of the player's verbs, not just the wave.** A piano key
+explicitly lets a wave ride over it — `wave.pass()`, `keys.js`, "waves ride over
+keys, they don't press them" — and a keyshift is the same shape: wave-transparent,
+player-triggered only. The first version of this report only ever fired waves,
+so both types read "mute" forever regardless of the room, which was never a
+finding about the room — it was this tool not asking the other question. It now
+also stands next to every piece, presses B facing it (`onPlayerInteract`, or the
+melee strike if that declines), and tries to walk onto it (`onPlayerEnter`),
+folding whatever that produces into the same hit/note counts. **The original
+finding this section used to report — Keys 01's six `pianokey` pieces and its
+`mallet` reading "reached but sound nothing" — was this blind spot, not a bug.**
+Verified directly in the browser: standing next to a piano key and walking onto
+it fires `onPlayerEnter`, which plays a real note (`family: 'keys'`) and, where
+grouped, triggers its mallet. Re-run the report and Keys 01 now reads "every
+piece is reachable and sounds," 9 distinct pitches instead of 2. Sandbox's two
+`keyshift` tiles left the mute list the same way.
 
 Beyond that, verify in the browser: `window.CK` exposes `{ game, audio,
 renderer, assets }`, and `game.update()` can be driven manually in a loop to step the

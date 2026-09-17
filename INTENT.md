@@ -46,6 +46,18 @@ two distinct pitches, and all six of its piano keys are reached without
 sounding.** Possibly correct, possibly not, and nothing else in the repo would
 have said so.
 
+**Answered, 2026-09-17: correct — it was the report, not the room.** A piano
+key's `onWaveEntered` is `wave.pass()` by design (`keys.js`: "waves ride over
+keys, they don't press them"); it and a mallet answer only to being walked on
+or pressed with B. The report only ever fired waves, so anything player-
+triggered read "mute" no matter what the room did. It now also drives both
+player verbs — stand next to a piece, press B facing it, try to walk onto it —
+and folds that into the same hit/note counts. Keys 01 now reads "every piece is
+reachable and sounds," 9 distinct pitches instead of 2, confirmed by walking a
+piano key in a real browser and watching it play a note. Sandbox's two
+`keyshift` tiles (same wave-transparent, player-triggered shape) left the mute
+list the same way. See CLAUDE.md's room-report section for the detail.
+
 **Still missing from the loop:** a faster way to *write* a room, and any way to
 judge whether one is fun without a person playing it. The report can say a room
 is thin; it cannot say a room is boring.

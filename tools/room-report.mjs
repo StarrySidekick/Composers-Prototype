@@ -20,7 +20,11 @@
 
    Same driving technique as the harness: stand behind every doodad on every
    side there is room to stand, fire in, and step the clock by hand. Nothing is
-   waited for.
+   waited for. A second pass then drives the player's own two verbs — B and
+   walking — at every piece, because a wave is not the only way a room is
+   played: a piano key explicitly lets a wave ride over it and answers only
+   to being walked on or pressed (keys.js), and the first version of this
+   file could not tell that apart from a piece that never sounds at all.
 */
 import { chromium } from 'playwright';
 
@@ -69,14 +73,23 @@ for (const entry of manifest) {
       }
     }
     let inside = null;
+    /* Wrap every seam a player can actually reach a doodad through, not just
+       receiveWave. A piano key's onWaveEntered is `wave.pass()` — waves ride
+       over keys, they don't press them (keys.js) — and it answers only to
+       being walked on or pressed with B, same as a keyshift and a string
+       underfoot. Without these three, those types are permanently "reached,
+       but sounded nothing" no matter what the room does, which is not a
+       finding — it's this tool never having asked. */
     for (const p of pieces) {
-      const original = p.d.receiveWave?.bind(p.d);
-      if (!original) continue;
-      p.d.receiveWave = (...args) => {
-        p.hits++;
-        const was = inside; inside = p;
-        try { return original(...args); } finally { inside = was; }
-      };
+      for (const key of ['receiveWave', 'onPlayerEnter', 'onPlayerInteract', 'onMeleeStrike', 'trigger']) {
+        const original = p.d[key]?.bind(p.d);
+        if (!original) continue;
+        p.d[key] = (...args) => {
+          p.hits++;
+          const was = inside; inside = p;
+          try { return original(...args); } finally { inside = was; }
+        };
+      }
     }
 
     const heard = [];
@@ -108,6 +121,32 @@ for (const entry of manifest) {
         if (heard.length === before) dud++;
         g.waves = [];
       }
+    }
+
+    /* A second pass, on foot: stand next to each piece, press B facing it
+       (onPlayerInteract, or the melee strike if that declines — the same
+       fallback Game.interact() uses), then try to walk onto it
+       (onPlayerEnter). Only the first standable square, not all four —
+       some of these have side effects that don't cancel out on repeat (a
+       keyshift shifts the room's key every time it's walked, a mute
+       toggles), and this only needs one proof of life, not an exhaustive
+       count. Any wave a trigger spawns (a mallet fired by its piano key) is
+       left untraced — that circuit is what the shot loop above already
+       covers from the mallet's own tile. */
+    for (const p of pieces) {
+      let stood = null;
+      for (const [name, [dx, dy]] of Object.entries(DIRS)) {
+        const px = p.x - dx, py = p.y - dy;
+        if (!room.inBounds(px, py) || room.doodadAt(px, py)) continue;
+        stood = { px, py, name };
+        break;
+      }
+      if (!stood) continue;
+      g.player.x = stood.px; g.player.y = stood.py; g.setFacing(stood.name);
+      g.interact();
+      g.player.x = stood.px; g.player.y = stood.py; g.setFacing(stood.name);
+      g.move(stood.name);
+      g.waves = [];
     }
     a.play = realPlay;
 
