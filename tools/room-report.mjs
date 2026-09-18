@@ -28,14 +28,17 @@
    the browser launch, the manifest walk, and turning the summary into text.
 */
 import { chromium } from 'playwright';
+// src/core/music.js touches no browser global, so this one is a plain Node
+// import rather than the in-page dynamic one above — it used to reimplement
+// the same pitch-spelling formula as its own local `spell()`, which is the
+// exact kind of second copy this file's own header comment warns about.
+import { midiName } from '../src/core/music.js';
 
 const EXEC = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8080/';
 const filter = process.argv[2] || '';
 
 const pad = (s, n) => String(s).padEnd(n);
-const NOTE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-const spell = (m) => `${NOTE[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
 
 const browser = await chromium.launch({ executablePath: EXEC });
 const page = await browser.newPage();
@@ -67,7 +70,7 @@ for (const entry of manifest) {
   console.log(`  ${pad('shots', 12)}${r.shots} from ${r.stands} standable squares · ${r.dud} made no sound`);
   console.log(`  ${pad('circuits', 12)}longest ${r.longest} · median ${r.median}`);
   console.log(`  ${pad('pitches', 12)}${r.distinct.length} distinct` +
-    (r.distinct.length ? ` (${spell(r.distinct[0])}–${spell(r.distinct[r.distinct.length - 1])})` : '') +
+    (r.distinct.length ? ` (${midiName(r.distinct[0])}–${midiName(r.distinct[r.distinct.length - 1])})` : '') +
     ` · ${r.notes} notes heard`);
   console.log(`  ${pad('families', 12)}${r.families.join(', ') || '—'}`);
   if (busiest.length) {
