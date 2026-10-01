@@ -1,20 +1,20 @@
-// Placeholder art generator.
+// Sprite slots, and the atlas exporter.
 //
-// Every tile the prototype knows how to draw can be baked into a fixed-size canvas
-// and packed into an atlas PNG. Two uses:
+// spriteSlots() is the list of every picture the game can ask for, derived from the
+// legend (so a new doodad gets a slot the moment it gets a character), plus every
+// linked variant a tile rule can produce (`wall.ns`, `pianokey.ew`).
 //
-//   1. It is the fastest way to get a complete, correctly-gridded placeholder set
-//      into the Unity project — one PNG plus a manifest, cut to the tile size you
-//      ask for, with every doodad state (open door, lit lock, slide positions).
-//   2. It proves the sprite path works before any real art exists: turn sprites on
-//      with an empty assets/ directory and the game renders from baked images
-//      instead of live draw() calls, so a missing-art bug shows up here, not later.
+// bakeAtlas() packs a set into one PNG plus a matching manifest, cut to whatever
+// tile size you ask for. Its main use now is getting the sketch placeholders into
+// Unity as a complete, correctly-gridded set before the real art exists.
 //
 // Real Unity exports land in exactly the same slots — see docs/ASSETS.md.
 
 import { DEFAULT_LEGEND } from '../core/room.js';
 import { createDoodad } from '../core/doodad.js';
 import { PALETTE } from './palette.js';
+import { LINKS, linkVariants } from '../art/links.js';
+import { TILE } from '../art/protocol.js';
 import '../doodads/index.js';
 
 // States a doodad has that its sprite key distinguishes. Anything not listed bakes
@@ -45,6 +45,13 @@ export function spriteSlots() {
       slots.push({ key: d.spriteKey, spec: base, state });
     }
   }
+  // Linked variants share their base slot's spec; only the art differs.
+  for (const slot of [...slots]) {
+    if (!LINKS[slot.spec.type] || slot.key !== slot.spec.type) continue;
+    for (const v of linkVariants(slot.spec.type)) {
+      slots.push({ ...slot, key: `${slot.key}.${v}`, linkOf: slot.key });
+    }
+  }
   // Distinct specs can still resolve to one key (both keyshift characters do not, but
   // a future pair might); last one wins and the list stays unique.
   const byKey = new Map(slots.map(s => [s.key, s]));
@@ -58,13 +65,13 @@ export function spriteKeys() { return spriteSlots().map(s => s.key); }
 // Draw one spec into a 2d context at (0,0), size px square — sprite if the store has
 // one, procedural otherwise. Shared by the palette previews and the baker so a brush
 // button always looks like the tile it paints.
-export function renderSpec(c, spec, size = 32, wing = 'brass', assets = null, state = null) {
+export function renderSpec(c, spec, size = 32, wing = 'brass', assets = null, state = null, key = null) {
   const d = createDoodad(spec, 0, 0);
   if (!d) return false;
   if (state) Object.assign(d, state);
   d.flash = d.hit = d.press = d.swing = d.vibrate = 0;
   const ctx = fakeContext(wing);
-  const sprite = assets?.get(d.spriteKey);
+  const sprite = assets?.resolve([key, d.spriteKey]);
   c.save();
   if (sprite) {
     c.imageSmoothingEnabled = false;
@@ -81,18 +88,18 @@ export function renderSpec(c, spec, size = 32, wing = 'brass', assets = null, st
   return true;
 }
 
-// Bake one slot into its own canvas at `size` px. `wing` picks the palette for the
-// tiles that are wing-tinted (walls, doors, locks).
-export function bakeSlot(slot, size = 32, wing = 'brass') {
+// Bake one slot into its own canvas at `size` px, from whatever `assets` resolves
+// for it in its current mode (or draw() if nothing). Sprites are authored unrotated.
+export function bakeSlot(slot, size = TILE, wing = 'brass', assets = null) {
   const cv = document.createElement('canvas');
   cv.width = cv.height = size;
-  // Sprites are authored unrotated; the renderer spins them.
-  renderSpec(cv.getContext('2d'), { ...slot.spec, rot: 0 }, size, wing, null, slot.state);
+  renderSpec(cv.getContext('2d'), { ...slot.spec, rot: 0 }, size, wing, assets, slot.state, slot.key);
   return cv;
 }
 
-// The whole set, packed left-to-right into one atlas.
-export function bakeAtlas({ size = 32, wing = 'brass', columns = 8 } = {}) {
+// The whole set, packed left-to-right into one atlas. With `mode: 'sketch'` it is
+// the placeholder set; with 'real' it is what the game shows today.
+export function bakeAtlas({ size = TILE, wing = 'brass', columns = 8, assets = null, mode = 'sketch' } = {}) {
   const slots = spriteSlots();
   const cols = Math.min(columns, Math.max(1, slots.length));
   const rows = Math.ceil(slots.length / cols);
@@ -102,13 +109,19 @@ export function bakeAtlas({ size = 32, wing = 'brass', columns = 8 } = {}) {
   const c = cv.getContext('2d');
   c.imageSmoothingEnabled = false;
 
-  const sheetName = `placeholders-${wing}`;
+  const was = assets?.mode;
+  if (assets) assets.mode = mode;
+  const sheetName = `${mode === 'sketch' ? 'placeholders' : 'tiles'}-${size}`;
   const sprites = {};
-  slots.forEach((slot, i) => {
-    const col = i % cols, row = Math.floor(i / cols);
-    c.drawImage(bakeSlot(slot, size, wing), col * size, row * size);
-    sprites[slot.key] = { sheet: sheetName, col, row };
-  });
+  try {
+    slots.forEach((slot, i) => {
+      const col = i % cols, row = Math.floor(i / cols);
+      c.drawImage(bakeSlot(slot, size, wing, assets), col * size, row * size);
+      sprites[slot.key] = { sheet: sheetName, col, row };
+    });
+  } finally {
+    if (assets) assets.mode = was;
+  }
 
   const manifest = {
     tileSize: size,
@@ -117,23 +130,6 @@ export function bakeAtlas({ size = 32, wing = 'brass', columns = 8 } = {}) {
     unity: Object.fromEntries(slots.map(s => [s.key, ''])),
   };
   return { canvas: cv, manifest, slots, cols, rows, sheetName };
-}
-
-// A live, in-memory sprite set for the whole game with no files involved. Handy for
-// "does anything break when this renders from images?" — and it is what the editor's
-// *bake placeholders* button loads.
-export function bakeSessionSprites(store, { size = 32, wing = 'brass' } = {}) {
-  const slots = spriteSlots();
-  store.clearSession();
-  for (const slot of slots) {
-    const cv = bakeSlot(slot, size, wing);
-    store.session.set(slot.key, {
-      image: cv, sx: 0, sy: 0, sw: size, sh: size,
-      filename: `${slot.key.replace(/\./g, '_')}.png`, baked: true,
-    });
-  }
-  store.onChange?.();
-  return slots.length;
 }
 
 // draw() only ever reaches for ctx.room.wing; give it that and nothing else.

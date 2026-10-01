@@ -1,10 +1,11 @@
-// Canvas renderer. Deliberately schematic — this is a mechanics harness, not the
-// hand-drawn game. The one piece of real art direction carried over is the
-// parchment floor with visible staves (GDD §10), because the endgame sheet-music
-// system depends on the player having seen it the whole time.
+// Canvas renderer. White line-work on black, like the Unity build. Tiles come from
+// the AssetStore (real art, then sketch placeholders) and fall back to each doodad's
+// own schematic draw(). The floor keeps faint staves (GDD §10), because the endgame
+// sheet-music system depends on the player having seen them the whole time.
 
 import { PALETTE } from './palette.js';
 import { DIR } from '../core/direction.js';
+import { linkKey } from '../art/links.js';
 
 export class Renderer {
   constructor(canvas, assets = null) {
@@ -54,7 +55,7 @@ export class Renderer {
         if (!d) continue;
         c.save();
         c.translate(x * s, y * s);
-        this._doodad(d, s, game.ctx);
+        this._doodad(d, s, game.ctx, room);
         c.restore();
       }
     }
@@ -69,8 +70,9 @@ export class Renderer {
 
   // A tile draws itself unless the asset store has a picture of it. The sprite is
   // authored unrotated, so the renderer applies `rot` the same way draw() would.
-  _doodad(d, s, ctx) {
-    const sprite = this.assets?.get(d.spriteKey);
+  // Linked families (walls, keyboards) ask for their joined variant first.
+  _doodad(d, s, ctx, room) {
+    const sprite = this.assets?.resolve([linkKey(d, room), d.spriteKey]);
     const c = this.c;
     if (!sprite) { d.draw(c, s, ctx); return; }
     c.imageSmoothingEnabled = false;
@@ -109,7 +111,7 @@ export class Renderer {
     c.globalAlpha = 1;
 
     // tile grid
-    c.strokeStyle = 'rgba(58,50,38,0.10)';
+    c.strokeStyle = p.grid;
     for (let x = 0; x <= room.width; x++) {
       c.beginPath(); c.moveTo(x * s + 0.5, 0); c.lineTo(x * s + 0.5, room.height * s); c.stroke();
     }
@@ -145,7 +147,7 @@ export class Renderer {
         continue;
       }
 
-      c.strokeStyle = w.state.modulation > 0.5 ? '#8b3a52' : p.hot;
+      c.strokeStyle = w.state.modulation > 0.5 ? p.sour : p.hot;
       c.lineWidth = Math.max(2, s * 0.09);
       c.beginPath();
       c.arc(0, 0, r, 0, Math.PI * 2);
@@ -204,7 +206,7 @@ export class Renderer {
       );
     }
     c.closePath();
-    c.fillStyle = 'rgba(238,240,252,0.92)';
+    c.fillStyle = p.parchment;
     c.fill();
     c.strokeStyle = p.ink;
     c.lineWidth = 1.5;
@@ -235,7 +237,7 @@ export class Renderer {
     const { hover, selected, erasing, rect } = this.edit;
 
     c.save();
-    c.strokeStyle = 'rgba(217,164,65,0.20)';
+    c.strokeStyle = 'rgba(255,255,255,0.18)';
     c.lineWidth = 1;
     for (let x = 0; x <= room.width; x++) {
       c.beginPath(); c.moveTo(x * s + 0.5, 0); c.lineTo(x * s + 0.5, room.height * s); c.stroke();
@@ -245,7 +247,7 @@ export class Renderer {
     }
 
     if (selected && room.inBounds(selected.x, selected.y)) {
-      c.strokeStyle = '#ffd97a';
+      c.strokeStyle = '#ffffff';
       c.lineWidth = 2;
       c.setLineDash([4, 3]);
       c.strokeRect(selected.x * s + 1, selected.y * s + 1, s - 2, s - 2);
@@ -255,17 +257,17 @@ export class Renderer {
     if (rect && rect.a && rect.b) {
       const x0 = Math.min(rect.a.x, rect.b.x), x1 = Math.max(rect.a.x, rect.b.x);
       const y0 = Math.min(rect.a.y, rect.b.y), y1 = Math.max(rect.a.y, rect.b.y);
-      c.fillStyle = 'rgba(255,217,122,0.18)';
+      c.fillStyle = 'rgba(255,255,255,0.12)';
       c.fillRect(x0 * s, y0 * s, (x1 - x0 + 1) * s, (y1 - y0 + 1) * s);
-      c.strokeStyle = '#ffd97a';
+      c.strokeStyle = '#ffffff';
       c.lineWidth = 2;
       c.strokeRect(x0 * s + 1, y0 * s + 1, (x1 - x0 + 1) * s - 2, (y1 - y0 + 1) * s - 2);
     }
 
     if (hover && room.inBounds(hover.x, hover.y)) {
-      c.fillStyle = erasing ? 'rgba(180,70,70,0.22)' : 'rgba(255,217,122,0.22)';
+      c.fillStyle = erasing ? 'rgba(200,70,70,0.25)' : 'rgba(255,255,255,0.14)';
       c.fillRect(hover.x * s, hover.y * s, s, s);
-      c.strokeStyle = erasing ? '#c05a5a' : '#ffd97a';
+      c.strokeStyle = erasing ? '#d06060' : '#ffffff';
       c.lineWidth = 2;
       c.strokeRect(hover.x * s + 1, hover.y * s + 1, s - 2, s - 2);
     }
@@ -280,7 +282,7 @@ export class Renderer {
     for (let i = 0; i < r.music.timeSignature; i++) {
       c.beginPath();
       c.arc(8 + i * 12, 10, i === beat ? 4.5 : 3, 0, Math.PI * 2);
-      c.fillStyle = i === beat ? p.hot : 'rgba(58,50,38,0.25)';
+      c.fillStyle = i === beat ? p.hot : p.grid;
       c.fill();
     }
   }

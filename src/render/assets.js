@@ -1,36 +1,51 @@
 // The sprite store.
 //
-// The prototype draws every tile procedurally, and it will keep doing that forever —
-// schematic art is genuinely better for judging a mechanic. But two things want real
-// pictures: checking that a room still reads once it is dressed, and handing Unity a
-// set of placeholder tiles cut to the right grid.
+// The prototype can always draw every tile procedurally (draw()), but there are two
+// better sources of a picture, and the store decides between them:
 //
-// So: every doodad names a sprite key (`brass.elbow`, `door.open`). If the store has
-// an image for that key it is blitted; if it doesn't, draw() runs as before. Nothing
-// here is required for the game to work — an empty manifest is a valid manifest.
+//   real         PNGs from the Unity project, listed in assets/manifest.json
+//   placeholder  generated sketch art in the house style (src/art/placeholders.js),
+//                for every slot nobody has drawn yet
+//
+// Lookup takes a list of keys, most specific first (`wall.ns`, then `wall`), so a
+// linked tile falls back to its plain drawing. `mode` picks the order:
+//
+//   real       real > placeholder > draw()     the default: show what exists
+//   sketch     placeholder > real > draw()     the whole room in placeholders
+//   schematic  draw() only                     the mechanics view
+//
+// Colour is applied here, not baked into files: the art is white line-work and a
+// manifest entry may carry an `ink` (tint) and `flipX`, the same way Unity sets a
+// SpriteRenderer's colour and flip.
+
+import { INK, STATE_INK } from '../art/protocol.js';
+import { drawPlaceholder, PLACEHOLDERS } from '../art/placeholders.js';
 
 const EXT = /\.(png|webp|gif|jpe?g)$/i;
 const NOISE = /^(spr|sprite|tile|tex|img|icon|asset)[-_ ]/i;
+export const MODES = ['real', 'sketch', 'schematic'];
 
 export class AssetStore {
   constructor() {
-    this.manifest = { tileSize: 32, sheets: {}, sprites: {}, unity: {} };
+    this.manifest = { tileSize: 51, ink: INK, sheets: {}, sprites: {}, unity: {} };
     this.images = new Map();   // src -> HTMLImageElement
-    this.slices = new Map();   // key -> {image, sx, sy, sw, sh} | null
+    this.slices = new Map();   // key -> slice | null       (real art)
+    this.drafts = new Map();   // key -> slice | null       (placeholders)
     this.session = new Map();  // key -> {image, ...}  — dropped in this tab, unsaved
-    this.mode = 'auto';        // auto | sprites | schematic
+    this.mode = 'real';
     this.onChange = null;
     this.baseUrl = 'assets/';
   }
 
-  // Tolerant on purpose: no assets/ directory is the normal state of this repo.
+  // Tolerant on purpose: no assets/ directory is a valid state of this repo.
   async load(url = 'assets/manifest.json') {
     try {
       const res = await fetch(url, { cache: 'no-cache' });
       if (!res.ok) return this;
       const json = await res.json();
       this.manifest = {
-        tileSize: json.tileSize ?? 32,
+        tileSize: json.tileSize ?? 51,
+        ink: json.ink ?? INK,
         sheets: json.sheets ?? {},
         sprites: json.sprites ?? {},
         unity: json.unity ?? {},
@@ -60,11 +75,29 @@ export class AssetStore {
 
   get spriteCount() { return this.session.size + Object.keys(this.manifest.sprites).length; }
 
-  get enabled() { return this.mode !== 'schematic' && this.spriteCount > 0; }
+  get enabled() { return this.mode !== 'schematic'; }
 
-  // Resolved sprite for a key, or null to fall back to draw().
-  get(key) {
-    if (!key || this.mode === 'schematic') return null;
+  // Best picture for the first key in `keys` that has one, or null for draw().
+  resolve(keys) {
+    if (this.mode === 'schematic') return null;
+    const list = (Array.isArray(keys) ? keys : [keys]).filter(Boolean);
+    const order = this.mode === 'sketch' ? ['draft', 'real'] : ['real', 'draft'];
+    for (const layer of order) {
+      for (const k of list) {
+        const s = layer === 'real' ? this.real(k) : this.draft(k);
+        if (s) return s;
+      }
+    }
+    return null;
+  }
+
+  // Kept for callers that only have one key.
+  get(key) { return this.resolve([key]); }
+  has(key) { return !!this.get(key); }
+
+  // Real art only: a dropped file, or the manifest.
+  real(key) {
+    if (!key) return null;
     if (this.session.has(key)) return this.session.get(key);
     if (this.slices.has(key)) return this.slices.get(key);
 
@@ -82,12 +115,27 @@ export class AssetStore {
           slice = { image: img, sx: (spec.col ?? 0) * t, sy: (spec.row ?? 0) * t, sw: t, sh: t };
         }
       }
+      if (slice) slice = prepare(slice, spec.ink ?? STATE_INK[key] ?? this.manifest.ink, !!spec.flipX);
     }
     this.slices.set(key, slice);
     return slice;
   }
 
-  has(key) { return !!this.get(key); }
+  // Placeholder only. Generated once per key, then cached.
+  draft(key) {
+    if (!key || !PLACEHOLDERS[key]) return null;
+    if (this.drafts.has(key)) return this.drafts.get(key);
+    let slice = null;
+    try {
+      const cv = drawPlaceholder(key);
+      if (cv) slice = prepare({ image: cv, sx: 0, sy: 0, sw: cv.width, sh: cv.height }, STATE_INK[key] ?? INK, false);
+      if (slice) slice.draft = true;
+    } catch (err) {
+      console.warn(`Placeholder ${key} failed:`, err.message);
+    }
+    this.drafts.set(key, slice);
+    return slice;
+  }
 
   // A PNG dropped onto the editor. Session-only — `exportManifest` writes down where
   // it should live so it can be committed properly.
@@ -103,7 +151,8 @@ export class AssetStore {
     const old = this.session.get(key);
     if (old?.objectUrl) URL.revokeObjectURL(old.objectUrl);
     this.session.set(key, {
-      image: img, sx: 0, sy: 0, sw: img.width, sh: img.height,
+      ...prepare({ image: img, sx: 0, sy: 0, sw: img.width, sh: img.height },
+        STATE_INK[key] ?? this.manifest.ink, false),
       objectUrl: url, filename: file.name ?? `${key}.png`,
     });
     this.onChange?.();
@@ -132,14 +181,34 @@ export class AssetStore {
   // The manifest to save into assets/manifest.json once the PNGs are copied in.
   exportManifest() {
     const sprites = { ...this.manifest.sprites };
-    for (const [key, s] of this.session) sprites[key] = { src: s.filename };
+    for (const [key, s] of this.session) if (!s.baked) sprites[key] = { src: s.filename };
     return {
       tileSize: this.manifest.tileSize,
+      ink: this.manifest.ink,
       sheets: this.manifest.sheets,
       sprites,
       unity: this.manifest.unity,
     };
   }
+}
+
+// Recolour a slice to `ink` (keeping its alpha) and optionally mirror it, into a
+// canvas of its own so the draw loop stays a plain drawImage. Same idea as Unity's
+// SpriteRenderer.color: multiply white line-work by a colour.
+function prepare(slice, ink, flipX) {
+  if ((!ink || ink.toLowerCase() === 'none') && !flipX) return slice;
+  const cv = document.createElement('canvas');
+  cv.width = slice.sw; cv.height = slice.sh;
+  const c = cv.getContext('2d');
+  if (flipX) { c.translate(cv.width, 0); c.scale(-1, 1); }
+  c.drawImage(slice.image, slice.sx, slice.sy, slice.sw, slice.sh, 0, 0, slice.sw, slice.sh);
+  if (ink && ink.toLowerCase() !== 'none') {
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.globalCompositeOperation = 'source-in';
+    c.fillStyle = ink;
+    c.fillRect(0, 0, cv.width, cv.height);
+  }
+  return { image: cv, sx: 0, sy: 0, sw: cv.width, sh: cv.height, source: slice };
 }
 
 // "Brass_Tube_Straight.png" -> tokens {brass, tube, straight}; the key whose own

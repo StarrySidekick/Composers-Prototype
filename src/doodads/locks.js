@@ -92,10 +92,11 @@ class NoteLock extends Doodad {
     const p = PALETTE.wing(ctx.room.wing);
     const n = this.sequence.length;
     for (let i = 0; i < n; i++) {
+      // heard = filled, still wanted = an empty ring, so it reads without colour
       c.beginPath();
       c.arc(s * (0.28 + (i * 0.44) / Math.max(1, n - 1)), s * 0.72, s * 0.05, 0, Math.PI * 2);
-      c.fillStyle = i < this.progress ? p.hot : p.ink;
-      c.fill();
+      if (i < this.progress) { c.fillStyle = p.hot; c.fill(); }
+      else { c.strokeStyle = p.ink; c.lineWidth = 1; c.stroke(); }
     }
   }
 
