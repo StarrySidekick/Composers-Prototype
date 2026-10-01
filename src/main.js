@@ -4,6 +4,7 @@ import { AssetStore } from './render/assets.js';
 import { Game } from './game.js';
 import { bindInput } from './input.js';
 import { buildEditor } from './editor/index.js';
+import { World } from './core/world.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -32,7 +33,19 @@ async function boot() {
   $('room-select').innerHTML = manifest
     .map(r => `<option value="${r.file}">${r.name}</option>`).join('');
 
-  await loadRoomFile(manifest[0].file);
+  // Rooms joined by doors. Optional: without world.json every room stands alone.
+  game.world = await World.load().catch(err => { console.warn('[world]', err); return null; });
+  game.onRoomChange = (room) => {
+    const entry = manifest.find(m => m.file.replace(/\.json$/, '') === room.id);
+    if (entry) $('room-select').value = entry.file;
+    $('room-hint').textContent = room.hint ?? '';
+    refreshHud();
+    editor?.syncFromRoom();
+  };
+
+  const startFile = manifest.find(m => m.file === `${game.world?.start}.json`)?.file ?? manifest[0].file;
+  $('room-select').value = startFile;
+  await loadRoomFile(startFile);
 
   editor = buildEditor(game, renderer, assets, {
     layoutBox: $('layout'), legendBox: $('legend'), hintBox: $('legend-hint'),

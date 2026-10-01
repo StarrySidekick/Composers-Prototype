@@ -14,8 +14,9 @@
 //   joined above and below. Same 16 cases as the usual N=1 E=2 S=4 W=8 mask, but a
 //   filename says what it is without a lookup table.
 //
-// It does not do inner corners. That needs the 8-neighbour "blob" set (47 drawings)
-// and is not worth the hand-drawing until the 16 have been lived with.
+// Inside corners are handled separately, without the 47-drawing "blob" set: one
+// extra drawing, `wall.inner`, is stamped on top in whichever corner needs it,
+// rotated into place. See innerCorners().
 
 const SIDES = [
   ['n', 0, -1],
@@ -29,8 +30,9 @@ const SIDES = [
 //   axes:   'cardinal' (all four sides) or 'row' (east/west only)
 //   border: does the edge of the room count as a neighbour? For walls, yes: the
 //           outer wall should not draw a seam against nothing.
+//   inner:  also patch inside corners (see innerCorners below)
 export const LINKS = {
-  wall:     { joins: ['wall', 'door'], axes: 'cardinal', border: true },
+  wall:     { joins: ['wall', 'door'], axes: 'cardinal', border: true, inner: true },
   pianokey: { joins: ['pianokey'],     axes: 'row',      border: false },
 };
 
@@ -71,3 +73,59 @@ export function linkVariants(type) {
 }
 
 export function hasSide(variant, side) { return variant.includes(side); }
+
+// Inside corners.
+//
+// Picture an L of wall around a floor tile. The wall tile in the crook of the L
+// is joined on two sides, so by the 16-case rule it draws no border at all, but
+// its diagonal neighbour is floor, and the two borders arriving from either side
+// stop just short of each other. A 3 px gap, every inside corner, every room.
+//
+// Fixing it inside the 16 would mean 47 drawings. Instead: one small drawing,
+// `wall.inner`, authored for the TOP-RIGHT (north-east) corner, stamped on top and
+// rotated to whichever corners need it. Rotation is clockwise in screen space
+// (+y down), the same convention as every other sprite here:
+//
+//     ne -> 0     se -> 90     sw -> 180     nw -> 270
+//
+// Returns the rotations needed for this tile, or [] for none.
+const DIAGONALS = [
+  ['ne', 1, -1, 'n', 'e', 0],
+  ['se', 1, 1, 's', 'e', 90],
+  ['sw', -1, 1, 's', 'w', 180],
+  ['nw', -1, -1, 'n', 'w', 270],
+];
+
+export function innerCorners(d, room) {
+  const rule = LINKS[d.typeName];
+  if (!rule?.inner || !room) return [];
+  const joined = (dx, dy) => {
+    const x = d.x + dx, y = d.y + dy;
+    if (!room.inBounds(x, y)) return rule.border;
+    const n = room.doodadAt(x, y);
+    return !!n && rule.joins.includes(n.typeName);
+  };
+  const side = { n: joined(0, -1), e: joined(1, 0), s: joined(0, 1), w: joined(-1, 0) };
+  const out = [];
+  for (const [, dx, dy, a, b, rot] of DIAGONALS) {
+    if (side[a] && side[b] && !joined(dx, dy)) out.push(rot);
+  }
+  return out;
+}
+
+// Rotation for art that should turn to fit its surroundings rather than being
+// rotated by hand in the room file. A door is drawn upright (a gap in a wall that
+// runs north-south). Set into a wall that runs east-west, it turns 90.
+// An explicit `rot` in the room always wins.
+export function autoRot(d, room) {
+  if (d.spec?.rot != null || !room) return d.spriteRot;
+  if (d.typeName !== 'door') return d.spriteRot;
+  const wallish = (dx, dy) => {
+    const x = d.x + dx, y = d.y + dy;
+    if (!room.inBounds(x, y)) return true;
+    return room.doodadAt(x, y)?.typeName === 'wall';
+  };
+  const ew = wallish(-1, 0) && wallish(1, 0);
+  const ns = wallish(0, -1) && wallish(0, 1);
+  return ew && !ns ? 90 : 0;
+}

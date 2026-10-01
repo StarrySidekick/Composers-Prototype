@@ -4,7 +4,13 @@
   "wing": "strings",
   "hint": "Three string runs, three lengths, three pitches. Fire once and listen to the whole circuit.",
   "maxWaves": 1,
-  "music": { "root": 9, "mode": "aeolian", "bpm": 84, "timeSignature": 4, "mood": "sad" },
+  "music": {
+    "root": 9,
+    "mode": "aeolian",
+    "bpm": 84,
+    "timeSignature": 4,
+    "mood": "sad"
+  },
   "layout": [
     "#############",
     "#.@.b..b..b.#",
@@ -12,15 +18,29 @@
     "#...H..H..H.#",
     "#...s..H..H.#",
     "#......H..H.#",
-    "#......s..H.#",
+    "D......s..H.D",
     "#.........H.#",
     "#.........s.#",
     "#...n.......#",
-    "######D######",
-    "#.....X.....#",
+    "#...........#",
+    "#...........#",
     "#############"
   ],
   "overrides": [
-    { "x": 4, "y": 9, "sequence": [5, 3, 1] }
+    {
+      "x": 4,
+      "y": 9,
+      "sequence": [
+        5,
+        3,
+        1
+      ]
+    },
+    {
+      "x": 12,
+      "y": 6,
+      "open": true,
+      "group": "entry"
+    }
   ]
 }

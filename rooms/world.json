@@ -1,0 +1,12 @@
+{
+  "_": "Where each room sits on the world grid. Walking off a room's edge (through a door in its outer wall) enters the neighbour in that direction. Coordinates are screen space: +x right, +y DOWN, so [0,1] is south of [0,0]. Unity 2D is +y up; flip y when porting. See docs/WORLD.md.",
+  "start": "brass-01-first-breath",
+  "rooms": {
+    "brass-01-first-breath":  { "file": "brass-01-first-breath.json",  "at": [0, 0] },
+    "brass-02-crossroads":    { "file": "brass-02-crossroads.json",    "at": [1, 0] },
+    "brass-03-crossing":      { "file": "brass-03-crossing.json",      "at": [2, 0] },
+    "percussion-01-the-kit":  { "file": "percussion-01-the-kit.json",  "at": [2, 1] },
+    "strings-01-quiet-room":  { "file": "strings-01-quiet-room.json",  "at": [1, 1] },
+    "keys-01-keyboard-floor": { "file": "keys-01-keyboard-floor.json", "at": [0, 1] }
+  }
+}

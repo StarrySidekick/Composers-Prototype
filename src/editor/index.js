@@ -61,8 +61,13 @@ export function buildEditor(game, renderer, assets, els, hooks = {}) {
 
   // ---- size ---------------------------------------------------------------
 
-  const applySize = () => {
-    paint.resize(Number(els.width.value), Number(els.height.value));
+  // Rooms are square: one side length, mirrored into both boxes. Easier to
+  // reason about, and a square fits a phone held either way. World rooms are 13
+  // so their centred doors line up with the neighbours'.
+  const applySize = (e) => {
+    const n = Number(e?.target?.value ?? els.width.value);
+    els.width.value = els.height.value = n;
+    paint.resize(n, n);
     syncFromRoom();
   };
   on(els.width, 'change', applySize);

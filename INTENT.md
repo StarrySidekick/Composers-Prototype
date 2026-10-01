@@ -67,6 +67,18 @@ line below where they disagree:
   and piano keys (16-case autotiling). Not done: inside corners (the 47-case set), and
   any family beyond those two.
 
+Later the same day, also stated:
+
+- **Rooms are square.** Easy, and mobile friendly. Done: 13 × 13 for every world room.
+- **Quieter walls** that still join and still look like his line-work. Done.
+- **Doors lead to rooms**: solve the puzzle, a door opens, walk through, you are in
+  the next room up, down, left or right. Done (`rooms/world.json`, `docs/WORLD.md`).
+  Not a door that "does something": a way from one room to the next.
+- **Position and rotation should be understood**, not guessed. Written down in
+  `docs/WORLD.md`; doors and wall corners now rotate themselves.
+- **Everything in time.** The wave must really travel at the BPM and every sound be
+  synchronised. Checked by `test/timing.mjs`, which found and fixed three faults.
+
 Still open on art: the rest of the Unity sprite folder has not been brought across,
 because this repo cannot see it. Copying `Assets/Sprites` (or a listing of it) into the
 repo is the next step for parity.

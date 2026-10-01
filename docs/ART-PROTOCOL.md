@@ -97,9 +97,29 @@ You do **not** need all 16 before any of it shows. Lookup falls back: the game
 asks for `wall.ns`, then `wall`. Draw the plain one first, then the variants as
 they become worth it. Linking is visual only; no mechanic reads it.
 
-It does not handle inside corners (the notch where an L of wall turns). That
-needs the 8-neighbour set, 47 drawings, and is not worth hand-drawing until the
-16 have been lived with.
+**Inside corners** (the crook of an L of wall, where the floor is diagonal) are not
+in the 16. Instead of the 47-drawing set that would need, there is one extra
+drawing, `wall.inner`, authored for the **north-east** corner. The game stamps it on
+top, rotated to each corner that needs it (NE 0, SE 90, SW 180, NW 270). For the
+quiet wall it is a 3 px L joining the border coming down from the north neighbour
+to the one coming in from the east.
+
+### The wall, as drawn now
+
+Quiet on purpose. One 2 px border, **only on the sides that face floor**, set 3 px in
+from the edge; joined sides run the border right to the tile edge so it continues
+into the next tile. A curl is tucked into each **outside** corner. Nothing inside: a
+thick wall reads as solid black and the room as a clean outline.
+
+The old busy wall (`Pushable_Block - Copy.png` in Unity) was a pushable block, not a
+wall. It is kept in the manifest as `block` and no longer fills the `wall` slot.
+
+### Doors
+
+Drawn upright, as a gap in a wall that runs north-south: a lintel at the top and a
+sill at the bottom spanning x 3 to 48 so they meet the wall's border, and the door
+leaf between. The game turns it 90 in an east-west wall. See [WORLD.md](WORLD.md)
+for rotation and position in full.
 
 ## Which picture wins
 

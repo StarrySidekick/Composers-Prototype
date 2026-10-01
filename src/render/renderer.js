@@ -5,7 +5,8 @@
 
 import { PALETTE } from './palette.js';
 import { DIR } from '../core/direction.js';
-import { linkKey } from '../art/links.js';
+import { linkKey, innerCorners, autoRot } from '../art/links.js';
+import { wavePosition } from './motion.js';
 
 export class Renderer {
   constructor(canvas, assets = null) {
@@ -68,26 +69,43 @@ export class Renderer {
     c.restore();
   }
 
-  // A tile draws itself unless the asset store has a picture of it. The sprite is
-  // authored unrotated, so the renderer applies `rot` the same way draw() would.
-  // Linked families (walls, keyboards) ask for their joined variant first.
+  // A tile draws itself unless the asset store has a picture of it.
+  //
+  // Position and rotation, the whole contract:
+  //   - The canvas is already translated to the tile's top-left corner (x*s, y*s),
+  //     +x right, +y down.
+  //   - Art is authored unrotated and turned about the tile CENTRE, clockwise in
+  //     screen space, by `rot` degrees (0/90/180/270). Unity's z-rotation is
+  //     counter-clockwise with +y up, so the same number means the mirror turn
+  //     there; see the table in docs/PORTING.md.
+  //   - Linked families ask for their joined variant first (`wall.ns`), and walls
+  //     stamp `wall.inner` into any inside corner, rotated into place.
+  //   - Doors turn to fit the wall they sit in (autoRot).
   _doodad(d, s, ctx, room) {
     const sprite = this.assets?.resolve([linkKey(d, room), d.spriteKey]);
     const c = this.c;
     if (!sprite) { d.draw(c, s, ctx); return; }
     c.imageSmoothingEnabled = false;
-    const rot = d.spriteRot;
-    if (rot) {
-      c.save();
-      c.translate(s / 2, s / 2);
-      c.rotate((rot * Math.PI) / 180);
-      c.drawImage(sprite.image, sprite.sx, sprite.sy, sprite.sw, sprite.sh, -s / 2, -s / 2, s, s);
-      c.restore();
-    } else {
-      c.drawImage(sprite.image, sprite.sx, sprite.sy, sprite.sw, sprite.sh, 0, 0, s, s);
+    this._blit(sprite, s, autoRot(d, room));
+    for (const rot of innerCorners(d, room)) {
+      const corner = this.assets.resolve([`${d.spriteKey}.inner`]);
+      if (corner) this._blit(corner, s, rot);
     }
     c.imageSmoothingEnabled = true;
     d.overlay(c, s, ctx);
+  }
+
+  _blit(sprite, s, rot) {
+    const c = this.c;
+    if (!rot) {
+      c.drawImage(sprite.image, sprite.sx, sprite.sy, sprite.sw, sprite.sh, 0, 0, s, s);
+      return;
+    }
+    c.save();
+    c.translate(s / 2, s / 2);
+    c.rotate((rot * Math.PI) / 180);
+    c.drawImage(sprite.image, sprite.sx, sprite.sy, sprite.sw, sprite.sh, -s / 2, -s / 2, s, s);
+    c.restore();
   }
 
   _floor(room, s, p) {
@@ -122,11 +140,12 @@ export class Renderer {
 
   _waves(game, s, p) {
     const c = this.c;
-    const t = game.clock.phase;
     for (const w of game.waves) {
       if (!w.alive) continue;
-      const x = (w.prevX + (w.x - w.prevX) * t + 0.5) * s;
-      const y = (w.prevY + (w.y - w.prevY) * t + 0.5) * s;
+      const pos = wavePosition(w, game.clock);
+      const t = pos.phase;
+      const x = (pos.x + 0.5) * s;
+      const y = (pos.y + 0.5) * s;
       const r = s * (0.18 + 0.16 * Math.sin(t * Math.PI));
       const a = 0.35 + 0.65 * w.state.intensity;
 

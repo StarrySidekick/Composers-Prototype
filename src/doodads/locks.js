@@ -129,15 +129,17 @@ class NoteLock extends Doodad {
     }
   }
 
-  // Interact to hear the hint phrase.
+  // Interact to hear the hint phrase: eighth notes from the next beat, in the
+  // room's tempo, so it can be played back against the metronome.
   onPlayerInteract(ctx) {
-    const t0 = ctx.audio.now + 0.05;
+    const t0 = ctx.nextGridTime?.(4) ?? ctx.audio.now + 0.05;
+    const step = ctx.subInterval ? ctx.subInterval * 2 : 0.28;
     this.sequence.forEach((deg, i) => {
       ctx.audio.play({
         family: 'woodwind',
         midi: ctx.room.music.getNote(deg, 4),
         intensity: 0.7,
-        when: t0 + i * 0.28,
+        when: t0 + i * step,
       });
     });
     ctx.toast('Hint phrase.');
