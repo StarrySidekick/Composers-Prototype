@@ -62,9 +62,9 @@
     "#...........#",
     "#..12345....#",
     "#.......n...#",
-    "#####D#######",
-    "#.....X.....#",
-    "#############"
+    "#...........#",
+    "#...........#",
+    "######D######"
   ],
   "overrides": [
     {
@@ -72,6 +72,40 @@
       "y": 6,
       "open": true,
       "group": "entry"
+    }
+  ],
+  "solution": [
+    {
+      "at": [
+        3,
+        5
+      ],
+      "move": "down",
+      "why": "step on K: the mallet fires along row 4 into the fork"
+    },
+    {
+      "at": [
+        5,
+        7
+      ],
+      "move": "down",
+      "why": "key 3 (degree 2)"
+    },
+    {
+      "at": [
+        5,
+        8
+      ],
+      "move": "left",
+      "why": "key 2 (degree 1)"
+    },
+    {
+      "at": [
+        4,
+        8
+      ],
+      "move": "left",
+      "why": "key 1 (degree 0): mi re do"
     }
   ]
 }

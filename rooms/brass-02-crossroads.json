@@ -33,5 +33,16 @@
       "open": true,
       "group": "entry"
     }
+  ],
+  "solution": [
+    {
+      "at": [
+        2,
+        2
+      ],
+      "face": "right",
+      "do": "fire",
+      "why": "the tee splits it: one half down into the near fork, one round the elbows into the far one"
+    }
   ]
 }

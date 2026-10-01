@@ -1,0 +1,351 @@
+<title>Composer's Key Tiles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one column of families, each a wrapping grid of tile cards on black,
+   like a sheet of sprites pinned to a board. Single dark look, by choice: the
+   game is white line-work on black, and the tiles have to be judged on that. */
+:root {
+  color-scheme: dark;
+  --ground: #050505;
+  --card: #0d0d0c;
+  --well: #000000;
+  --ink: #efece4;
+  --dim: #8f8b82;
+  --rule: #26251f;
+  --note: #e8c66a;     /* an open note: the one warm thing on the page */
+  --display: "IM Fell English", "Iowan Old Style", Georgia, serif;
+  --ui: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --zoom: 3;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--ground); color: var(--ink); }
+body { font: 15px/1.5 var(--ui); padding-inline: 16px; padding-block: 28px 64px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font: 400 clamp(34px, 6vw, 56px)/1 var(--display); margin: 0; letter-spacing: .005em; text-wrap: balance; }
+h1 em { font-style: italic; color: var(--dim); }
+.lede { margin: 0; max-width: 64ch; color: var(--dim); }
+.stats { display: flex; flex-wrap: wrap; gap: 6px 18px; font-variant-numeric: tabular-nums; }
+.stats b { font-weight: 700; color: var(--ink); }
+.stats span { color: var(--dim); }
+.stats .open b { color: var(--note); }
+
+.controls {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+  padding-block: 10px; background: var(--ground); border-bottom: 1px solid var(--rule);
+}
+.seg { display: flex; flex-wrap: wrap; gap: 4px; }
+.seg button, .btn {
+  font: 13px/1 var(--ui); color: var(--ink); background: transparent;
+  border: 1px solid var(--rule); border-radius: 999px; padding: 7px 11px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+.seg button:hover, .btn:hover { border-color: var(--dim); }
+button:focus-visible, textarea:focus-visible { outline: 2px solid var(--note); outline-offset: 2px; }
+.label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+
+section { display: flex; flex-direction: column; gap: 14px; }
+section > h2 { font: 400 30px/1.1 var(--display); margin: 0; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+section > h2 small { font: 13px var(--ui); color: var(--dim); }
+section > p { margin: 0; color: var(--dim); max-width: 70ch; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(51px * var(--zoom) + 30px), 1fr)); gap: 12px; align-items: start; }
+
+.card {
+  background: var(--card); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0;
+}
+.card.has-open { border-color: color-mix(in srgb, var(--note) 55%, var(--rule)); }
+.art { display: flex; gap: 8px; flex-wrap: wrap; }
+.art figure { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.art .tile {
+  width: calc(51px * var(--zoom)); height: calc(51px * var(--zoom)); max-width: 100%;
+  background: var(--well); outline: 1px solid var(--rule);
+  display: grid; place-items: center; overflow: hidden;
+}
+.art img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.art figcaption { font-size: 11px; color: var(--dim); }
+.key { font: 600 13px/1.3 var(--mono); overflow-wrap: anywhere; }
+.about { margin: 0; font-size: 13px; color: var(--dim); }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-size: 11px; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--rule); color: var(--dim); }
+.chip.real { color: var(--ink); border-color: var(--dim); }
+.chip.new { color: var(--ground); background: var(--ink); border-color: var(--ink); }
+.chip.proposal { border-style: dashed; color: var(--ink); }
+
+.notes { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.notes li { border-left: 2px solid var(--note); padding-left: 8px; font-size: 13px; }
+.notes li.resolved { border-color: var(--rule); color: var(--dim); }
+.notes li.resolved .text { text-decoration: line-through; }
+.notes .meta { font-size: 11px; color: var(--dim); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.notes .meta button { font: 11px var(--ui); color: var(--dim); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
+.compose { display: flex; flex-direction: column; gap: 6px; }
+.compose textarea {
+  width: 100%; min-height: 64px; resize: vertical; font: 13px/1.4 var(--ui);
+  color: var(--ink); background: var(--well); border: 1px solid var(--rule); border-radius: 4px; padding: 7px;
+}
+.compose .row { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn.primary { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+.add { align-self: flex-start; }
+.status { font-size: 12px; color: var(--dim); }
+
+.sample { display: flex; flex-direction: column; gap: 6px; }
+.sample canvas { image-rendering: pixelated; background: var(--well); outline: 1px solid var(--rule); max-width: 100%; }
+.empty { color: var(--dim); font-style: italic; }
+@media (prefers-reduced-motion: no-preference) { .card { transition: border-color .2s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Composer's Key <em>tiles</em></h1>
+    <p class="lede">Every tile the game can draw, at its real size of 51 × 51 pixels, white line-work on black.
+      Your Unity art is marked <b>your art</b>; everything else is a sketch placeholder standing in for it until you draw it.
+      Leave a note on any tile and it is kept for the next round of changes.</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="controls" role="toolbar" aria-label="Filter and zoom">
+    <div class="seg" id="filters" aria-label="Show">
+      <button id="f-all" data-f="all" aria-pressed="true">All</button>
+      <button id="f-real" data-f="real" aria-pressed="false">Your art</button>
+      <button id="f-sketch" data-f="sketch" aria-pressed="false">Placeholders</button>
+      <button id="f-new" data-f="new" aria-pressed="false">Redrawn today</button>
+      <button id="f-proposal" data-f="proposal" aria-pressed="false">Proposals</button>
+      <button id="f-notes" data-f="notes" aria-pressed="false">With notes</button>
+    </div>
+    <div class="seg" id="zoom" aria-label="Zoom">
+      <span class="label" style="align-self:center;margin-right:4px">Size</span>
+      <button id="z1" data-z="1" aria-pressed="false">1×</button>
+      <button id="z2" data-z="2" aria-pressed="false">2×</button>
+      <button id="z3" data-z="3" aria-pressed="true">3×</button>
+      <button id="z4" data-z="4" aria-pressed="false">4×</button>
+    </div>
+  </div>
+
+  <main id="groups"></main>
+  <p class="status" id="notes-status">Connecting to notes…</p>
+  <p class="status">Generated __GENERATED__ by <span class="key">tools/asset-review.mjs</span>.</p>
+</div>
+
+<script>
+const ASSETS = /*__ASSETS__*/[];
+
+const GROUPS = [
+  ['brass', 'Brass', 'Tubing joins at fixed pixels: walls cross the tile edge at rows 20–30, measured off your tube art.'],
+  ['strings', 'Strings', 'A string run between two pegs. Pegs turn to face their string.'],
+  ['percussion', 'Percussion', 'Drums bounce waves in open air. The bass drum and tom wear a curl that turns the way they kick.'],
+  ['keys', 'Keys', 'Keys are played by walking on them; a mallet fires when its key is pressed.'],
+  ['puzzle', 'Locks, doors and stairs', 'Unlit and open states are the same drawing in a dimmer ink, the way Unity tints a sprite.'],
+  ['walls', 'Walls', 'Sixteen tiles, one per combination of joined sides, plus one inside-corner patch rotated into place. A border only where wall meets floor.'],
+  ['characters', 'Not tiles', 'Drawn over the floor rather than in a grid cell.'],
+  ['proposals', 'Proposals', 'Art for things the game does not have yet. Nothing in a room uses these; they are here to be argued about.'],
+];
+
+const state = { filter: 'all', notes: [], db: null, user: null, me: null, names: {}, open: new Set() };
+const $ = (s, el = document) => el.querySelector(s);
+const h = (tag, attrs = {}, ...kids) => {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) el.append(k.nodeType ? k : document.createTextNode(String(k)));
+  return el;
+};
+
+const notesFor = (key) => state.notes.filter(n => n.asset === key);
+const openCount = () => state.notes.filter(n => !n.resolved).length;
+
+function matches(a) {
+  switch (state.filter) {
+    case 'real': return !!a.real;
+    case 'sketch': return !a.real && !a.proposal;
+    case 'new': return a.redrawn;
+    case 'proposal': return !!a.proposal;
+    case 'notes': return notesFor(a.key).length > 0;
+    default: return true;
+  }
+}
+
+function stats() {
+  const real = ASSETS.filter(a => a.real).length;
+  const sketch = ASSETS.filter(a => !a.real && !a.proposal).length;
+  const prop = ASSETS.filter(a => a.proposal).length;
+  const el = $('#stats');
+  el.replaceChildren(
+    h('div', {}, h('b', {}, real), ' ', h('span', {}, 'drawn by you')),
+    h('div', {}, h('b', {}, sketch), ' ', h('span', {}, 'on placeholders')),
+    h('div', {}, h('b', {}, prop), ' ', h('span', {}, 'proposals')),
+    h('div', { class: 'open' }, h('b', {}, openCount()), ' ', h('span', {}, 'open notes')),
+  );
+}
+
+function tile(src, caption, show) {
+  return h('figure', {},
+    h('div', { class: 'tile' }, h('img', { src, alt: caption, width: 51, height: 51 })),
+    show ? h('figcaption', {}, caption) : null);
+}
+
+function card(a) {
+  const notes = notesFor(a.key);
+  const open = notes.some(n => !n.resolved);
+  const chips = [];
+  if (a.real) chips.push(h('span', { class: 'chip real' }, 'your art'));
+  else if (a.proposal) chips.push(h('span', { class: 'chip proposal' }, 'proposal'));
+  else chips.push(h('span', { class: 'chip' }, 'placeholder'));
+  if (a.redrawn) chips.push(h('span', { class: 'chip new' }, 'redrawn today'));
+
+  const art = h('div', { class: 'art' });
+  const both = !!(a.real && a.sketch);
+  if (a.real) art.append(tile(a.real, 'yours, in game', both));
+  if (a.sketch) art.append(tile(a.sketch, a.proposal ? 'proposal' : 'placeholder', both));
+
+  const list = h('ul', { class: 'notes' }, notes.map(n => h('li', { class: n.resolved ? 'resolved' : '' },
+    h('div', { class: 'text' }, n.text),
+    h('div', { class: 'meta' },
+      h('span', {}, `${state.names[n.by] || 'Someone'} · ${new Date(n.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`),
+      state.db ? h('button', { onclick: () => toggleResolved(n) }, n.resolved ? 'Reopen' : 'Mark done') : null,
+    ),
+  )));
+
+  const el = h('article', { class: `card${open ? ' has-open' : ''}`, id: `a-${a.key.replace(/\./g, '-')}` },
+    art,
+    h('div', { class: 'key' }, a.key),
+    h('div', { class: 'chips' }, chips),
+    a.about ? h('p', { class: 'about' }, a.about) : null,
+    list,
+  );
+  if (state.db) el.append(composer(a));
+  return el;
+}
+
+function composer(a) {
+  const id = `note-${a.key.replace(/\./g, '-')}`;
+  if (!state.open.has(a.key)) {
+    return h('button', { class: 'btn add', onclick: () => { state.open.add(a.key); render(); requestAnimationFrame(() => $(`#${id}`)?.focus()); } }, 'Add a note');
+  }
+  const ta = h('textarea', { id, 'aria-label': `Note on ${a.key}`, placeholder: 'What should change? “Thicker walls”, “curl the other way”, “redraw from scratch”…' });
+  const save = async () => {
+    const text = ta.value.trim();
+    if (!text) { ta.focus(); return; }
+    saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+    try {
+      await state.db.collection('notes').add({ asset: a.key, text, by: state.me || '', at: Date.now(), resolved: false });
+      state.open.delete(a.key);
+      render();
+    } catch (e) {
+      saveBtn.disabled = false; saveBtn.textContent = 'Save note';
+      err.textContent = e?.code === 'not_granted' ? 'You can read notes here but not add them.' : 'The note did not save. Try again.';
+    }
+  };
+  const saveBtn = h('button', { class: 'btn primary', onclick: save }, 'Save note');
+  const err = h('div', { class: 'status', role: 'status' });
+  ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) save(); });
+  return h('div', { class: 'compose' }, ta, h('div', { class: 'row' }, saveBtn,
+    h('button', { class: 'btn', onclick: () => { state.open.delete(a.key); render(); } }, 'Cancel')), err);
+}
+
+async function toggleResolved(n) {
+  try { await state.db.collection('notes').doc(n.id).update({ resolved: !n.resolved }); }
+  catch { $('#notes-status').textContent = 'That change did not save.'; }
+}
+
+// A small room built from the wall tiles, so the joins can be judged in place.
+function wallSample() {
+  const map = [
+    '#########',
+    '#.......#',
+    '#.###...#',
+    '#.#.....#',
+    '#...##..#',
+    '#########',
+  ];
+  const by = Object.fromEntries(ASSETS.map(a => [a.key, a]));
+  const pick = (k) => by[k]?.sketch || by[k]?.real;
+  const H = map.length, W = map[0].length, S = 51;
+  const cv = h('canvas', { width: W * S, height: H * S, 'aria-label': 'A sample room drawn with the wall tiles' });
+  cv.style.width = `${W * S * Math.min(2, state.zoom ?? 2) / 2 * 1.2}px`;
+  const c = cv.getContext('2d');
+  c.imageSmoothingEnabled = false;
+  const wall = (x, y) => x < 0 || y < 0 || x >= W || y >= H || map[y][x] === '#';
+  const draws = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (!wall(x, y)) continue;
+    const sides = [['n', 0, -1], ['e', 1, 0], ['s', 0, 1], ['w', -1, 0]].filter(([, dx, dy]) => wall(x + dx, y + dy)).map(s => s[0]).join('');
+    draws.push([pick(sides ? `wall.${sides}` : 'wall'), x, y, 0]);
+    for (const [a, b, dx, dy, rot] of [['n', 'e', 1, -1, 0], ['s', 'e', 1, 1, 90], ['s', 'w', -1, 1, 180], ['n', 'w', -1, -1, 270]]) {
+      if (sides.includes(a) && sides.includes(b) && !wall(x + dx, y + dy)) draws.push([pick('wall.inner'), x, y, rot]);
+    }
+  }
+  Promise.all(draws.map(([src]) => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; })))
+    .then(imgs => imgs.forEach((img, i) => {
+      if (!img) return;
+      const [, x, y, rot] = draws[i];
+      c.save(); c.translate(x * S + S / 2, y * S + S / 2); c.rotate(rot * Math.PI / 180);
+      c.drawImage(img, -S / 2, -S / 2, S, S); c.restore();
+    }));
+  return h('div', { class: 'sample' }, h('span', { class: 'label' }, 'In place'), cv);
+}
+
+function render() {
+  stats();
+  const root = $('#groups');
+  const frag = document.createDocumentFragment();
+  for (const [id, title, blurb] of GROUPS) {
+    const items = ASSETS.filter(a => a.group === id && matches(a));
+    if (!items.length) continue;
+    frag.append(h('section', { id: `g-${id}` },
+      h('h2', {}, title, h('small', {}, `${items.length} tile${items.length === 1 ? '' : 's'}`)),
+      h('p', {}, blurb),
+      id === 'walls' && state.filter === 'all' ? wallSample() : null,
+      h('div', { class: 'grid' }, items.map(card))));
+  }
+  if (!frag.childNodes.length) frag.append(h('p', { class: 'empty' }, 'Nothing matches this filter yet.'));
+  // Keep a half-typed note across re-renders.
+  const typing = [...document.querySelectorAll('.compose textarea')].map(t => [t.id, t.value]);
+  root.replaceChildren(frag);
+  for (const [id, v] of typing) { const t = document.getElementById(id); if (t) t.value = v; }
+}
+
+$('#filters').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-f]'); if (!b) return;
+  state.filter = b.dataset.f;
+  for (const x of $('#filters').querySelectorAll('button')) x.setAttribute('aria-pressed', String(x === b));
+  render();
+});
+$('#zoom').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-z]'); if (!b) return;
+  state.zoom = Number(b.dataset.z);
+  document.documentElement.style.setProperty('--zoom', b.dataset.z);
+  for (const x of $('#zoom').querySelectorAll('button')) x.setAttribute('aria-pressed', String(x === b));
+  try { localStorage.setItem('ck-zoom', b.dataset.z); } catch {}
+});
+try { const z = localStorage.getItem('ck-zoom'); if (z) $(`#z${z}`)?.click(); } catch {}
+
+render();
+
+// Notes live in the artifact's database, so they are shared and Claude can read them.
+(async () => {
+  const db = await window.claude?.use?.('db');
+  const user = await window.claude?.use?.('user');
+  const status = $('#notes-status');
+  if (!db) { status.textContent = 'Notes are not available in this view. Open the page on claude.ai, signed in, to read or add them.'; return; }
+  state.db = db; state.user = user;
+  try { state.me = await user?.id?.(); } catch {}
+  status.textContent = 'Notes are shared and kept. Ctrl or ⌘ + Enter saves.';
+  db.collection('notes').orderBy('at', 'asc').onSnapshot(async (snap) => {
+    state.notes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const ids = [...new Set(state.notes.map(n => n.by).filter(Boolean))];
+    if (user && ids.length) {
+      try { const ps = await user.profiles(ids); for (const id of ids) state.names[id] = ps[id]?.name || ''; } catch {}
+    }
+    render();
+  }, () => { status.textContent = 'Lost the connection to notes. Reload to try again.'; });
+  render();
+})();
+</script>

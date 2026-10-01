@@ -259,6 +259,8 @@ export class Room {
       overrides: this.overrides.length ? this.overrides.map(o => ({ ...o })) : undefined,
       player: player ? { facing: player.facing } : undefined,
       layout: this.layoutWith(player),
+      // The known way through, replayed by test/solve.mjs. Kept as authored.
+      solution: this.source.solution,
     };
   }
 }

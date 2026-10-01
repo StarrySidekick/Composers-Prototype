@@ -114,11 +114,24 @@ export function innerCorners(d, room) {
 }
 
 // Rotation for art that should turn to fit its surroundings rather than being
-// rotated by hand in the room file. A door is drawn upright (a gap in a wall that
-// runs north-south). Set into a wall that runs east-west, it turns 90.
+// rotated by hand in the room file. Two pieces do this. A door is drawn upright
+// (a gap in a wall that runs north-south); set into a wall that runs east-west, it
+// turns 90.
 // An explicit `rot` in the room always wins.
+//
+// A peg is drawn with its stem pointing UP, toward the string it holds. Next to a
+// string it turns so the stem points at it: string above 0, right 90, below 180,
+// left 270. A peg with no string beside it stays as drawn.
+const FACING = [[0, -1, 0], [1, 0, 90], [0, 1, 180], [-1, 0, 270]];
+
 export function autoRot(d, room) {
   if (d.spec?.rot != null || !room) return d.spriteRot;
+  if (d.typeName === 'peg') {
+    for (const [dx, dy, rot] of FACING) {
+      if (room.doodadAt(d.x + dx, d.y + dy)?.typeName === 'string') return rot;
+    }
+    return d.spriteRot;
+  }
   if (d.typeName !== 'door') return d.spriteRot;
   const wallish = (dx, dy) => {
     const x = d.x + dx, y = d.y + dy;

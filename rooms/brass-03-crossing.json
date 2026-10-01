@@ -33,5 +33,16 @@
       "open": true,
       "group": "entry"
     }
+  ],
+  "solution": [
+    {
+      "at": [
+        2,
+        2
+      ],
+      "face": "right",
+      "do": "fire",
+      "why": "the tee splits it; the far half comes back through the cross to the fork on the left"
+    }
   ]
 }

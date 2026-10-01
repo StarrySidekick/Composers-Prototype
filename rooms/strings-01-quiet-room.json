@@ -42,5 +42,31 @@
       "open": true,
       "group": "entry"
     }
+  ],
+  "solution": [
+    {
+      "at": [
+        3,
+        3
+      ],
+      "move": "right",
+      "why": "step on the short string: violin, degree 5"
+    },
+    {
+      "at": [
+        6,
+        3
+      ],
+      "move": "right",
+      "why": "the middle string: viola, degree 3"
+    },
+    {
+      "at": [
+        9,
+        3
+      ],
+      "move": "right",
+      "why": "the long string: cello, degree 1"
+    }
   ]
 }

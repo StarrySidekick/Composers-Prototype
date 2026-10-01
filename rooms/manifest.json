@@ -1,9 +1,12 @@
 [
-  { "file": "brass-01-first-breath.json",   "name": "Brass 01 — First Breath" },
-  { "file": "brass-02-crossroads.json",     "name": "Brass 02 — Crossroads" },
-  { "file": "brass-03-crossing.json",       "name": "Brass 03 — Crossing" },
-  { "file": "percussion-01-the-kit.json",   "name": "Percussion 01 — The Kit" },
-  { "file": "strings-01-quiet-room.json",   "name": "Strings 01 — The Quiet Room" },
-  { "file": "keys-01-keyboard-floor.json",  "name": "Keys 01 — The Keyboard Floor" },
-  { "file": "sandbox.json",                 "name": "Sandbox" }
+  {"file": "brass-01-first-breath.json", "name": "Brass 01 — First Breath"},
+  {"file": "brass-02-crossroads.json", "name": "Brass 02 — Crossroads"},
+  {"file": "brass-03-crossing.json", "name": "Brass 03 — Crossing"},
+  {"file": "percussion-01-the-kit.json", "name": "Percussion 01 — The Kit"},
+  {"file": "strings-01-quiet-room.json", "name": "Strings 01 — The Quiet Room"},
+  {"file": "keys-01-keyboard-floor.json", "name": "Keys 01 — The Keyboard Floor"},
+  {"file": "brass-04-valve.json", "name": "Brass 04 — The Valve"},
+  {"file": "percussion-02-left-right.json", "name": "Percussion 02 — Left and Right"},
+  {"file": "brass-05-slide.json", "name": "Brass 05 — The Slide"},
+  {"file": "sandbox.json", "name": "Sandbox"}
 ]

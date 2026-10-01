@@ -25,5 +25,16 @@
     "#...........#",
     "#...........#",
     "#############"
+  ],
+  "solution": [
+    {
+      "at": [
+        7,
+        3
+      ],
+      "face": "down",
+      "do": "fire",
+      "why": "straight down into the fork"
+    }
   ]
 }

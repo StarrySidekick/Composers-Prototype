@@ -1,0 +1,81 @@
+{
+  "id": "brass-04-valve",
+  "name": "The Valve",
+  "wing": "brass",
+  "hint": "One horn, two forks. Press B on the valve to turn it, then blow the mouthpiece again.",
+  "maxWaves": 1,
+  "music": {
+    "root": 2,
+    "mode": "dorian",
+    "bpm": 100,
+    "timeSignature": 4,
+    "mood": "reflective"
+  },
+  "overrides": [
+    {
+      "x": 6,
+      "y": 0,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 8,
+      "y": 4,
+      "rot": 180
+    }
+  ],
+  "layout": [
+    "######D######",
+    "#...........#",
+    "#...........#",
+    "#.......*...#",
+    "#.@.M---V...#",
+    "#.......*...#",
+    "#...........D",
+    "#...........#",
+    "#...........#",
+    "#...........#",
+    "#...........#",
+    "#...........#",
+    "#############"
+  ],
+  "solution": [
+    {
+      "at": [
+        9,
+        4
+      ],
+      "face": "left",
+      "do": "interact",
+      "times": 2,
+      "why": "turn the valve twice: it now bends the wave down"
+    },
+    {
+      "at": [
+        3,
+        4
+      ],
+      "face": "right",
+      "do": "interact",
+      "why": "blow the mouthpiece: the lower fork"
+    },
+    {
+      "at": [
+        9,
+        4
+      ],
+      "face": "left",
+      "do": "interact",
+      "why": "turn it once more: now it bends up"
+    },
+    {
+      "at": [
+        3,
+        4
+      ],
+      "face": "right",
+      "do": "interact",
+      "why": "blow again: the upper fork"
+    }
+  ]
+}

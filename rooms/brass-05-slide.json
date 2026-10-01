@@ -1,0 +1,76 @@
+{
+  "id": "brass-05-slide",
+  "name": "The Slide",
+  "wing": "brass",
+  "hint": "The slide is an instrument on its own: every pull plays the horn's new note. Press B on the lock to hear the phrase.",
+  "maxWaves": 1,
+  "music": {
+    "root": 5,
+    "mode": "ionian",
+    "bpm": 92,
+    "timeSignature": 4,
+    "mood": "content"
+  },
+  "legend": {
+    "n": {
+      "type": "notelock",
+      "sequence": [
+        2,
+        1,
+        0
+      ]
+    }
+  },
+  "overrides": [
+    {
+      "x": 0,
+      "y": 6,
+      "open": true,
+      "group": "entry"
+    }
+  ],
+  "layout": [
+    "#############",
+    "#...........#",
+    "#.M-S-Y.....#",
+    "#...........#",
+    "#.....n.....#",
+    "#...........#",
+    "D...........#",
+    "#...........#",
+    "#...........#",
+    "#...........#",
+    "######D######",
+    "#.....X.....#",
+    "#############"
+  ],
+  "solution": [
+    {
+      "at": [
+        1,
+        2
+      ],
+      "face": "right",
+      "do": "interact",
+      "why": "blow the horn: closed, it plays degree 2 (mi)"
+    },
+    {
+      "at": [
+        4,
+        3
+      ],
+      "face": "up",
+      "do": "interact",
+      "why": "pull the slide out one: the horn plays degree 1 (re)"
+    },
+    {
+      "at": [
+        4,
+        3
+      ],
+      "face": "up",
+      "do": "interact",
+      "why": "out two: degree 0 (do)"
+    }
+  ]
+}
