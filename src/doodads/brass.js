@@ -76,6 +76,9 @@ const PARTS = {
 };
 
 export const BRASS_PARTS = Object.keys(PARTS);
+// Which tile edges each part's tubing reaches, unrotated. The art protocol reads this
+// so a placeholder tube, and the connector check on real art, agree with the mechanics.
+export const BRASS_EDGES = Object.fromEntries(Object.entries(PARTS).map(([k, v]) => [k, v.edges]));
 
 // Edges are named like faces (top/right/bottom/left) but mean the tile EDGE, not a
 // direction of travel — hence the translation from direction.js's up/down naming.

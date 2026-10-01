@@ -49,12 +49,29 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
 
 ## Assets
 
+**The look is black and white: white line-work on a black floor**, like the Unity
+build. The colour wing palettes are parked behind `THEME` in `src/render/palette.js`,
+not deleted. Don't reintroduce colour without Timothy asking.
+
+**Read `docs/ART-PROTOCOL.md` before drawing or generating any tile.** 51 × 51 px,
+pure white, two-value alpha, unrotated, connectors at fixed pixels. The numbers live
+in `src/art/protocol.js`.
+
 `assets/` holds real art and audio copied from the Unity project — see the tables in
-`docs/PORTING.md` and `docs/ASSETS.md` before changing any of it. Rotation, ink colour
-and square padding are **baked into the PNGs**, not applied in code, because
-`AssetStore` blits a slice verbatim. The horn samples are named an octave low; the
+`docs/PORTING.md` and `docs/ASSETS.md` before changing any of it. Rotation and square
+padding are **baked into the PNGs**; colour is not. `AssetStore` recolours every sprite
+to the manifest's `ink` on load (Unity's `SpriteRenderer.color`), and `flipX` mirrors
+one (the mouthpiece is drawn backwards). The horn samples are named an octave low; the
 measured pitches live in `src/audio/sampler.js`. All of it is optional — delete
-`assets/` and the harness runs on `draw()` and the synth voices.
+`assets/` and the harness runs on sketch placeholders and the synth voices.
+
+Every slot without real art gets a **sketch placeholder** (`src/art/placeholders.js`,
+drawn with the seeded pen in `src/art/pen.js`). A new doodad should get one the same
+day it gets a class, so art never blocks a mechanic.
+
+**Linked art** (`src/art/links.js`): walls and piano keys ask for a variant spelled by
+the neighbours they join, `wall.ns` before `wall`. Visual only: `spriteKey` is
+untouched, the renderer composes the linked key. Don't move it into the doodads.
 
 ## Adding a doodad
 
@@ -69,6 +86,10 @@ measured pitches live in `src/audio/sampler.js`. All of it is optional — delet
 6. If its art changes with its state, override `spriteKey`; if it has a readout rather
    than art (a tuning, a degree), put that in `overlay()` so it survives a real sprite.
    See `docs/ASSETS.md`.
+7. Give every key it can return a placeholder in `PLACEHOLDERS`
+   (`src/art/placeholders.js`). If it joins neighbours, add its edges to
+   `connectorEdges()` so `test/art.mjs` checks them. See `docs/ART-PROTOCOL.md`.
+8. Keep `draw()` legible in the mono palette: fills near-black, strokes light.
 
 ## Testing
 
@@ -98,6 +119,14 @@ Three things about it worth knowing before you change it:
 
 Headless Chromium cannot decode the real samples, so it filters that one error
 by exact message and still fails on anything else.
+
+### And the art check
+
+`node test/art.mjs` (same server) holds every sprite, real and placeholder, to the
+connector rule in `docs/ART-PROTOCOL.md`, and every placeholder to 51 px and
+two-value alpha. It was written because measuring the art found the mouthpiece drawn
+mirror-image, which nothing else noticed. Proved by injection: drop the mouthpiece's
+`flipX` and it fails naming the edge.
 
 ### And a report, for when you are making rooms rather than fixing them
 

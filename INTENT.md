@@ -50,6 +50,27 @@ have said so.
 judge whether one is fun without a person playing it. The report can say a room
 is thin; it cannot say a room is boring.
 
+## Art, recorded 2026-10-01
+
+Stated by Timothy, so this overrides the older "do not invest effort in art here"
+line below where they disagree:
+
+- **Parity with the Unity game's look.** The game is almost entirely black and white:
+  sketchy white line-work. The parchment, gold and per-wing colours the prototype had
+  were never the real look and are now parked. Colour may come later; not yet.
+- **Placeholders that look like his art**, so mechanics can be built before the
+  hand-drawn art exists. The art is the bottleneck because it is drawn by hand.
+  Done as a protocol (`docs/ART-PROTOCOL.md`) plus a generator that obeys it.
+- **Tiles are 51 × 51 px** for now. He may draw at other sizes later; the protocol
+  keeps the number in one place (`TILE` in `src/art/protocol.js`).
+- **Tile rules**: pieces that join should change texture to show it. Done for walls
+  and piano keys (16-case autotiling). Not done: inside corners (the 47-case set), and
+  any family beyond those two.
+
+Still open on art: the rest of the Unity sprite folder has not been brought across,
+because this repo cannot see it. Copying `Assets/Sprites` (or a listing of it) into the
+repo is the next step for parity.
+
 ## Something that needs Timothy
 
 **The GDD should come into this repo.** It currently lives at
@@ -60,5 +81,6 @@ canon actually reachable.
 
 ## Worth knowing
 
-Placeholder assets are fine. **Timothy will be drawing more art over time**, so
-do not invest effort in art here; invest it in the harness.
+Placeholder assets are fine. **Timothy will be drawing more art over time.** Do
+not hand-polish art here; invest in the pipeline that carries his art in and stands
+in for it until it exists (see the 2026-10-01 section above).

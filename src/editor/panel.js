@@ -3,7 +3,9 @@
 // doodad or a sprite slot never means editing markup.
 
 import { GROUPS, propsFor, specForChar, legendDoc, PLAYER_CHAR } from './catalog.js';
-import { renderSpec, spriteKeys, bakeAtlas, bakeSessionSprites } from '../render/sprite-baker.js';
+import { renderSpec, spriteKeys, bakeAtlas } from '../render/sprite-baker.js';
+import { MODES } from '../render/assets.js';
+import { TILE } from '../art/protocol.js';
 import { NOTE_NAMES } from '../core/music.js';
 
 const TOOLS = [
@@ -212,12 +214,15 @@ export function buildPanel(game, paint, assets, els, { onEdit, toast } = {}) {
 
   els.assets.innerHTML = `
     <div class="row wrap">
-      <label class="inline"><input type="checkbox" id="ed-sprites-on"> use sprites</label>
-      <label class="inline">px <input type="number" id="ed-sprite-size" value="32" min="8" max="128" step="8"></label>
+      <label class="inline">art <select id="ed-art-mode">
+        ${MODES.map(m => `<option value="${m}">${m}</option>`).join('')}
+      </select></label>
+      <label class="inline">px <input type="number" id="ed-sprite-size" value="${TILE}" min="8" max="204" step="1"></label>
     </div>
+    <div class="muted">real: your art, sketch placeholders where there is none.
+      sketch: placeholders everywhere. schematic: no art.</div>
     <div class="row wrap">
-      <button class="chip" id="ed-bake">bake placeholders</button>
-      <button class="chip" id="ed-atlas">download atlas</button>
+      <button class="chip" id="ed-atlas">download sketch atlas</button>
       <button class="chip" id="ed-manifest">copy manifest</button>
       <button class="chip" id="ed-clear-sprites">clear</button>
     </div>
@@ -227,28 +232,19 @@ export function buildPanel(game, paint, assets, els, { onEdit, toast } = {}) {
     </div>
     <div class="slots" id="ed-slots"></div>`;
 
-  const spritesOn = els.assets.querySelector('#ed-sprites-on');
+  const artMode = els.assets.querySelector('#ed-art-mode');
   const sizeInput = els.assets.querySelector('#ed-sprite-size');
   const slotsBox = els.assets.querySelector('#ed-slots');
   const drop = els.assets.querySelector('#ed-drop');
 
-  spritesOn.checked = assets.mode !== 'schematic';
-  spritesOn.addEventListener('change', () => {
-    assets.mode = spritesOn.checked ? 'auto' : 'schematic';
-    assets.slices.clear();
-    refresh();
-  });
-
-  els.assets.querySelector('#ed-bake').addEventListener('click', () => {
-    const n = bakeSessionSprites(assets, { size: size(), wing: game.room.wing });
-    assets.mode = 'auto';
-    spritesOn.checked = true;
-    toast?.(`Baked ${n} placeholder tiles.`);
+  artMode.value = assets.mode;
+  artMode.addEventListener('change', () => {
+    assets.mode = artMode.value;
     refresh();
   });
 
   els.assets.querySelector('#ed-atlas').addEventListener('click', () => {
-    const { canvas, manifest, sheetName } = bakeAtlas({ size: size(), wing: game.room.wing });
+    const { canvas, manifest, sheetName } = bakeAtlas({ size: size(), wing: game.room.wing, assets, mode: 'sketch' });
     canvas.toBlob((blob) => {
       download(blob, `${sheetName}.png`);
       download(new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' }),
@@ -280,29 +276,32 @@ export function buildPanel(game, paint, assets, els, { onEdit, toast } = {}) {
     const files = [...(e.dataTransfer?.files ?? [])];
     if (!files.length) return;
     const { taken, missed } = await assets.adoptMany(files, spriteKeys());
-    assets.mode = 'auto';
-    spritesOn.checked = true;
+    if (assets.mode === 'schematic') assets.mode = artMode.value = 'real';
     toast?.(`${taken.length} matched${missed.length ? `, ${missed.length} unmatched` : ''}.`);
     refresh();
   });
 
-  function size() { return clamp(Number(sizeInput.value) || 32, 8, 128); }
+  function size() { return clamp(Number(sizeInput.value) || TILE, 8, 204); }
 
   function refreshSlots() {
     const keys = spriteKeys();
     slotsBox.innerHTML = '';
+    // Bright: real art. Dashed: a sketch placeholder is standing in. Plain: draw() only.
     for (const key of keys) {
+      const real = !!assets.real(key), draft = !real && !!assets.draft(key);
       const b = document.createElement('button');
-      b.className = 'slot' + (assets.get(key) ? ' filled' : '');
+      b.className = 'slot' + (real ? ' filled' : draft ? ' draft' : '');
       b.textContent = key;
-      b.title = assets.get(key) ? 'Replace this sprite' : 'Assign a PNG to this slot';
+      b.title = real ? 'Real art. Click to replace.'
+        : draft ? 'Sketch placeholder. Click to assign real art.' : 'Assign a PNG to this slot';
       b.addEventListener('click', () => { pickerKey = key; filePicker.click(); });
       slotsBox.appendChild(b);
     }
-    const filled = keys.filter(k => assets.get(k)).length;
+    const filled = keys.filter(k => assets.real(k)).length;
+    const drafted = keys.filter(k => !assets.real(k) && assets.draft(k)).length;
     const head = document.createElement('div');
     head.className = 'muted slots-head';
-    head.textContent = `${filled} / ${keys.length} slots filled`;
+    head.textContent = `${filled} / ${keys.length} drawn, ${drafted} on placeholders`;
     slotsBox.prepend(head);
   }
 
@@ -355,9 +354,9 @@ function iconButton(label, title, onClick) {
 }
 
 function drawFloor(c, s) {
-  c.fillStyle = '#e8dcc0';
+  c.fillStyle = '#000';
   c.fillRect(0, 0, s, s);
-  c.strokeStyle = '#c3b492';
+  c.strokeStyle = '#1c1c1c';
   c.lineWidth = 1;
   for (let i = 1; i <= 4; i++) {
     c.beginPath(); c.moveTo(0, (i * s) / 5 + 0.5); c.lineTo(s, (i * s) / 5 + 0.5); c.stroke();
@@ -372,12 +371,10 @@ function drawCoda(c, s) {
   c.arc(s * 0.5, s * 0.44, s * 0.26, Math.PI, 0);
   c.lineTo(s * 0.76, s * 0.72);
   c.closePath();
-  c.fillStyle = 'rgba(238,240,252,0.95)';
-  c.fill();
-  c.strokeStyle = '#3a3226';
+  c.strokeStyle = '#f2f2f2';
   c.lineWidth = 1.5;
   c.stroke();
-  c.fillStyle = '#3a3226';
+  c.fillStyle = '#f2f2f2';
   for (const dx of [-1, 1]) {
     c.beginPath();
     c.arc(s * 0.5 + dx * s * 0.1, s * 0.42, s * 0.045, 0, Math.PI * 2);

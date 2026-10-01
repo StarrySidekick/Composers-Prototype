@@ -143,8 +143,8 @@ class Dissonance extends Doodad {
     ctx.play({ family: 'sour', midi: ctx.room.music.getNote(1, 4), intensity: 0.5 });
     wave.pass();
   }
-  draw(c, s) {
-    c.strokeStyle = '#8b3a52';
+  draw(c, s, ctx) {
+    c.strokeStyle = PALETTE.wing(ctx.room.wing).sour;
     c.lineWidth = 2;
     c.beginPath();
     c.moveTo(s * 0.25, s * 0.25); c.lineTo(s * 0.75, s * 0.75);

@@ -12,8 +12,9 @@ But two jobs want real pictures:
    for every doodad and every doodad *state*, cut to whatever tile size the Unity
    project wants, is one button.
 
-So there is a sprite layer. It is entirely optional: with no `assets/manifest.json` and
-nothing dropped in, the game behaves exactly as it did before.
+So there is a sprite layer, with two sources: real art from Unity, and generated sketch
+placeholders for everything not drawn yet. Delete `assets/` and the game still runs, on
+placeholders.
 
 ## How it resolves
 
@@ -31,9 +32,10 @@ Every doodad has a **sprite key** — `Doodad.spriteKey`. The default is
 | `keyshift.up` / `keyshift.down` | stairs up / down |
 | `wall`, `peg`, `string`, `pianokey`, `mallet`, `exit`, `dissonance` | one each |
 
-On every frame the renderer asks the store for `d.spriteKey`. A hit is blitted; a miss
-falls through to `d.draw()`. **You never have to fill in the whole set** — a room with a
-painted wall and schematic everything-else works fine, which is what makes this useful
+On every frame the renderer asks the store for the linked key (if the tile has a link
+rule) and then `d.spriteKey`. A hit is blitted; a miss falls through to `d.draw()`.
+**You never have to fill in the whole set** — a room with a painted wall and
+placeholder everything-else works fine, which is what makes this useful
 during art production rather than only at the end of it.
 
 Two rules for the art itself:
@@ -69,37 +71,43 @@ Two rules for the art itself:
 
 Paths in `src` are relative to `assets/`.
 
-## Generating placeholders
+## Placeholders
+
+Every slot without real art gets a **sketch placeholder**: generated white line-work in
+the house style, at 51 px, obeying the same connector rules as the real art. They are
+live (drawn on load, nothing on disk) and the rules for them, and for hand-drawn art,
+are in [ART-PROTOCOL.md](ART-PROTOCOL.md). That page also covers **linked art**: walls
+and piano keys ask for a variant such as `wall.ns` before the plain `wall`.
 
 In the editor's **Assets** panel:
 
-- **bake placeholders** — renders every slot from the prototype's own `draw()` calls into
-  in-memory images and switches the game over to them. The room should look almost
-  identical; anything that *doesn't* is a bug in the sprite path, which is the point.
-- **download atlas** — the same set packed into one PNG plus a matching `manifest.json`.
-  Drop both into `assets/` and they load on refresh; or take the PNG into Unity as the
-  placeholder tile set. The `px` box sets the tile size — match it to the Unity project's
-  pixels-per-unit grid before exporting.
+- **art: real / sketch / schematic** — which picture wins. See ART-PROTOCOL.md.
+- **download sketch atlas** — every placeholder, linked variants included, packed into one
+  PNG plus a matching `manifest.json`, at the size in the `px` box. For Unity.
+- Or `node tools/export-placeholders.mjs` for one PNG per slot.
 
-The atlas is baked in the current room's **wing** palette, because walls, doors and locks
-are wing-tinted. Export one per wing if you need all of them; the filename carries the
-wing (`placeholders-brass.png`).
+The slot list marks real art bright and placeholder-only slots dashed.
+
+## Manifest extras
+
+- `ink` (top level, and per sprite) — the colour the art is recoloured to on load,
+  using only its alpha. Default white. `"none"` blits the file as-is.
+- `flipX` (per sprite) — mirror it. Used for the mouthpiece, which is drawn backwards.
 
 ## What is in assets/ right now
 
 The Unity project's own art, filling 13 of the slots — brass straight/elbow/mouthpiece/
 flare, string, peg, wall, door, drum.bass, mallet, pianokey, lock and lock.lit — plus two
-keys that are not tiles: `player` and `wave`. Everything else still draws itself.
+keys that are not tiles: `player` and `wave`. Everything else is on placeholders.
 
-Those PNGs are **not** byte-copies of `Assets/Sprites`. Rotation, ink colour and square
-padding are baked into them, and the reasoning is in
-[PORTING.md](PORTING.md#assets-carried-over-from-unity). Two things to know before you
-re-export anything:
+Those PNGs are **not** byte-copies of `Assets/Sprites`; the reasoning is in
+[PORTING.md](PORTING.md#assets-carried-over-from-unity). Before re-exporting anything:
 
 - The tube art is drawn vertical in Unity and has been turned 90° here. The mouthpiece
   and flare are drawn horizontal and have *not*.
-- The art is white line-work; the ink colour is baked in because the store blits
-  untinted. Sprites therefore do not follow the wing palettes — `draw()` still does.
+- The files carry an old brown ink. It is ignored: the store recolours everything to
+  `ink`. New exports should be plain white.
+- The mouthpiece is mirrored by `flipX`. If you fix it in Unity and re-export, drop the flag.
 
 ## Bringing real art in from Unity
 

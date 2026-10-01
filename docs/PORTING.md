@@ -88,26 +88,32 @@ change is a scripted copy rather than archaeology.
 
 | Prototype | Unity source | Baked in |
 |---|---|---|
-| `assets/sprites/*.png` | `Assets/Sprites` | rotation, ink colour, square padding — see below |
+| `assets/sprites/*.png` | `Assets/Sprites` | rotation, square padding (and a brown ink, now overridden) — see below |
 | `assets/audio/{cello,horn}/*.m4a` | `Assets/Sounds/{Cello,Horn}` | 32-bit float WAV → AAC 96 kbps (7.6 MB → 276 KB) |
 | `assets/audio/perc/*.m4a` | `Assets/Sounds/Bass Drum.wav`, `Click.wav` | same |
 | `assets/concept/*.png` | `Assets/Sprites/Untitled_Artwork*` | nothing — concept art, referenced by no slot |
 
-Three transforms are baked into the sprite files rather than carried in code, because
-`AssetStore` blits a slice verbatim and that is the right contract to keep:
+Two transforms are baked into the sprite files rather than carried in code; colour
+and one mirror are applied at load time instead, the way Unity does them:
 
 - **Rotation.** The tube art is drawn *vertical* at rest — `Tube Straight.png` connects
   top+bottom and `Tube Elbow.png` is a "┌" — while `assets/` is authored unrotated and
   the renderer applies `spriteRot`. The straight, elbow and string are turned 90° CW
   once, on disk, so `brass.straight` connects left+right and `brass.elbow` is the "┐"
-  that `PARTS.elbow.edges` describes. **The mouthpiece and flare are already horizontal
-  in the source and must not be turned** — their cup and bell already match
-  `edges: ['right']` and `edges: ['left']`.
-- **Colour.** The source is white line-work on transparency, which Unity tints per
-  object with `SpriteRenderer.color`. The store blits untinted, so white would be
-  invisible on parchment: the ink (`#3a3226`) is baked in, and `lock.lit` is a second
-  bake of the same fork in `#c8791a`. The cost is that sprites no longer follow the
-  wing palettes the way `draw()` does.
+  that `PARTS.elbow.edges` describes. The mouthpiece and flare are already horizontal
+  in the source and are not turned.
+- **The mouthpiece is mirrored, in code.** Measured 2026-10-01: its stem crosses the
+  *left* edge, but `PARTS.mouthpiece.edges` is `['right']`, so every horn looked cut at
+  its first joint. The earlier note here said it already matched; it did not. Fixed
+  with `"flipX": true` in the manifest, and `node test/art.mjs` now fails if it
+  regresses. Check `Mouthpiece.png` against `BrassTube` in Unity too.
+- **Colour, at load time.** The source is white line-work, which Unity tints per object
+  with `SpriteRenderer.color`. These files were baked in a brown ink (`#3a3226`) back
+  when the floor was parchment, and `lock_lit.png` in orange. Since 2026-10-01 the
+  prototype is black and white like the Unity build, and `AssetStore` recolours every
+  sprite to the manifest's `ink` (white) on load, using only its alpha. So the brown
+  in the files is dead and harmless; the shapes are what is used. Re-exports should
+  be plain white, per [ART-PROTOCOL.md](ART-PROTOCOL.md).
 - **Squareness.** `Key.png` is 51×102 and `ProtoPlayer.png` is 100×140. The store blits
   into a square tile, so both are padded to square rather than squashed.
 
