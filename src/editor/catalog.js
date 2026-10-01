@@ -46,9 +46,9 @@ export const GROUPS = [
   },
   {
     id: 'percussion', label: 'Percussion — the kit', brushes: [
-      { char: 'b', label: 'bass drum', hint: 'a mirror, head slanted / — bounces waves like light; rotate in 45° steps' },
-      { char: 't', label: 'tom', hint: 'a mirror, head slanted \\ — bounces waves like light' },
-      { char: 's', label: 'snare', hint: 'a mirror, head flat — — straight back, or edge-on and past' },
+      { char: 'b', label: 'bass drum', hint: 'a mirror, head / facing up-left; the back absorbs. Rotate in 45° steps' },
+      { char: 't', label: 'tom', hint: 'a mirror, head \\ facing up-right; the back absorbs' },
+      { char: 's', label: 'snare', hint: 'a mirror, head — facing up: straight back, or edge-on and past' },
       { char: 'h', label: 'hi-hat', hint: 'passes through and ticks' },
       { char: 'c', label: 'cymbal', hint: 'passes through and re-energises a halved wave' },
       { char: 'p', label: 'timpani', hint: 'pitched, absorbs — press B to retune' },
@@ -93,7 +93,7 @@ export const PROPS = {
   string: [{ key: 'rot', type: 'rot' }],
   drum: [
     { key: 'part', type: 'enum', values: DRUM_PARTS },
-    { key: 'rot', type: 'rot', step: 45, hint: 'the head: 0 /  45 —  90 \\  135 |', when: s => ['bass', 'tom', 'snare'].includes(s.part) },
+    { key: 'rot', type: 'rot', step: 45, hint: 'head and the way it faces: 0 / NW, 45 — N, 90 \\ NE, 135 | E, 180 / SE, 225 — S, 270 \\ SW, 315 | W', when: s => ['bass', 'tom', 'snare'].includes(s.part) },
     { key: 'degree', type: 'int', min: 0, max: 6, hint: 'scale degree, 0 = tonic' },
     { key: 'octave', type: 'int', min: 1, max: 7 },
     { key: 'solid', type: 'bool', hint: 'off lets Coda walk over it' },

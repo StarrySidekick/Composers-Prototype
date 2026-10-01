@@ -11,9 +11,20 @@
 //   head square-on (| to a sideways wave)  ->  straight back
 //   head edge-on (parallel to the wave)  ->  slips past, silent
 //
-// Drums turn in 45° steps. At rot 0 the head runs like "/", which is how the
-// Unity bass drum is drawn (its oval head runs lower-left to upper-right); each 45°
-// turns it clockwise: 0 "/", 45 "—", 90 "\", 135 "|". Both faces reflect.
+// Only the HEAD reflects. The back of the drum (the shell) absorbs the wave, as
+// it does in the Unity game. So a drum has eight useful positions, not four: the
+// head's slant, and which way it faces.
+//
+// Drums turn in 45° steps. At rot 0 the head runs like "/" and faces up-left, which
+// is how the Unity bass drum is drawn (oval head lower-left to upper-right, legs on
+// the lower right). Each 45° turns it clockwise:
+//
+//     0 "/" faces NW     45 "—" faces N     90 "\" faces NE    135 "|" faces E
+//   180 "/" faces SE    225 "—" faces S    270 "\" faces SW    315 "|" faces W
+//
+// A wave moving AGAINST the way the head faces hits the head and bounces; one
+// moving with it hits the shell and is absorbed; one moving along the head (edge-on)
+// slips past.
 // Which drum it is now decides the SOUND and the default slant, not the direction.
 //
 // The rest of the kit:
@@ -55,6 +66,22 @@ export function bounce(dir, rot) {
   const u = headLine(rot);
   const k = dir.x * u.x + dir.y * u.y;
   return { x: Math.round(2 * k * u.x - dir.x), y: Math.round(2 * k * u.y - dir.y) };
+}
+
+// The way the head faces: the head line turned a quarter anticlockwise on screen.
+// At rot 0, u = (0.71, -0.71) ("/") and this is (-0.71, -0.71), up-left.
+export function headFacing(rot) {
+  const u = headLine(rot);
+  return { x: u.y, y: -u.x };
+}
+
+// What a mirror drum does to a wave moving in `dir`: 'bounce', 'absorb' (it hit the
+// shell) or 'pass' (edge-on).
+export function meets(dir, rot) {
+  const n = headFacing(rot);
+  const d = dir.x * n.x + dir.y * n.y;
+  if (Math.abs(d) < 1e-6) return 'pass';
+  return d < 0 ? 'bounce' : 'absorb';
 }
 
 // The old face tables addressed the drum voice through `modulation`; keep that
@@ -102,10 +129,11 @@ class Drum extends Doodad {
 
   onWaveEntered(wave, ctx) {
     if (this.mirror) {
-      const out = bounce(wave.dir, this.rot);
-      if (out.x === wave.dir.x && out.y === wave.dir.y) { wave.pass(); return; }  // edge-on
+      const hit = meets(wave.dir, this.rot);
+      if (hit === 'pass') { wave.pass(); return; }          // edge-on: slips by
+      if (hit === 'absorb') { wave.destroy(); return; }     // the shell: soaked up
       this.strike(wave.state.intensity, ctx);
-      wave.reflect(out);
+      wave.reflect(bounce(wave.dir, this.rot));
       return;
     }
     const action = this.faces[this.faceFor(wave)];
@@ -193,6 +221,11 @@ class Drum extends Doodad {
       c.lineWidth = Math.max(2, s * 0.08);
       c.beginPath();
       c.moveTo(-r * 0.75, r * 0.75); c.lineTo(r * 0.75, -r * 0.75);
+      c.stroke();
+      // a tick on the head's side (up-left at rot 0); the other side is the shell
+      c.lineWidth = Math.max(1.5, s * 0.05);
+      c.beginPath();
+      c.moveTo(0, 0); c.lineTo(-r * 0.45, -r * 0.45);
       c.stroke();
     }
     if (this.part === 'hat') {

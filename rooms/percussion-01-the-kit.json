@@ -2,7 +2,7 @@
   "id": "percussion-01-the-kit",
   "name": "The Kit",
   "wing": "percussion",
-  "hint": "Drums are mirrors: a wave bounces off the head the way light would, so the slant of each head decides where it goes. The kettle drum is tuned with B — find the phrase the lock wants.",
+  "hint": "Drums are mirrors, and only the head reflects: hit a drum from behind and the shell swallows the wave. Watch which way each head faces. The kettle drum is tuned with B — find the phrase the lock wants.",
   "maxWaves": 1,
   "music": {
     "root": 4,
@@ -46,7 +46,7 @@
     {
       "x": 11,
       "y": 2,
-      "rot": 90
+      "rot": 270
     }
   ],
   "solution": [
@@ -57,7 +57,7 @@
       ],
       "face": "right",
       "do": "fire",
-      "why": "the tee lights the fork below it; the two bass drums, slanted opposite ways, mirror the rest round to the other fork"
+      "why": "the tee lights the fork below it; the top drum's head faces down-left so the wave bounces down, and the bottom one's faces up-left so it bounces left to the other fork"
     },
     {
       "at": [

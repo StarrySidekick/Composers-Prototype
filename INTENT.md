@@ -89,7 +89,9 @@ collection).
 Then (same day): **drums reflect like a mirror**, "reflects light, so it depends on
 the position and the rotation of the drum itself." Done: bass, tom and snare bounce
 waves off their head by real reflection, in 45° steps. Percussion 01 and 02 were
-re-slanted to suit, and their recorded solutions prove it.
+re-slanted to suit, and their recorded solutions prove it. Then: **the back of the
+drum absorbs the wave**, "that's kind of the behavior it has in the actual
+composer's key game." Done: only the head reflects, so a drum has eight positions.
 
 **Gaps found, with what could fill them** (proposals; nothing here is decided):
 
