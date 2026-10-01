@@ -25,6 +25,10 @@ const VARIANTS = {
   'notelock':    [{}, { lit: true }],
   'brass.mute':  [{ muted: true }, { muted: false }],
   'brass.slide': [{ extend: 0 }, { extend: 1 }, { extend: 2 }, { extend: 3 }],
+  // Mirror drums: a slanted head (the plain key) and an upright one (`.flat`).
+  'drum.bass':   [{ rot: 0 }, { rot: 45 }],
+  'drum.tom':    [{ rot: 0 }, { rot: 45 }],
+  'drum.snare':  [{ rot: 0 }, { rot: 45 }],
 };
 
 // Every sprite slot the game can ask for: { key, spec, state }.

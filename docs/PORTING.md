@@ -127,6 +127,16 @@ to `draw()`, which is the designed behaviour, not a gap to rush. `player` and `w
 extra keys outside `spriteSlots()`; the store resolves any key, but the editor's
 drop-zone matcher only offers the enumerated ones.
 
+## Mirror drums: new here, port this
+
+Since 2026-10-01 the bass drum, tom and snare are **mirrors**, not face tables: the
+head is a line through the tile centre at `rot` (45° steps; 0 is `/`) and a wave's
+direction reflects off it, `d' = 2(d·u)u - d` with `u` along the head. Unity's
+`Vector2.Reflect(d, n)` does the same sum given the head's **normal** `n`. Mind the
+Y axis: a head that is `/` on screen here (`u = (1, -1)`) is `/` in Unity with
+`u = (1, 1)`, because Unity's y points up. Copy the slant you see, not the vector.
+A room-file `faces` table on a drum still overrides the mirror, for old rooms.
+
 ## Conventions carried over verbatim
 
 **Face naming.** A face is named by the wave's *direction of travel in the doodad's local

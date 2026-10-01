@@ -35,10 +35,11 @@ export const DEFAULT_LEGEND = {
   'H': { type: 'string', rot: 90 },  // vertical string
 
   // percussion
-  's': { type: 'drum', part: 'snare' },
+  // bass, tom, snare are mirrors: their default heads are / \ and — (see percussion.js)
+  's': { type: 'drum', part: 'snare', rot: 45 },
   'b': { type: 'drum', part: 'bass', rot: 0 },
   'h': { type: 'drum', part: 'hat' },
-  't': { type: 'drum', part: 'tom', rot: 0 },
+  't': { type: 'drum', part: 'tom', rot: 90 },
   'p': { type: 'drum', part: 'timpani' },
   'c': { type: 'drum', part: 'cymbal' },
 

@@ -75,6 +75,7 @@ Three places choose a rotation:
 |---|---|
 | most pieces (tubes, mallets, strings) | `rot` in the room file, via the legend (`7` is an elbow at 0, `J` at 90) |
 | doors | **automatic** (`autoRot` in `src/art/links.js`): drawn upright for a north-south wall, turned 90 when set into an east-west wall. A `rot` in the room file still wins |
+| mirror drums (bass, tom, snare) | `rot` in **45° steps**, the slant of the head: 0 `/`, 45 `—`, 90 `\`, 135 `|`. The 45° slants use a `.flat` drawing turned by 90° steps |
 | wall inside corners | **automatic**: one `wall.inner` drawing, authored for the north-east corner, stamped at 0 / 90 / 180 / 270 for NE / SE / SW / NW |
 
 ## Time (`src/core/beat-clock.js`, `src/render/motion.js`)

@@ -46,9 +46,9 @@ export const GROUPS = [
   },
   {
     id: 'percussion', label: 'Percussion — the kit', brushes: [
-      { char: 'b', label: 'bass drum', hint: 'kicks the wave 90° clockwise' },
-      { char: 't', label: 'tom', hint: 'kicks the wave 90° counter-clockwise' },
-      { char: 's', label: 'snare', hint: 'reflects the wave straight back' },
+      { char: 'b', label: 'bass drum', hint: 'a mirror, head slanted / — bounces waves like light; rotate in 45° steps' },
+      { char: 't', label: 'tom', hint: 'a mirror, head slanted \\ — bounces waves like light' },
+      { char: 's', label: 'snare', hint: 'a mirror, head flat — — straight back, or edge-on and past' },
       { char: 'h', label: 'hi-hat', hint: 'passes through and ticks' },
       { char: 'c', label: 'cymbal', hint: 'passes through and re-energises a halved wave' },
       { char: 'p', label: 'timpani', hint: 'pitched, absorbs — press B to retune' },
@@ -93,7 +93,7 @@ export const PROPS = {
   string: [{ key: 'rot', type: 'rot' }],
   drum: [
     { key: 'part', type: 'enum', values: DRUM_PARTS },
-    { key: 'rot', type: 'rot' },
+    { key: 'rot', type: 'rot', step: 45, hint: 'the head: 0 /  45 —  90 \\  135 |', when: s => ['bass', 'tom', 'snare'].includes(s.part) },
     { key: 'degree', type: 'int', min: 0, max: 6, hint: 'scale degree, 0 = tonic' },
     { key: 'octave', type: 'int', min: 1, max: 7 },
     { key: 'solid', type: 'bool', hint: 'off lets Coda walk over it' },
