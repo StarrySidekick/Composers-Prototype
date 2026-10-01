@@ -163,7 +163,9 @@ export function buildPanel(game, paint, assets, els, { onEdit, toast } = {}) {
     }
     if (f.type === 'rot') {
       const s = document.createElement('select');
-      s.innerHTML = [0, 90, 180, 270].map(o => `<option value="${o}">${o}°</option>`).join('');
+      const step = f.step ?? 90;
+      s.innerHTML = Array.from({ length: 360 / step }, (_, i) => i * step)
+        .map(o => `<option value="${o}">${o}°</option>`).join('');
       s.value = String(v ?? 0);
       s.addEventListener('change', () => onChange(Number(s.value)));
       return s;

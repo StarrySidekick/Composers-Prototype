@@ -2,10 +2,21 @@
 // Face interactions are configured in the drum's LOCAL space, so rotating the drum
 // changes which world directions map to which face.
 //
-// The kit, and what each piece is FOR as a puzzle piece:
-//   snare    reflect 180° — send it back the way it came
-//   bass     kick 90° CW  — the right-hand corner
-//   tom      kick 90° CCW — the left-hand corner, so a circuit can turn either way
+// Bass, tom and snare are MIRRORS (2026-10-01, Timothy: "drums should reflect
+// like a mirror... it depends on the position and the rotation of the drum"). The
+// drum head is a line through the tile centre and a wave bounces off it the way
+// light does, angle in = angle out:
+//
+//   head slanted to the wave (\ or /)  ->  turns 90°
+//   head square-on (| to a sideways wave)  ->  straight back
+//   head edge-on (parallel to the wave)  ->  slips past, silent
+//
+// Drums turn in 45° steps. At rot 0 the head runs like "/", which is how the
+// Unity bass drum is drawn (its oval head runs lower-left to upper-right); each 45°
+// turns it clockwise: 0 "/", 45 "—", 90 "\", 135 "|". Both faces reflect.
+// Which drum it is now decides the SOUND and the default slant, not the direction.
+//
+// The rest of the kit:
 //   hat      pass through and tick — a metronome you can route a wave across
 //   cymbal   pass through and re-energise — restores a wave halved by a tee
 //   timpani  pitched, absorbs — the drum that can answer a note lock
@@ -27,6 +38,24 @@ const PARTS = {
 };
 
 export const DRUM_PARTS = Object.keys(PARTS);
+export const MIRROR_PARTS = ['bass', 'tom', 'snare'];
+
+// The head's direction, as a unit vector in screen space (+y down), for a rot.
+export function headLine(rot) {
+  const a = ((rot - 45) * Math.PI) / 180;
+  return { x: Math.cos(a), y: Math.sin(a) };
+}
+
+// Bounce a direction off the head: d' = 2(d·u)u - d, the reflection of d about the
+// line u. With the head at a multiple of 45° and d one of the four directions, the
+// answer is always one of the four directions too, so it is rounded clean.
+// Porting: Unity's Vector2.Reflect(d, n) takes the head's NORMAL n, not its line,
+// and Unity is +y up, so the slants mirror (see docs/PORTING.md).
+export function bounce(dir, rot) {
+  const u = headLine(rot);
+  const k = dir.x * u.x + dir.y * u.y;
+  return { x: Math.round(2 * k * u.x - dir.x), y: Math.round(2 * k * u.y - dir.y) };
+}
 
 // The old face tables addressed the drum voice through `modulation`; keep that
 // mapping alive for hand-written legend overrides that still set it.
@@ -47,7 +76,18 @@ class Drum extends Doodad {
     this.solid = spec.solid ?? preset.solid;
     this.blocksWave = true;
     this.hit = 0;
+    // A face table given in the room file still wins: that is the hand-authored
+    // Strumentino-style override, and it predates mirrors.
+    this.mirror = MIRROR_PARTS.includes(this.part) && !spec.faces;
+    this.rot = ((Math.round((spec.rot ?? 0) / 45) * 45) % 360 + 360) % 360;
   }
+
+  // A head at a 45° step (— or |) gets its own drawing, `drum.bass.flat`, drawn
+  // with the head level ("—") and turned in 90° steps, so pixel art is never rotated
+  // by 45° (which smears it). The diagonal heads use the plain key.
+  get flat() { return this.mirror && this.rot % 90 === 45; }
+  get spriteKey() { return this.flat ? `drum.${this.part}.flat` : `drum.${this.part}`; }
+  get spriteRot() { return this.flat ? this.rot - 45 : this.rot; }
 
   strike(intensity, ctx) {
     this.hit = 1;
@@ -61,6 +101,13 @@ class Drum extends Doodad {
   }
 
   onWaveEntered(wave, ctx) {
+    if (this.mirror) {
+      const out = bounce(wave.dir, this.rot);
+      if (out.x === wave.dir.x && out.y === wave.dir.y) { wave.pass(); return; }  // edge-on
+      this.strike(wave.state.intensity, ctx);
+      wave.reflect(out);
+      return;
+    }
     const action = this.faces[this.faceFor(wave)];
     if (action !== FaceAction.Block) this.strike(wave.state.intensity, ctx);
 
@@ -140,21 +187,12 @@ class Drum extends Doodad {
     c.strokeStyle = this.part === 'timpani' ? p.metalHi : p.metal;
     c.stroke();
 
-    if (this.part === 'bass' || this.part === 'tom') {
-      // Arrowheads point the way the drum kicks: bass clockwise, tom counter.
-      const cw = this.part === 'bass';
+    if (this.mirror) {
+      // The head: the mirror line. Already turned by rot above, so at 0 it is "/".
       c.strokeStyle = p.metalHi;
-      c.lineWidth = 2;
+      c.lineWidth = Math.max(2, s * 0.08);
       c.beginPath();
-      c.arc(0, 0, r * 0.55, cw ? -0.9 : 0.9, cw ? 1.6 : -1.6, !cw);
-      c.stroke();
-      const a = cw ? 1.6 : -1.6;
-      const hx = Math.cos(a) * r * 0.55, hy = Math.sin(a) * r * 0.55;
-      c.beginPath();
-      c.moveTo(hx, hy);
-      c.lineTo(hx - r * 0.2, hy - r * 0.1);
-      c.moveTo(hx, hy);
-      c.lineTo(hx + r * 0.05, hy - r * 0.24);
+      c.moveTo(-r * 0.75, r * 0.75); c.lineTo(r * 0.75, -r * 0.75);
       c.stroke();
     }
     if (this.part === 'hat') {

@@ -198,8 +198,8 @@ for (let ext = 0; ext <= 3; ext++) {
 // otherwise just stop. Connectors are unchanged (tube walls at rows 20-21 and
 // 29-30), so they still join the real tubes.
 //
-// Some carry information as well as style: the bass drum and the tom each wear
-// a curl that turns the way they kick a wave (clockwise, counter-clockwise).
+// Some carry information as well as style: a drum's head is drawn heavy, because
+// the head is a mirror and its slant is the whole puzzle.
 
 // A small flower: four petals round a point, like the ones on the Unity vines.
 function flower(p, x, y, r = 1.6) {
@@ -221,24 +221,6 @@ function tubeVine(p, x0, x1, { flowers = 1 } = {}) {
   // a tendril over the top wall too
   p.line(x0 + 8, A, x0 + 6, A - 5, { width: 1, wobble: 0 });
   p.curl(x0 + 6, A - 8, 2.4, { dir: 1, start: Math.PI / 2 });
-}
-
-// A drum seen from the side: top head as an ellipse, the shell, the bottom rim.
-function drumSide(p, cx, top, w, h) {
-  p.ellipse(cx, top, w, w * 0.32);
-  p.line(cx - w, top, cx - w, top + h);
-  p.line(cx + w, top, cx + w, top + h);
-  p.path(t => [cx - w + 2 * w * t, top + h + Math.sin(t * Math.PI) * w * 0.32]);
-}
-
-// Which way a drum turns a wave, worn as a curl with an arrowhead.
-function turnCurl(p, cx, cy, dir) {
-  const a0 = -Math.PI / 2, a1 = a0 + dir * Math.PI * 1.3;
-  p.arc(cx, cy, 5, a0, a1, { width: 1, wobble: 0 });
-  const ex = cx + Math.cos(a1) * 5, ey = cy + Math.sin(a1) * 5;
-  const tx = -Math.sin(a1) * dir, ty = Math.cos(a1) * dir;   // travel direction
-  p.line(ex, ey, ex - tx * 3 + ty * 2, ey - ty * 3 - tx * 2, { width: 1, wobble: 0 });
-  p.line(ex, ey, ex - tx * 3 - ty * 2, ey - ty * 3 + tx * 2, { width: 1, wobble: 0 });
 }
 
 function stairs(p, up) {
@@ -300,17 +282,6 @@ Object.assign(PLACEHOLDERS, {
   },
 
   // ---- percussion, from the side -------------------------------------------
-  'drum.bass': p => {
-    p.circle(M, M, 19); p.circle(M, M, 15, { width: 1 });
-    for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + 0.3; p.line(M + Math.cos(a) * 19, M + Math.sin(a) * 19, M + Math.cos(a) * 22, M + Math.sin(a) * 22, { width: 1, wobble: 0 }); }
-    turnCurl(p, M, M, 1);
-  },
-  'drum.tom': p => { drumSide(p, M, 16, 15, 18); turnCurl(p, M, 16, -1); p.curl(9, 40, 3, { dir: -1 }); },
-  'drum.snare': p => {
-    drumSide(p, M, 18, 17, 13);
-    p.poly([[10, 26], [14, 30], [18, 26], [22, 30], [26, 26], [30, 30], [34, 26], [38, 30], [41, 27]], { width: 1, wobble: 0 });
-    p.line(9, 9, 19, 15, { width: 1 }); p.line(42, 9, 32, 15, { width: 1 });   // crossed sticks
-  },
   'drum.hat': p => {
     p.ellipse(M, 14, 17, 3.5); p.ellipse(M, 20, 17, 3.5);
     p.line(M, 23, M, 44, { width: 1 });
@@ -354,6 +325,65 @@ Object.assign(PLACEHOLDERS, {
     p.line(9, M, 15, M, { width: 1 }); p.line(36, M, 42, M, { width: 1 });
     p.curl(M, M, 6, { dir: 1 });
   },
+});
+
+// ---------------------------------------------------------------------------
+// Mirror drums (2026-10-01). A drum lies on its side; its head is the mirror.
+// The plain key has the head slanted "/" (rot 0, as the Unity bass drum is drawn);
+// the `.flat` key has it level "—" (rot 45, then turned in 90° steps). The head
+// is the heavy 2 px stroke through the tile centre; the shell trails behind it.
+
+// An ellipse turned by `ang` radians (screen space, clockwise).
+function tilted(p, cx, cy, rx, ry, ang, o) {
+  const ca = Math.cos(ang), sa = Math.sin(ang), start = p.r() * 6.283;
+  return p.path(t => {
+    const a = start + (6.283 + 0.2) * t;
+    const x = Math.cos(a) * rx, y = Math.sin(a) * ry;
+    return [cx + x * ca - y * sa, cy + x * sa + y * ca];
+  }, o);
+}
+
+// A drum on its side. `ang` is the head's direction; the shell runs `depth` px
+// back along the head's normal, behind the head.
+function sideDrum(p, ang, { r = 18, depth = 9, snare = false, lugs = 0 } = {}) {
+  const cx = M + Math.cos(ang + Math.PI / 2) * -depth / 2;
+  const cy = M + Math.sin(ang + Math.PI / 2) * -depth / 2;
+  const ux = Math.cos(ang), uy = Math.sin(ang);          // along the head
+  const nx = -uy, ny = ux;                                // its normal
+  // back rim (the far head), thin
+  const bx = cx - nx * depth * -1, by = cy - ny * depth * -1;
+  tilted(p, bx, by, r, r * 0.3, ang, { width: 1, wobble: 0.2 });
+  // the shell: two lines joining the rims at the ends of the head
+  for (const sgn of [-1, 1]) {
+    p.line(cx + ux * r * sgn, cy + uy * r * sgn, bx + ux * r * sgn, by + uy * r * sgn, { width: 1, wobble: 0.2 });
+  }
+  // the head itself: heavy, the mirror
+  tilted(p, cx, cy, r, r * 0.3, ang, { width: 2, wobble: 0.25 });
+  if (snare) {
+    const pts = [];
+    for (let i = 0; i <= 8; i++) {
+      const t = -0.8 + (1.6 * i) / 8, off = i % 2 ? 2.2 : -2.2;
+      pts.push([(cx + bx) / 2 + ux * r * t + nx * off, (cy + by) / 2 + uy * r * t + ny * off]);
+    }
+    p.poly(pts, { width: 1, wobble: 0 });
+  }
+  for (let i = 0; i < lugs; i++) {
+    const t = -0.6 + (1.2 * i) / Math.max(1, lugs - 1);
+    const x = (cx + bx) / 2 + ux * r * t, y = (cy + by) / 2 + uy * r * t;
+    p.line(x, y, x - nx * 3, y - ny * 3, { width: 1, wobble: 0 });
+  }
+  // a curl on the far rim, after the Unity drum's legs
+  p.curl(bx - ux * r * 0.5 - nx * 4, by - uy * r * 0.5 - ny * 4, 2.6, { dir: 1 });
+}
+
+const SLANT = -Math.PI / 4, LEVEL = 0;
+Object.assign(PLACEHOLDERS, {
+  'drum.bass':       p => sideDrum(p, SLANT,   { r: 20, depth: 10, lugs: 4 }),
+  'drum.bass.flat':  p => sideDrum(p, LEVEL, { r: 20, depth: 10, lugs: 4 }),
+  'drum.tom':        p => sideDrum(p, SLANT,   { r: 14, depth: 8 }),
+  'drum.tom.flat':   p => sideDrum(p, LEVEL, { r: 14, depth: 8 }),
+  'drum.snare':      p => sideDrum(p, SLANT,   { r: 17, depth: 6, snare: true }),
+  'drum.snare.flat': p => sideDrum(p, LEVEL, { r: 17, depth: 6, snare: true }),
 });
 
 // ---------------------------------------------------------------------------

@@ -2,7 +2,7 @@
   "id": "percussion-02-left-right",
   "name": "Left and Right",
   "wing": "percussion",
-  "hint": "The bass drum turns a wave to the right, the tom to the left. The hi-hat just keeps time.",
+  "hint": "Drums are mirrors. Look at which way each head slants, then decide where to stand.",
   "maxWaves": 1,
   "music": {
     "root": 9,
@@ -17,6 +17,16 @@
       "y": 6,
       "open": true,
       "group": "entry"
+    },
+    {
+      "x": 6,
+      "y": 9,
+      "rot": 0
+    },
+    {
+      "x": 9,
+      "y": 4,
+      "rot": 90
     }
   ],
   "layout": [
@@ -42,16 +52,16 @@
       ],
       "face": "right",
       "do": "fire",
-      "why": "across the hat, the tom turns it left (up) through the gap into the boxed fork"
+      "why": "across the hat; the tom's head slants /, so a wave going right bounces up through the gap into the boxed fork"
     },
     {
       "at": [
         9,
-        11
+        1
       ],
-      "face": "up",
+      "face": "down",
       "do": "fire",
-      "why": "the bass drum turns it right into the far fork"
+      "why": "the bass drum's head slants \\, so a wave coming down bounces right into the far fork (from below it would bounce into the wall)"
     }
   ]
 }

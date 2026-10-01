@@ -134,7 +134,9 @@ export function createPaintEditor(game, renderer, { onEdit } = {}) {
     const r = room();
     const spec = r.specAt(x, y);
     if (!spec) return;
-    applySpec(x, y, { ...spec, rot: (((spec.rot ?? 0) + 90) % 360) });
+    // Mirror drums turn in 45° steps (the head has four slants); everything else 90°.
+    const step = spec.type === 'drum' && ['bass', 'tom', 'snare'].includes(spec.part) ? 45 : 90;
+    applySpec(x, y, { ...spec, rot: (((spec.rot ?? 0) + step) % 360) });
   }
 
   // Write a full spec back to a tile the cheapest way it can be expressed.

@@ -2,7 +2,7 @@
   "id": "percussion-01-the-kit",
   "name": "The Kit",
   "wing": "percussion",
-  "hint": "Bass drums kick the wave clockwise, toms counter-clockwise. The cymbal gives a halved wave its energy back. The kettle drum is tuned with B — find the phrase the lock wants.",
+  "hint": "Drums are mirrors: a wave bounces off the head the way light would, so the slant of each head decides where it goes. The kettle drum is tuned with B — find the phrase the lock wants.",
   "maxWaves": 1,
   "music": {
     "root": 4,
@@ -42,6 +42,11 @@
       "y": 0,
       "open": true,
       "group": "entry"
+    },
+    {
+      "x": 11,
+      "y": 2,
+      "rot": 90
     }
   ],
   "solution": [
@@ -52,7 +57,7 @@
       ],
       "face": "right",
       "do": "fire",
-      "why": "the tee lights the fork below it; the bass drums carry the rest round to the other fork"
+      "why": "the tee lights the fork below it; the two bass drums, slanted opposite ways, mirror the rest round to the other fork"
     },
     {
       "at": [

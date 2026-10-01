@@ -38,9 +38,12 @@ const ABOUT = {
   'brass.mute.open': 'Mute, pulled out of the bell.',
   'string': 'String. Plucked along its length, silent across it. Length sets the instrument.',
   'peg': 'Peg. Turns itself so the stem points at its string.',
-  'drum.bass': 'Bass drum. Kicks a wave 90° clockwise (the curl shows which way).',
-  'drum.tom': 'Tom. Kicks a wave 90° counter-clockwise.',
-  'drum.snare': 'Snare. Sends a wave straight back.',
+  'drum.bass': 'Bass drum, head slanted /. A mirror: a wave bounces off the head like light. Turns in 45° steps.',
+  'drum.bass.flat': 'Bass drum, head level —. The drawing used for the 45° slants, turned in 90° steps.',
+  'drum.tom': 'Tom. A mirror like the bass drum, higher; default slant \\.',
+  'drum.tom.flat': 'Tom, head level —.',
+  'drum.snare': 'Snare, head slanted. A mirror; square-on it sends a wave straight back.',
+  'drum.snare.flat': 'Snare, head level —: its default, so a wave coming down bounces back up.',
   'drum.hat': 'Hi-hat. The wave passes through and it ticks.',
   'drum.cymbal': 'Cymbal. Passes the wave and gives a halved wave its energy back.',
   'drum.timpani': 'Kettle drum. Pitched; press B to tune it up the scale. The number is drawn on top.',
@@ -70,7 +73,7 @@ const ABOUT = {
 };
 
 // Redrawn in the second pass (more of Timothy's hand), for the "new today" filter.
-const REDRAWN = new Set(['brass.straight', 'brass.tee', 'brass.cross', 'brass.valve', 'brass.mute',
+const REDRAWN = new Set(['drum.bass.flat', 'drum.tom.flat', 'drum.snare.flat', 'brass.straight', 'brass.tee', 'brass.cross', 'brass.valve', 'brass.mute',
   'brass.mute.open', 'drum.tom', 'drum.snare', 'drum.hat', 'drum.cymbal', 'drum.timpani', 'drum.bass',
   'mallet', 'notelock', 'notelock.lit', 'exit', 'keyshift.up', 'keyshift.down', 'dissonance', 'strumentino']);
 

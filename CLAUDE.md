@@ -51,6 +51,12 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   the event's time); anything else goes through `ctx.nextGridTime()`. Never pass
   `audio.now` as a `when`. A wave is drawn by `src/render/motion.js`, on its tile at
   the instant its note sounds: don't go back to sliding from the previous tile.
+- **Bass, tom and snare are mirrors.** The head is a line through the tile centre
+  and a wave reflects off it like light (`bounce()` in `percussion.js`). They turn
+  in **45° steps**: 0 `/` (as the Unity bass drum is drawn), 45 `—`, 90 `\`, 135 `|`.
+  Slanted turns a wave 90°, square-on sends it back, edge-on lets it past silently.
+  The drum type sets the sound and default slant, never the direction. 45° headings
+  draw from a `.flat` sprite so pixel art is only ever turned by 90°.
 - **Editor edits mutate the live room; they never reload it.** `Room.setTileChar` /
   `setOverride` rebuild one tile. Reloading would reset every lock and door mid-build.
 

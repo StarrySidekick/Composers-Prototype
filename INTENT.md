@@ -86,6 +86,11 @@ their string); make 51 x 51 assets and a page to review and comment on every one
 (done: https://claude.ai/artifact/9WZenE4ds34khFiRf5TR91, notes in its `notes`
 collection).
 
+Then (same day): **drums reflect like a mirror**, "reflects light, so it depends on
+the position and the rotation of the drum itself." Done: bass, tom and snare bounce
+waves off their head by real reflection, in 45° steps. Percussion 01 and 02 were
+re-slanted to suit, and their recorded solutions prove it.
+
 **Gaps found, with what could fill them** (proposals; nothing here is decided):
 
 - **Woodwind has no instrument at all.** The wing exists in name only. Proposal
