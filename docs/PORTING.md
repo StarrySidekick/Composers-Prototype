@@ -135,6 +135,10 @@ direction reflects off it, `d' = 2(d·u)u - d` with `u` along the head. Unity's
 `Vector2.Reflect(d, n)` does the same sum given the head's **normal** `n`. Mind the
 Y axis: a head that is `/` on screen here (`u = (1, -1)`) is `/` in Unity with
 `u = (1, 1)`, because Unity's y points up. Copy the slant you see, not the vector.
+**Only the head reflects**: the head faces one way (up-left at rot 0, the side away
+from the Unity drum's legs), a wave moving against that facing bounces, one moving
+with it hits the shell and is destroyed, as in the Unity game. In Unity terms: bounce
+when `Vector2.Dot(dir, headNormal) < 0`, absorb when `> 0`, pass when `0`.
 A room-file `faces` table on a drum still overrides the mirror, for old rooms.
 
 ## Conventions carried over verbatim

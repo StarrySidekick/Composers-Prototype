@@ -2,7 +2,7 @@
   "id": "percussion-02-left-right",
   "name": "Left and Right",
   "wing": "percussion",
-  "hint": "Drums are mirrors. Look at which way each head slants, then decide where to stand.",
+  "hint": "Drums are mirrors, but only on the head side. Find where to stand so the wave meets each head, not its shell.",
   "maxWaves": 1,
   "music": {
     "root": 9,

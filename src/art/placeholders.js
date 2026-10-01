@@ -329,8 +329,10 @@ Object.assign(PLACEHOLDERS, {
 
 // ---------------------------------------------------------------------------
 // Mirror drums (2026-10-01). A drum lies on its side; its head is the mirror.
-// The plain key has the head slanted "/" (rot 0, as the Unity bass drum is drawn);
-// the `.flat` key has it level "—" (rot 45, then turned in 90° steps). The head
+// The plain key has the head slanted "/" facing up-left (rot 0, as the Unity bass
+// drum is drawn); the `.flat` key has it level "—" facing up (rot 45, then turned in
+// 90° steps). Only the head reflects, so the shell is drawn deep enough that you can
+// always tell the back from the front. The head
 // is the heavy 2 px stroke through the tile centre; the shell trails behind it.
 
 // An ellipse turned by `ang` radians (screen space, clockwise).
@@ -378,12 +380,12 @@ function sideDrum(p, ang, { r = 18, depth = 9, snare = false, lugs = 0 } = {}) {
 
 const SLANT = -Math.PI / 4, LEVEL = 0;
 Object.assign(PLACEHOLDERS, {
-  'drum.bass':       p => sideDrum(p, SLANT,   { r: 20, depth: 10, lugs: 4 }),
-  'drum.bass.flat':  p => sideDrum(p, LEVEL, { r: 20, depth: 10, lugs: 4 }),
-  'drum.tom':        p => sideDrum(p, SLANT,   { r: 14, depth: 8 }),
-  'drum.tom.flat':   p => sideDrum(p, LEVEL, { r: 14, depth: 8 }),
-  'drum.snare':      p => sideDrum(p, SLANT,   { r: 17, depth: 6, snare: true }),
-  'drum.snare.flat': p => sideDrum(p, LEVEL, { r: 17, depth: 6, snare: true }),
+  'drum.bass':       p => sideDrum(p, SLANT, { r: 19, depth: 15, lugs: 4 }),
+  'drum.bass.flat':  p => sideDrum(p, LEVEL, { r: 19, depth: 15, lugs: 4 }),
+  'drum.tom':        p => sideDrum(p, SLANT, { r: 14, depth: 13 }),
+  'drum.tom.flat':   p => sideDrum(p, LEVEL, { r: 14, depth: 13 }),
+  'drum.snare':      p => sideDrum(p, SLANT, { r: 17, depth: 10, snare: true }),
+  'drum.snare.flat': p => sideDrum(p, LEVEL, { r: 17, depth: 10, snare: true }),
 });
 
 // ---------------------------------------------------------------------------
