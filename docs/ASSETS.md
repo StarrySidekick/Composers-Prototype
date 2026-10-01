@@ -96,9 +96,10 @@ The slot list marks real art bright and placeholder-only slots dashed.
 
 ## What is in assets/ right now
 
-The Unity project's own art, filling 13 of the slots — brass straight/elbow/mouthpiece/
-flare, string, peg, wall, door, drum.bass, mallet, pianokey, lock and lock.lit — plus two
-keys that are not tiles: `player` and `wave`. Everything else is on placeholders.
+The Unity project's own art, filling 12 of the slots — brass straight/elbow/mouthpiece/
+flare, string, peg, door, drum.bass, mallet, pianokey, lock and lock.lit — plus three
+keys that are not tiles: `player`, `wave`, and `block` (Unity's pushable block, which
+used to fill `wall`; walls are now the quiet placeholder set). Everything else is on placeholders.
 
 Those PNGs are **not** byte-copies of `Assets/Sprites`; the reasoning is in
 [PORTING.md](PORTING.md#assets-carried-over-from-unity). Before re-exporting anything:

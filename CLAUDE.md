@@ -44,6 +44,13 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   flood-filled by family like `measureLength`. Tubes that touch but aren't joined are
   separate instruments. `edges` in the brass `PARTS` table is what decides that, and it
   is in local space like the face table.
+- **Rooms are square, and world rooms are 13 × 13 with doors on the centre line.**
+  Walking off an edge enters the neighbour in `rooms/world.json`. Entry doors carry
+  `group: "entry"` so a lock can never shut them. Read `docs/WORLD.md` first.
+- **Every sound lands on a sixteenth.** Inside a clock event use `ctx.play` (it takes
+  the event's time); anything else goes through `ctx.nextGridTime()`. Never pass
+  `audio.now` as a `when`. A wave is drawn by `src/render/motion.js`, on its tile at
+  the instant its note sounds: don't go back to sliding from the previous tile.
 - **Editor edits mutate the live room; they never reload it.** `Room.setTileChar` /
   `setOverride` rebuild one tile. Reloading would reset every lock and door mid-build.
 
@@ -68,6 +75,10 @@ measured pitches live in `src/audio/sampler.js`. All of it is optional — delet
 Every slot without real art gets a **sketch placeholder** (`src/art/placeholders.js`,
 drawn with the seeded pen in `src/art/pen.js`). A new doodad should get one the same
 day it gets a class, so art never blocks a mechanic.
+
+**Walls are quiet**: a border only where they meet floor, curls in outside corners,
+one `wall.inner` stamp for inside corners. Doors rotate to fit their wall
+(`autoRot`). The old busy wall art is Unity's pushable block, now the `block` slot.
 
 **Linked art** (`src/art/links.js`): walls and piano keys ask for a variant spelled by
 the neighbours they join, `wall.ns` before `wall`. Visual only: `spriteKey` is
@@ -127,6 +138,18 @@ connector rule in `docs/ART-PROTOCOL.md`, and every placeholder to 51 px and
 two-value alpha. It was written because measuring the art found the mouthpiece drawn
 mirror-image, which nothing else noticed. Proved by injection: drop the mouthpiece's
 `flipX` and it fails naming the edge.
+
+### And timing, and the world
+
+`node test/timing.mjs` drives the game on a fake audio clock, 1 ms per tick, and
+checks that waves step every sixteenth, every note is on that grid, a wave is drawn
+on a tile when its note sounds, firing is quantised, tempo changes do not skip, and
+a hint phrase keeps the room's tempo. It caught three real faults on its first run.
+Proved by injection: restore the old drawing code and it fails "7/7 late".
+
+`node test/world.mjs` checks every world room is square and the same size, every
+edge door leads to a room with a matching door back, and walks a player through a
+door and back (state kept, shut doors block).
 
 ### And a report, for when you are making rooms rather than fixing them
 

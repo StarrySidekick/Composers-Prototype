@@ -2,9 +2,15 @@
   "id": "brass-01-first-breath",
   "name": "First Breath",
   "wing": "brass",
-  "hint": "Face right and press A. The wave travels one tile per subdivision — follow it.",
+  "hint": "Face right and press A. The wave travels one tile per sixteenth note: follow it, light the fork, and the door east opens.",
   "maxWaves": 1,
-  "music": { "root": 0, "mode": "ionian", "bpm": 104, "timeSignature": 4, "mood": "content" },
+  "music": {
+    "root": 0,
+    "mode": "ionian",
+    "bpm": 104,
+    "timeSignature": 4,
+    "mood": "content"
+  },
   "layout": [
     "#############",
     "#...........#",
@@ -12,10 +18,12 @@
     "#...........#",
     "#.o======o..#",
     "#...........#",
-    "#......*....#",
-    "######D######",
+    "#......*....D",
     "#...........#",
-    "#.....X.....#",
+    "#...........#",
+    "#...........#",
+    "#...........#",
+    "#...........#",
     "#############"
   ]
 }

@@ -78,26 +78,37 @@ function key(p, v = '') {
   else p.line(T - 1, 4, T - 1, 47, fine);
 }
 
-// Wall panel. Each side draws a border only if it is NOT joined, so a run of walls
-// reads as one mass instead of a row of boxes. With no joins it is a closed panel.
+// Wall. Quiet on purpose: one border, only where the wall meets floor (the sides
+// that are NOT joined), and a curl tucked into each outside corner. Nothing
+// inside, so a mass of wall reads as solid black and the room as a clean outline.
+// The border sits 3 px in from the edge; joined sides run it right to the edge so
+// it continues unbroken into the next tile.
 function wall(p, v = '') {
   const n = hasSide(v, 'n'), e = hasSide(v, 'e'), s = hasSide(v, 's'), w = hasSide(v, 'w');
   const i = 3, o = T - 3;
   const xa = w ? 0 : i, xb = e ? T : o;
   const ya = n ? 0 : i, yb = s ? T : o;
-  if (!n) p.line(xa, i, xb, i);
-  if (!s) p.line(xa, o, xb, o);
-  if (!w) p.line(i, ya, i, yb);
-  if (!e) p.line(o, ya, o, yb);
-  // the ornament: a diamond with four curls, after the Unity block
-  p.poly([[M, 15], [36, M], [M, 36], [15, M], [M, 15]], fine);
-  p.curl(10, 10, 3.5, { dir: 1 });
-  p.curl(41, 41, 3.5, { dir: 1, start: Math.PI });
-  p.curl(41, 10, 3.5, { dir: -1, start: Math.PI });
-  p.curl(10, 41, 3.5, { dir: -1 });
-  // where two walls join, carry a single hatch across the seam so the join is visible
-  if (e) p.line(44, M - 4, T, M + 4, fine);
-  if (s) p.line(M + 4, 44, M - 4, T, fine);
+  const edge = { wobble: 0.35 };
+  if (!n) p.line(xa, i, xb, i, edge);
+  if (!s) p.line(xa, o, xb, o, edge);
+  if (!w) p.line(i, ya, i, yb, edge);
+  if (!e) p.line(o, ya, o, yb, edge);
+  // outside corners: both meeting sides face floor
+  const k = 8;
+  if (!n && !e) p.curl(o - k, i + k, 3.2, { dir: 1, start: -Math.PI / 2 });
+  if (!s && !e) p.curl(o - k, o - k, 3.2, { dir: 1, start: 0 });
+  if (!s && !w) p.curl(i + k, o - k, 3.2, { dir: 1, start: Math.PI / 2 });
+  if (!n && !w) p.curl(i + k, i + k, 3.2, { dir: 1, start: Math.PI });
+}
+
+// The inside-corner patch, authored for the north-east corner and rotated by the
+// renderer into the others (see innerCorners in links.js). It joins the border
+// coming down from the north neighbour (x = 48) to the one coming in from the east
+// neighbour (y = 3): a 3 px L, no more.
+function wallInner(p) {
+  const o = T - 3, i = 3, tiny = { wobble: 0, passes: 1 };
+  p.line(o, 0, o, i, tiny);
+  p.line(o, i, T, i, tiny);
 }
 
 function note(p, x, y) {
@@ -189,14 +200,18 @@ export const PLACEHOLDERS = {
     p.box(8, 8, 35, 35); note(p, 20, 32); note(p, 31, 29); p.line(23, 16, 34, 13, fine);
     rays(p, M, M, 23, 25, 12);
   },
+  // Drawn upright: a gap in a wall that runs north-south, so the wall above and
+  // below meet its top and bottom. The renderer turns it 90 in an east-west wall.
+  // Lintel and sill span the wall's width (x 3..48) so they meet its borders.
   'door': p => {
-    p.box(11, 3, 29, 45);
-    p.line(11, 17, 40, 17, fine); p.line(11, 34, 40, 34, fine);
-    p.curl(34, M, 2.8, { dir: 1 });
+    p.line(3, 2, 48, 2); p.line(3, 49, 48, 49);
+    p.line(14, 2, 14, 49); p.line(37, 2, 37, 49);
+    p.line(14, M, 37, M, fine);
+    p.curl(31, 33, 2.8, { dir: 1 });
   },
   'door.open': p => {
-    p.line(11, 3, 11, 48); p.line(40, 3, 40, 48);
-    p.line(11, 3, 16, 3, fine); p.line(35, 3, 40, 3, fine);
+    p.line(3, 2, 48, 2); p.line(3, 49, 48, 49);
+    p.line(14, 2, 7, 12, fine);   // the leaf, swung open
   },
   'keyshift.up': p => {
     p.poly([[8, 44], [8, 34], [20, 34], [20, 23], [32, 23], [32, 12], [44, 12]]);
@@ -231,6 +246,7 @@ for (const [type, fn] of Object.entries(LINKED)) {
   PLACEHOLDERS[type] = p => fn(p, '');
   for (const v of linkVariants(type)) PLACEHOLDERS[`${type}.${v}`] = p => fn(p, v);
 }
+PLACEHOLDERS['wall.inner'] = wallInner;
 
 // The slide gets one drawing per position: a U of tubing pulled further out each time.
 for (let ext = 0; ext <= 3; ext++) {

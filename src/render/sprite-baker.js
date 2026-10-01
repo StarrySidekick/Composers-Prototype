@@ -51,6 +51,7 @@ export function spriteSlots() {
     for (const v of linkVariants(slot.spec.type)) {
       slots.push({ ...slot, key: `${slot.key}.${v}`, linkOf: slot.key });
     }
+    if (LINKS[slot.spec.type].inner) slots.push({ ...slot, key: `${slot.key}.inner`, linkOf: slot.key });
   }
   // Distinct specs can still resolve to one key (both keyshift characters do not, but
   // a future pair might); last one wins and the list stays unique.

@@ -2,6 +2,7 @@ import { BeatClock } from './core/beat-clock.js';
 import { SoundWave, SoundWaveState, WaveSource, SOURCE_FOR_FAMILY } from './core/sound-wave.js';
 import { Room, facingDir } from './core/room.js';
 import { DIR } from './core/direction.js';
+import { arrival } from './core/world.js';
 import './doodads/index.js';
 
 export class Game {
@@ -16,6 +17,8 @@ export class Game {
     this.noteHistory = [];
     this.onToast = null;
     this.onRoomComplete = null;
+    this.onRoomChange = null;   // (room) — the world moved you somewhere new
+    this.world = null;          // set by main.js when rooms/world.json exists
 
     this.player = { x: 1, y: 1, rx: 1, ry: 1, facing: 'right', dir: DIR.right };
 
@@ -33,18 +36,39 @@ export class Game {
     };
   }
 
+  // A fresh copy of a room, at its spawn point. Takes the PARSED room, not a path.
   loadRoom(json) {
-    this.room = new Room(json);
-    this.waves = [];
-    const st = this.room.playerStart;
-    this.player.x = st.x; this.player.y = st.y;
-    this.player.rx = st.x; this.player.ry = st.y;
-    this.setFacing(st.facing ?? 'right');
-    this.clock.setBpm(this.room.music.bpm);
+    const room = new Room(json);
+    this.world?.adopt(room);
+    this.enterRoom(room, room.playerStart);
     this.clock.start();
+    return this.room;
+  }
+
+  // Put the player in an already-built room. The clock keeps running across rooms
+  // (setBpm rebases without a jump), so the beat never hiccups at a doorway.
+  enterRoom(room, at) {
+    this.room = room;
+    this.waves = [];
+    this.player.x = at.x; this.player.y = at.y;
+    this.player.rx = at.x; this.player.ry = at.y;
+    this.setFacing(at.facing ?? 'right');
+    this.clock.setBpm(this.room.music.bpm);
     this.renderer.resize(this.room);
     this.buildContext();
     return this.room;
+  }
+
+  // Walked off the edge of the room. If the world has a room that way, go there.
+  leaveRoom(dirName) {
+    const next = this.world?.neighbour(this.room.id, dirName);
+    if (!next) return false;
+    const room = this.world.room(next);
+    const at = room && arrival(room, this.player.x, this.player.y, dirName);
+    if (!at) return false;
+    this.enterRoom(room, { ...at, facing: dirName });
+    this.onRoomChange?.(room);
+    return true;
   }
 
   reload() {
@@ -58,12 +82,17 @@ export class Game {
       get player() { return game.player; },
       audio: this.audio,
       game,
-      play: (opts) => this.audio.play({ when: this.scheduledTime, ...opts }),
+      // Every sound lands on a sixteenth. Inside a clock event that is the event's
+      // own time; anything the player sets off directly (a strike, a key, a door)
+      // waits for the next grid line rather than sounding "whenever".
+      play: (opts) => this.audio.play({ when: this.soundTime(), ...opts }),
       playDegree: ({ family = 'keys', degree = 0, octave = 5, intensity = 1 }) =>
         this.audio.play({
-          family, intensity, when: this.scheduledTime,
+          family, intensity, when: this.soundTime(),
           midi: this.room.music.getNote(degree, octave),
         }),
+      nextGridTime: (every = 1) => this.nextGridTime(every),
+      get subInterval() { return game.clock.subInterval; },
       spawnWave: (x, y, dir, state) => this.spawnWave(x, y, dir, state),
       spawnWaveFromDoodad: (d, dir) =>
         this.spawnWave(d.x, d.y, dir, new SoundWaveState({
@@ -73,6 +102,16 @@ export class Game {
       onRoomComplete: () => this.onRoomComplete?.(),
     };
   }
+
+  // The next grid line at or after now that is a multiple of `every` sixteenths
+  // (1 = next sixteenth, 4 = next beat). Never one already simulated.
+  nextGridTime(every = 1) {
+    let i = this.clock.index + 1;
+    while (((i % every) + every) % every) i++;
+    return this.clock.timeOf(i);
+  }
+
+  soundTime() { return this.scheduledTime || this.nextGridTime(1); }
 
   toast(msg) {
     this.toasts.push({ msg, t: performance.now() });
@@ -92,6 +131,9 @@ export class Game {
     this.setFacing(dirName);
     const nx = this.player.x + d.x;
     const ny = this.player.y + d.y;
+    // Off the edge: only possible through an opening in the outer wall, which in
+    // practice means an open door. That is how you leave a room.
+    if (!this.room.inBounds(nx, ny)) { this.leaveRoom(dirName); return; }
     // canEnter, not isWalkable — per-face blocking (IPlayerFaceInteractable) means
     // a tile can be enterable from one side and solid from another.
     if (!this.room.canEnter(nx, ny, d)) return;
@@ -110,9 +152,12 @@ export class Game {
     const st = SoundWaveState.default;
     st.pitch = this.room.music.getNote(0, 4);
     this.spawnWave(this.player.x, this.player.y, this.player.dir, st);
+    // Quantised: the shot sounds on the next sixteenth, which is exactly when the
+    // wave reaches its first tile. Up to one sixteenth of delay, in exchange for
+    // every shot being in time.
     this.audio.play({
       family: 'woodwind', midi: st.pitch, intensity: 0.35,
-      when: this.scheduledTime,
+      when: this.nextGridTime(1),
     });
   }
 
@@ -145,6 +190,7 @@ export class Game {
 
   spawnWave(x, y, dir, state = SoundWaveState.default) {
     const w = new SoundWave(x, y, dir, state);
+    w.bornAt = this.clock.ctx.currentTime;   // for drawing only; see render/motion.js
     this.waves.push(w);
     return w;
   }
