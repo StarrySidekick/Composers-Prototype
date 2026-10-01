@@ -79,6 +79,30 @@ Later the same day, also stated:
 - **Everything in time.** The wave must really travel at the BPM and every sound be
   synchronised. Checked by `test/timing.mjs`, which found and fixed three faults.
 
+Later again (same day): use the 3D key from his website as an unlock animation
+(done, `src/render/key-flight.js`); make more rooms (three, a new bottom row);
+fix sprites that do not turn to their instrument, e.g. pegs (done, they face
+their string); make 51 x 51 assets and a page to review and comment on every one
+(done: https://claude.ai/artifact/9WZenE4ds34khFiRf5TR91, notes in its `notes`
+collection).
+
+**Gaps found, with what could fill them** (proposals; nothing here is decided):
+
+- **Woodwind has no instrument at all.** The wing exists in name only. Proposal
+  tiles on the review page: a reed (blown like a mouthpiece that is its own horn)
+  and a flute run (holes along it; a block on a hole lowers the note).
+- **The stairs (key + / key -) mean nothing to a puzzle.** Instruments and locks
+  are both scale degrees, so shifting the key moves both together. Proposal: a
+  note lock that wants an *absolute* pitch (`notelock.absolute` on the review page),
+  so climbing the stairs is how you reach a phrase outside the room's key.
+- **Dissonance does nothing a puzzle can feel.** It sours a wave, and every lock
+  still accepts the sour wave. Proposal: note locks reject soured notes, or a sour
+  wave cannot light a fork.
+- **The strumentino and hi-hat have no puzzle yet**: the strumentino is a blank
+  per-face instrument; the hi-hat only ticks. Brass 05 / Percussion 02 use the
+  hat as a metronome, nothing more.
+- **Art**: 41 slots are still on placeholders. Real art exists for 15.
+
 Still open on art: the rest of the Unity sprite folder has not been brought across,
 because this repo cannot see it. Copying `Assets/Sprites` (or a listing of it) into the
 repo is the next step for parity.

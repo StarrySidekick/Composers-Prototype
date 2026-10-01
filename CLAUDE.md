@@ -80,6 +80,22 @@ day it gets a class, so art never blocks a mechanic.
 one `wall.inner` stamp for inside corners. Doors rotate to fit their wall
 (`autoRot`). The old busy wall art is Unity's pushable block, now the `block` slot.
 
+**Pegs and doors turn themselves** (`autoRot` in `src/art/links.js`): a peg points
+its stem at the string beside it. Add a piece there rather than hand-rotating it in
+every room.
+
+**The unlock key** (`src/render/key-flight.js`): when a solved puzzle opens a door
+(`Door.setOpen` -> `ctx.onDoorOpened`), Timothy's 3D note-key from his website flies
+in, spins and dives into the door, timed in beats. The model and its WebGL renderer
+are copied unchanged into `src/vendor/key3d/` from `StarrySidekick/Doppelganger-Website`;
+change them there and copy across, never here.
+
+**Asset review**: `node tools/asset-review.mjs out.html` builds the review page
+(every tile, real and placeholder, plus `PROPOSALS`). Published as an Artifact with a
+`db` capability; Timothy's notes are in its `notes` collection. Read them with
+ArtifactData before changing art. The live page:
+https://claude.ai/artifact/9WZenE4ds34khFiRf5TR91
+
 **Linked art** (`src/art/links.js`): walls and piano keys ask for a variant spelled by
 the neighbours they join, `wall.ns` before `wall`. Visual only: `spriteKey` is
 untouched, the renderer composes the linked key. Don't move it into the doodads.
@@ -151,6 +167,15 @@ Proved by injection: restore the old drawing code and it fails "7/7 late".
 edge door leads to a room with a matching door back, and walks a player through a
 door and back (state kept, shut doors block).
 
+### And can every room be finished
+
+`node test/solve.mjs` replays the `solution` recorded in each world room (stand
+here, face there, fire or press B or walk) and checks every exit door is open at
+the end and walkable to. Each step's spot must be WALKABLE from the last one, so
+a solution cannot cheat through a wall. **Every world room needs a solution**; a
+new room without one fails. Proved by injection: turn Brass 04's valve once
+instead of twice and it fails naming the shut door.
+
 ### And a report, for when you are making rooms rather than fixing them
 
 `node tools/room-report.mjs` (same server, optional name filter) answers the
@@ -175,11 +200,10 @@ totals but is not attributed to its doodad. It needs Playwright like the
 harness does, and like the harness it is not part of the site — the no-build,
 no-dependency rule is about what ships, and `tools/` does not.
 
-It has already asked one question worth an answer: **Keys 01 — The Keyboard
-Floor produces two distinct pitches, and all six of its `pianokey` pieces plus
-its `mallet` are reached but sound nothing.** That may be correct — a key may
-want striking rather than a wave passing through — but it is an odd result for a
-room named after its keyboard, and nothing else would have surfaced it.
+It asked one question that now has an answer: Keys 01's piano keys are reached
+by waves but sound nothing. Correct: `PianoKey.onWaveEntered` passes the wave on,
+and a key is played by walking on it (`onPlayerEnter`). The recorded solution
+plays mi-re-do on them that way.
 
 Beyond that, verify in the browser: `window.CK` exposes `{ game, audio,
 renderer, assets }`, and `game.update()` can be driven manually in a loop to step the

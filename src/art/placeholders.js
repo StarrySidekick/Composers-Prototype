@@ -118,20 +118,7 @@ function note(p, x, y) {
 
 export const PLACEHOLDERS = {
   // ---- brass ---------------------------------------------------------------
-  'brass.straight': p => { tubeH(p); tubeVines(p, 6, 45, B, 1); },
   'brass.elbow': p => { elbow(p); p.curl(38, 12, 3.4, { dir: 1 }); },
-  'brass.tee': p => {
-    p.line(0, A, T, A);
-    p.line(0, B, A, B); p.line(B, B, T, B);
-    p.line(A, B, A, T); p.line(B, B, B, T);
-  },
-  // A bridge: the horizontal channel passes over, the vertical one ducks under.
-  'brass.cross': p => {
-    tubeH(p);
-    p.line(A, 0, A, A - 3); p.line(B, 0, B, A - 3);
-    p.line(A, B + 3, A, T); p.line(B, B + 3, B, T);
-    p.arc(M, A - 3, 4.5, Math.PI, 2 * Math.PI, fine);
-  },
   // Cup on the left (where you blow), stem out of the right edge — see PARTS.edges.
   'brass.mouthpiece': p => {
     tubeH(p, 24, T);
@@ -147,23 +134,6 @@ export const PLACEHOLDERS = {
     p.ellipse(46, M, 2.5, 18, fine);
     p.vine(4, B + 2, 18, 42, { curls: 1 });
   },
-  'brass.valve': p => {
-    elbow(p);
-    p.box(30, 5, 12, 13);
-    p.line(36, 5, 36, 1, fine);
-    p.line(32, 1, 40, 1, fine);
-  },
-  'brass.mute': p => {
-    tubeH(p);
-    p.poly([[15, 23.5], [36, M], [15, 27.5]], fine);
-    p.line(15, 23.5, 15, 27.5, fine);
-  },
-  'brass.mute.open': p => {
-    tubeH(p);
-    p.poly([[15, 6], [36, 8], [15, 10]], fine);
-    p.line(15, 6, 15, 10, fine);
-    p.line(26, 10, 26, 18, { ...fine, wobble: 0.2 });
-  },
 
   // ---- strings -------------------------------------------------------------
   'string': p => { p.line(0, M, T, M, { width: 2, passes: 1, wobble: 0.35 }); },
@@ -174,32 +144,13 @@ export const PLACEHOLDERS = {
   },
 
   // ---- percussion ----------------------------------------------------------
-  'drum.bass': p => { p.circle(M, M, 20); p.circle(M, M, 16, fine); rays(p, M, M, 20, 23, 6); },
-  'drum.tom': p => { p.circle(M, M, 14); p.circle(M, M, 11, fine); p.line(8, M, 11, M, fine); p.line(40, M, 43, M, fine); },
-  'drum.snare': p => {
-    p.circle(M, M, 17);
-    p.poly([[12, M], [17, 21], [22, 30], [27, 21], [32, 30], [37, 21], [39, M]], fine);
-  },
-  'drum.hat': p => { p.ellipse(M, 18, 18, 4); p.ellipse(M, 25, 18, 4); p.line(M, 29, M, 47, fine); },
-  'drum.cymbal': p => { p.ellipse(M, 20, 21, 6); p.ellipse(M, 18, 4, 2, fine); p.line(M, 26, M, 47, fine); },
-  'drum.timpani': p => {
-    p.ellipse(M, 16, 19, 6);
-    p.path(t => [6 + t * 39, 16 + Math.sin(t * Math.PI) * 20]);
-    p.line(14, 32, 10, 47, fine); p.line(37, 32, 41, 47, fine);
-  },
 
   // ---- keys ----------------------------------------------------------------
   'pianokey': p => key(p, ''),
-  'mallet': p => { p.line(6, M, 32, M); p.circle(39, M, 7); },
 
   // ---- puzzle --------------------------------------------------------------
   'lock': p => fork(p),
   'lock.lit': p => { fork(p); rays(p, M, 16, 15, 20, 7); },
-  'notelock': p => { p.box(8, 8, 35, 35); note(p, 20, 32); note(p, 31, 29); p.line(23, 16, 34, 13, fine); },
-  'notelock.lit': p => {
-    p.box(8, 8, 35, 35); note(p, 20, 32); note(p, 31, 29); p.line(23, 16, 34, 13, fine);
-    rays(p, M, M, 23, 25, 12);
-  },
   // Drawn upright: a gap in a wall that runs north-south, so the wall above and
   // below meet its top and bottom. The renderer turns it 90 in an east-west wall.
   // Lintel and sill span the wall's width (x 3..48) so they meet its borders.
@@ -212,26 +163,6 @@ export const PLACEHOLDERS = {
   'door.open': p => {
     p.line(3, 2, 48, 2); p.line(3, 49, 48, 49);
     p.line(14, 2, 7, 12, fine);   // the leaf, swung open
-  },
-  'keyshift.up': p => {
-    p.poly([[8, 44], [8, 34], [20, 34], [20, 23], [32, 23], [32, 12], [44, 12]]);
-    p.poly([[36, 34], [42, 28], [48, 34]], fine);
-  },
-  'keyshift.down': p => {
-    p.poly([[8, 12], [20, 12], [20, 23], [32, 23], [32, 34], [44, 34], [44, 44]]);
-    p.poly([[4, 26], [10, 32], [16, 26]], fine);
-  },
-  'exit': p => { p.circle(M, M, 18); note(p, 22, 33); p.curl(30, 15, 3, { dir: 1 }); },
-  'dissonance': p => {
-    p.line(13, 13, 38, 38, { wobble: 2.2, passes: 3 });
-    p.line(38, 13, 13, 38, { wobble: 2.2, passes: 3 });
-  },
-  // A blank instrument: a box with a notch on each face, since every face is authorable.
-  'strumentino': p => {
-    p.box(9, 9, 33, 33);
-    p.line(M, 9, M, 14, fine); p.line(M, 37, M, 42, fine);
-    p.line(9, M, 14, M, fine); p.line(37, M, 42, M, fine);
-    p.curl(M, M, 5, { dir: 1 });
   },
 
   // ---- not tiles -----------------------------------------------------------
@@ -256,6 +187,223 @@ for (let ext = 0; ext <= 3; ext++) {
     p.line(14, B, 14, y, fine); p.line(37, B, 37, y, fine);
     p.line(14, y, 37, y, fine);
   };
+}
+
+// ---------------------------------------------------------------------------
+// Second pass, 2026-10-01: in more of Timothy's hand.
+//
+// The first placeholders were diagrams. These borrow the vocabulary of the real
+// Unity art: tubing wound with vines that end in curls and small flowers, drums
+// drawn from the side like the bass drum, and a curl wherever a line would
+// otherwise just stop. Connectors are unchanged (tube walls at rows 20-21 and
+// 29-30), so they still join the real tubes.
+//
+// Some carry information as well as style: the bass drum and the tom each wear
+// a curl that turns the way they kick a wave (clockwise, counter-clockwise).
+
+// A small flower: four petals round a point, like the ones on the Unity vines.
+function flower(p, x, y, r = 1.6) {
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + 0.4;
+    p.circle(x + Math.cos(a) * r, y + Math.sin(a) * r, 1.1, { width: 1, wobble: 0 });
+  }
+}
+
+// A vine wound along a horizontal stretch of tubing, on the bottom wall.
+function tubeVine(p, x0, x1, { flowers = 1 } = {}) {
+  p.path(t => [x0 + (x1 - x0) * t, B + 2 + Math.sin(t * Math.PI * 2.2) * 2.2], { width: 1, wobble: 0.2 });
+  const n = 2;
+  for (let i = 0; i < n; i++) {
+    const x = x0 + (x1 - x0) * ((i + 0.6) / (n + 0.2));
+    p.curl(x, B + 7, 2.8, { dir: i % 2 ? 1 : -1, start: -Math.PI / 2 });
+  }
+  for (let i = 0; i < flowers; i++) flower(p, x0 + (x1 - x0) * 0.35 + i * 9, B + 6);
+  // a tendril over the top wall too
+  p.line(x0 + 8, A, x0 + 6, A - 5, { width: 1, wobble: 0 });
+  p.curl(x0 + 6, A - 8, 2.4, { dir: 1, start: Math.PI / 2 });
+}
+
+// A drum seen from the side: top head as an ellipse, the shell, the bottom rim.
+function drumSide(p, cx, top, w, h) {
+  p.ellipse(cx, top, w, w * 0.32);
+  p.line(cx - w, top, cx - w, top + h);
+  p.line(cx + w, top, cx + w, top + h);
+  p.path(t => [cx - w + 2 * w * t, top + h + Math.sin(t * Math.PI) * w * 0.32]);
+}
+
+// Which way a drum turns a wave, worn as a curl with an arrowhead.
+function turnCurl(p, cx, cy, dir) {
+  const a0 = -Math.PI / 2, a1 = a0 + dir * Math.PI * 1.3;
+  p.arc(cx, cy, 5, a0, a1, { width: 1, wobble: 0 });
+  const ex = cx + Math.cos(a1) * 5, ey = cy + Math.sin(a1) * 5;
+  const tx = -Math.sin(a1) * dir, ty = Math.cos(a1) * dir;   // travel direction
+  p.line(ex, ey, ex - tx * 3 + ty * 2, ey - ty * 3 - tx * 2, { width: 1, wobble: 0 });
+  p.line(ex, ey, ex - tx * 3 - ty * 2, ey - ty * 3 + tx * 2, { width: 1, wobble: 0 });
+}
+
+function stairs(p, up) {
+  const pts = up
+    ? [[7, 44], [7, 36], [17, 36], [17, 27], [27, 27], [27, 18], [37, 18], [37, 9], [44, 9]]
+    : [[7, 9], [14, 9], [14, 18], [24, 18], [24, 27], [34, 27], [34, 36], [44, 36], [44, 44]];
+  p.poly(pts);
+  // the banister, ending in a curl
+  const rail = up ? [[9, 31], [39, 4]] : [[12, 4], [42, 31]];
+  p.line(...rail[0], ...rail[1], { width: 1 });
+  p.curl(...(up ? [9, 34] : [42, 34]), 3, { dir: up ? -1 : 1 });
+}
+
+function noteBox(p) {
+  p.box(7, 7, 37, 37);
+  // a clef-like curl down the left, two beamed notes on the right
+  p.path(t => [16 + Math.sin(t * Math.PI * 3) * 3, 12 + t * 26], { width: 1 });
+  p.curl(16, 33, 3, { dir: 1 });
+  note(p, 26, 33); note(p, 35, 30);
+  p.line(29, 17, 38, 14, { width: 1 });
+}
+
+Object.assign(PLACEHOLDERS, {
+  'brass.straight': p => { tubeH(p); tubeVine(p, 7, 44); },
+  'brass.tee': p => {
+    p.line(0, A, T, A);
+    p.line(0, B, A, B); p.line(B, B, T, B);
+    p.line(A, B, A, T); p.line(B, B, B, T);
+    p.line(36, A, 40, A - 6, { width: 1 }); p.curl(40, A - 9, 2.6, { dir: 1, start: Math.PI / 2 });
+    flower(p, 9, A - 6);
+  },
+  // A bridge: the horizontal channel passes over, the vertical ducks under with a
+  // curl either side, so it reads as "over" and not as a junction.
+  'brass.cross': p => {
+    tubeH(p);
+    p.line(A, 0, A, A - 4); p.line(B, 0, B, A - 4);
+    p.line(A, B + 4, A, T); p.line(B, B + 4, B, T);
+    p.curl(A - 4, A - 5, 2.4, { dir: -1 }); p.curl(B + 4, B + 5, 2.4, { dir: 1 });
+  },
+  // An elbow with a piston on top: press it (B) and the bend turns.
+  'brass.valve': p => {
+    elbow(p);
+    p.box(29, 6, 13, 11, { width: 2, overshoot: 0 });
+    p.line(35.5, 6, 35.5, 2, { width: 1 });
+    p.ellipse(35.5, 2, 4, 1.4, { width: 1 });
+    p.curl(42, 26, 3, { dir: 1, start: Math.PI });
+  },
+  'brass.mute': p => {
+    tubeH(p);
+    p.poly([[14, 23.5], [34, 25.5], [14, 27.5]], { width: 1, wobble: 0 });
+    p.ellipse(14, 25.5, 1.2, 2.2, { width: 1, wobble: 0 });
+    p.curl(38, 13, 3, { dir: 1 }); p.line(38, 16, 34, 20, { width: 1 });
+  },
+  'brass.mute.open': p => {
+    tubeH(p);
+    p.poly([[14, 4], [34, 7], [14, 10]], { width: 1, wobble: 0 });
+    p.line(24, 11, 24, 19, { width: 1 });
+    p.curl(38, 39, 3, { dir: -1 });
+  },
+
+  // ---- percussion, from the side -------------------------------------------
+  'drum.bass': p => {
+    p.circle(M, M, 19); p.circle(M, M, 15, { width: 1 });
+    for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + 0.3; p.line(M + Math.cos(a) * 19, M + Math.sin(a) * 19, M + Math.cos(a) * 22, M + Math.sin(a) * 22, { width: 1, wobble: 0 }); }
+    turnCurl(p, M, M, 1);
+  },
+  'drum.tom': p => { drumSide(p, M, 16, 15, 18); turnCurl(p, M, 16, -1); p.curl(9, 40, 3, { dir: -1 }); },
+  'drum.snare': p => {
+    drumSide(p, M, 18, 17, 13);
+    p.poly([[10, 26], [14, 30], [18, 26], [22, 30], [26, 26], [30, 30], [34, 26], [38, 30], [41, 27]], { width: 1, wobble: 0 });
+    p.line(9, 9, 19, 15, { width: 1 }); p.line(42, 9, 32, 15, { width: 1 });   // crossed sticks
+  },
+  'drum.hat': p => {
+    p.ellipse(M, 14, 17, 3.5); p.ellipse(M, 20, 17, 3.5);
+    p.line(M, 23, M, 44, { width: 1 });
+    p.curl(M - 7, 46, 3, { dir: -1 }); p.curl(M + 7, 46, 3, { dir: 1 });
+  },
+  'drum.cymbal': p => {
+    p.path(t => [6 + t * 39, 20 - Math.sin(t * Math.PI) * 6]);
+    p.path(t => [6 + t * 39, 20 + Math.sin(t * Math.PI) * 2]);
+    p.ellipse(M, 14, 3, 1.4, { width: 1, wobble: 0 });
+    p.line(M, 22, M, 45, { width: 1 });
+    p.curl(M + 7, 46, 3, { dir: 1 }); p.curl(M - 7, 46, 3, { dir: -1 });
+  },
+  'drum.timpani': p => {
+    p.ellipse(M, 15, 19, 5.5);
+    p.path(t => [6.5 + t * 38, 15 + Math.sin(t * Math.PI) * 19]);
+    p.line(14, 31, 11, 46, { width: 1 }); p.line(37, 31, 40, 46, { width: 1 });
+    p.curl(9, 47, 2.6, { dir: -1 }); p.curl(42, 47, 2.6, { dir: 1 });
+  },
+  'mallet': p => { p.line(5, M, 31, M); p.circle(38, M, 7); p.curl(38, M, 3.4, { dir: 1 }); p.curl(5, M + 4, 2.4, { dir: -1 }); },
+
+  // ---- puzzle --------------------------------------------------------------
+  'notelock': p => noteBox(p),
+  'notelock.lit': p => { noteBox(p); rays(p, M, M, 22, 25, 12); },
+  // An archway with a note in it: the way out of the last room.
+  'exit': p => {
+    p.line(10, 46, 10, 20); p.line(41, 46, 41, 20);
+    p.arc(M, 20, 15.5, Math.PI, 2 * Math.PI);
+    p.line(6, 46, 45, 46);
+    note(p, 22, 36); p.curl(31, 22, 3, { dir: 1 });
+  },
+  'keyshift.up': p => stairs(p, true),
+  'keyshift.down': p => stairs(p, false),
+  'dissonance': p => {
+    p.poly([[8, 30], [14, 18], [19, 33], [25, 15], [31, 36], [37, 17], [43, 30]], { width: 2, wobble: 1.4 });
+    p.line(14, 18, 12, 13, { width: 1 }); p.line(25, 15, 26, 9, { width: 1 }); p.line(37, 17, 40, 12, { width: 1 });
+  },
+  // A blank instrument: every face is authorable, so a notch on each face.
+  'strumentino': p => {
+    p.box(9, 9, 33, 33);
+    p.line(M, 9, M, 15, { width: 1 }); p.line(M, 36, M, 42, { width: 1 });
+    p.line(9, M, 15, M, { width: 1 }); p.line(36, M, 42, M, { width: 1 });
+    p.curl(M, M, 6, { dir: 1 });
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Proposals: art for things the game does not have yet. Nothing asks for these
+// keys, so they never appear in a room; they exist to be looked at and argued
+// about in the asset review, next to the real thing.
+export const PROPOSALS = {
+  // Woodwind has no instrument at all. A reed: blow into it and it sounds the
+  // room's root, like a mouthpiece that is its own horn.
+  'woodwind.reed': p => {
+    p.line(4, A, 34, A); p.line(4, B, 34, B);
+    p.poly([[34, A], [46, 23], [46, 28], [34, B]], { width: 1, wobble: 0 });
+    p.curl(10, 12, 3, { dir: 1 }); flower(p, 22, 38);
+  },
+  // A flute run: holes along the top. Waves passing along it sound, and each
+  // covered hole (a block on it) lowers the note.
+  'woodwind.flute': p => {
+    tubeH(p);
+    for (const x of [11, 20, 29, 38]) p.circle(x, 25.5, 2, { width: 1, wobble: 0 });
+    p.curl(44, 12, 2.6, { dir: 1 });
+  },
+  // A lock that wants an ABSOLUTE pitch, not a scale degree, so the stairs
+  // (key + / key -) matter to it. Marked by a sharp sign.
+  'notelock.absolute': p => {
+    noteBox(p);
+    p.line(36, 9, 34, 21, { width: 1 }); p.line(40, 9, 38, 21, { width: 1 });
+    p.line(32, 13, 42, 12, { width: 1 }); p.line(32, 17, 42, 16, { width: 1 });
+  },
+  // The Composer's Key itself, in line work: the note-key from the website.
+  'key.pickup': p => {
+    p.ellipse(18, 37, 7.5, 5.2);
+    p.line(25, 35, 25, 7);
+    p.line(25, 9, 34, 9); p.line(25, 14, 32, 14); p.line(25, 19, 35, 19);
+    p.curl(12, 37, 2.6, { dir: 1 });
+  },
+  // A floor tile with the staff showing through, for rooms that want it.
+  'floor.staff': p => {
+    for (let i = 1; i <= 5; i++) p.line(0, 8 * i, T, 8 * i, { width: 1, wobble: 0 });
+  },
+};
+
+export function proposalKeys() { return Object.keys(PROPOSALS).sort(); }
+
+export function drawProposal(key) {
+  const fn = PROPOSALS[key];
+  if (!fn) return null;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = T;
+  fn(new Pen(cv.getContext('2d'), key));
+  return crisp(cv);
 }
 
 export function placeholderKeys() { return Object.keys(PLACEHOLDERS).sort(); }

@@ -47,6 +47,7 @@ class Door extends Doodad {
     if (v) {
       ctx.playDegree({ family: 'keys', degree: 4, octave: 5, intensity: 0.8 });
       ctx.toast(`A door opens.`);
+      ctx.onDoorOpened?.(this);   // the key flies in (src/render/key-flight.js)
     }
   }
 

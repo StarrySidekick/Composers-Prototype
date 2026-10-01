@@ -43,5 +43,26 @@
       "open": true,
       "group": "entry"
     }
+  ],
+  "solution": [
+    {
+      "at": [
+        2,
+        2
+      ],
+      "face": "right",
+      "do": "fire",
+      "why": "the tee lights the fork below it; the bass drums carry the rest round to the other fork"
+    },
+    {
+      "at": [
+        4,
+        9
+      ],
+      "face": "right",
+      "do": "interact",
+      "times": 5,
+      "why": "tune the kettle drum up: it plays 2, 3, 4, 5, 6 and the lock hears 3-4-5 (scale degrees counted from 0)"
+    }
   ]
 }

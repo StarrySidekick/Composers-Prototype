@@ -260,3 +260,14 @@ body.building #stage { cursor: crosshair; touch-action: none; }
   .brand span { display: none; }
   .brush { width: 52px; }
 }
+
+/* ---- the unlock key (src/render/key-flight.js) ---- */
+.key-flight, .key-burst {
+  position: absolute; left: 0; top: 0; pointer-events: none;
+  transform-origin: 50% 50%; will-change: transform;
+}
+.key-flight { image-rendering: pixelated; z-index: 3; }
+.key-burst {
+  border: 2px solid #fff; border-radius: 50%; opacity: 0; z-index: 2;
+  transform-origin: 0 0;
+}

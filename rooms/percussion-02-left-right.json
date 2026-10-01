@@ -1,0 +1,57 @@
+{
+  "id": "percussion-02-left-right",
+  "name": "Left and Right",
+  "wing": "percussion",
+  "hint": "The bass drum turns a wave to the right, the tom to the left. The hi-hat just keeps time.",
+  "maxWaves": 1,
+  "music": {
+    "root": 9,
+    "mode": "aeolian",
+    "bpm": 112,
+    "timeSignature": 4,
+    "mood": "sad"
+  },
+  "overrides": [
+    {
+      "x": 0,
+      "y": 6,
+      "open": true,
+      "group": "entry"
+    }
+  ],
+  "layout": [
+    "#############",
+    "#...........#",
+    "#.@.........#",
+    "#...........#",
+    "#...#####b.*#",
+    "#...#.*.#...#",
+    "D...#...#...D",
+    "#...##.##...#",
+    "#...........#",
+    "#.h...t.....#",
+    "#...........#",
+    "#...........#",
+    "#############"
+  ],
+  "solution": [
+    {
+      "at": [
+        1,
+        9
+      ],
+      "face": "right",
+      "do": "fire",
+      "why": "across the hat, the tom turns it left (up) through the gap into the boxed fork"
+    },
+    {
+      "at": [
+        9,
+        11
+      ],
+      "face": "up",
+      "do": "fire",
+      "why": "the bass drum turns it right into the far fork"
+    }
+  ]
+}

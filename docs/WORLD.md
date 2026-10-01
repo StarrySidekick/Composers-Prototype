@@ -20,7 +20,16 @@ Rooms sit on a grid:
   y=0   Brass 01   ──────▶  Brass 02   ──────▶  Brass 03
                                                     │
   y=1   Keys 01    ◀──────  Strings 01 ◀──────  Percussion 01
+           │
+  y=2   Brass 04   ──────▶  Percussion 02 ───▶  Brass 05 (ends at X)
+        The Valve           Left and Right      The Slide
 ```
+
+The bottom row (2026-10-01) exists to teach the pieces no room used: the valve,
+the tom and hi-hat, and the slide played as an instrument. Brass 05's lock wants
+mi-re-do, the same phrase as Keys 01, played this time by pulling the slide.
+
+Every world room carries a `solution`; `node test/solve.mjs` replays them all.
 
 The rule is the whole system: **walk off a room's edge and you enter the room in the
 next grid cell that way**, on the matching tile of its opposite edge. Leave east from
@@ -35,7 +44,7 @@ an open one is a way out.
   shut again by a non-latching lock. A group with no locks in it is never touched.
 - **Rooms remember.** A room is built once and kept, so a solved room stays solved
   when you walk back. Picking a room from the menu, or **reset**, builds it fresh.
-- The last room, Keys 01, still ends at an `X` exit.
+- The last room, Brass 05, ends at an `X` exit.
 
 Adding a room: give it a cell in `world.json`, make it 13 × 13, and put a door on the
 centre of each wall that leads somewhere, with an entry door on the facing wall of

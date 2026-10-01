@@ -5,6 +5,7 @@ import { Game } from './game.js';
 import { bindInput } from './input.js';
 import { buildEditor } from './editor/index.js';
 import { World } from './core/world.js';
+import { KeyFlight } from './render/key-flight.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -114,6 +115,9 @@ async function boot() {
   document.addEventListener('pointerdown', unlockAudio, { once: false });
 
   game.onToast = showToast;
+  const flight = new KeyFlight(document.querySelector('.stage-wrap'), { game, renderer });
+  game.onDoorOpen = (door) => flight.play(door);
+  window.CK.flight = flight;
   game.onRoomComplete = () => showToast('★ Room resolved');
 
   setBuild(false);

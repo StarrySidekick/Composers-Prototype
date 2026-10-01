@@ -18,6 +18,7 @@ export class Game {
     this.onToast = null;
     this.onRoomComplete = null;
     this.onRoomChange = null;   // (room) — the world moved you somewhere new
+    this.onDoorOpen = null;     // (door) — a puzzle was solved and opened it
     this.world = null;          // set by main.js when rooms/world.json exists
 
     this.player = { x: 1, y: 1, rx: 1, ry: 1, facing: 'right', dir: DIR.right };
@@ -99,6 +100,7 @@ export class Game {
           source: SOURCE_FOR_FAMILY[d.family] ?? WaveSource.ComposersKey,
         })),
       toast: (msg) => this.toast(msg),
+      onDoorOpened: (door) => this.onDoorOpen?.(door),
       onRoomComplete: () => this.onRoomComplete?.(),
     };
   }
