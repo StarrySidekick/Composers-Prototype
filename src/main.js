@@ -6,6 +6,9 @@ import { bindInput } from './input.js';
 import { buildEditor } from './editor/index.js';
 import { World } from './core/world.js';
 import { KeyFlight } from './render/key-flight.js';
+import { fitStage } from './ui/layout.js';
+import { Hud } from './ui/hud.js';
+import { Controls } from './ui/controls.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -20,6 +23,8 @@ window.CK = { game, audio, renderer, assets };
 let manifest = [];
 let editor = null;
 let building = false;
+const hud = new Hud(game);
+let controls = null;
 
 async function boot() {
   // Sprites are optional: an empty (or absent) assets/manifest.json just means every
@@ -39,7 +44,7 @@ async function boot() {
   game.onRoomChange = (room) => {
     const entry = manifest.find(m => m.file.replace(/\.json$/, '') === room.id);
     if (entry) $('room-select').value = entry.file;
-    $('room-hint').textContent = room.hint ?? '';
+    showHint(room.hint);
     refreshHud();
     editor?.syncFromRoom();
   };
@@ -63,11 +68,27 @@ async function boot() {
   });
   editor.syncFromRoom();
 
+  controls = new Controls();
   bindInput(game, {
-    'pad-up': $('pad-up'), 'pad-down': $('pad-down'),
-    'pad-left': $('pad-left'), 'pad-right': $('pad-right'),
-    'btn-a': $('btn-a'), 'btn-b': $('btn-b'),
-  }, { onAction: unlockAudio });
+    dpad: $('dpad'), 'btn-a': $('btn-a'), 'btn-b': $('btn-b'), stage: $('stage'),
+  }, {
+    onAction: () => { unlockAudio(); dismissHint(); },
+    paused: () => !$('menu').hidden,
+    arranging: () => controls.arranging,
+  });
+
+  // ---- pause menu: everything the old toolbar held ----
+  $('menu-btn').addEventListener('click', () => setMenu(true));
+  $('menu-resume').addEventListener('click', () => setMenu(false));
+  $('menu').addEventListener('click', (e) => { if (e.target === $('menu')) setMenu(false); });
+  $('menu-hint').addEventListener('click', () => { setMenu(false); showHint(game.room.hint, true); });
+  $('arrange').addEventListener('click', () => { setMenu(false); controls.setArranging(true); });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); setMenu($('menu').hidden); }
+  });
+  for (const id of ['reset', 'toggle-editor', 'toggle-build']) {
+    $(id).addEventListener('click', () => setMenu(false));
+  }
 
   $('room-select').addEventListener('change', async (e) => {
     await loadRoomFile(e.target.value);
@@ -111,7 +132,11 @@ async function boot() {
     else if (k === 'y') { e.preventDefault(); editor.redo(); }
   });
 
-  window.addEventListener('resize', () => renderer.resize(game.room));
+  const refit = () => fitStage(renderer, game);
+  window.addEventListener('resize', refit);
+  window.visualViewport?.addEventListener('resize', refit);
+  for (const id of ['toggle-editor', 'toggle-build']) $(id).addEventListener('click', () => requestAnimationFrame(refit));
+  refit();
   document.addEventListener('pointerdown', unlockAudio, { once: false });
 
   game.onToast = showToast;
@@ -141,8 +166,33 @@ function setBuild(on) {
 async function loadRoomFile(file) {
   const json = await fetch(`rooms/${file}`).then(r => r.json());
   game.loadRoom(json);
-  $('room-hint').textContent = game.room.hint ?? '';
+  showHint(game.room.hint);
   refreshHud();
+}
+
+// The room's hint, in a text box over the stage. It steps aside once you start
+// playing (or after a while), and the menu can bring it back.
+let hintTimer = null, hintShownAt = 0;
+function showHint(text, sticky = false) {
+  const box = $('dialog');
+  $('room-hint').textContent = text ?? '';
+  box.hidden = !text;
+  box.classList.remove('fade');
+  hintShownAt = performance.now();
+  clearTimeout(hintTimer);
+  if (text) hintTimer = setTimeout(() => dismissHint(true), sticky ? 12000 : 9000);
+}
+function dismissHint(force = false) {
+  const box = $('dialog');
+  if (box.hidden || box.classList.contains('fade')) return;
+  if (!force && performance.now() - hintShownAt < 1500) return;   // let it be read
+  box.classList.add('fade');
+  setTimeout(() => { if (box.classList.contains('fade')) box.hidden = true; }, 400);
+}
+
+function setMenu(open) {
+  $('menu').hidden = !open;
+  if (open) for (const d of [...game.held]) game.setHeld(d, false);
 }
 
 async function unlockAudio() {
@@ -150,12 +200,7 @@ async function unlockAudio() {
   if (!game.clock.running) game.clock.start();
 }
 
-function refreshHud() {
-  const m = game.room.music;
-  $('hud-key').textContent = m.label;
-  $('hud-tempo').textContent = `${Math.round(m.bpm)} bpm · ${m.timeSignature}/4`;
-  $('hud-mood').textContent = m.mood;
-}
+function refreshHud() { hud.refresh(true); }
 
 let toastTimer = null;
 function showToast(msg) {
@@ -169,16 +214,8 @@ function showToast(msg) {
 function loop() {
   game.update();
   renderer.draw(game);
-  $('hud-waves').textContent = '◉'.repeat(game.activeWaves).padEnd(game.room.maxWaves, '○');
-  refreshHudLight();
+  hud.frame();
   requestAnimationFrame(loop);
-}
-
-let lastKey = '';
-function refreshHudLight() {
-  const m = game.room.music;
-  const k = `${m.label}|${m.bpm}|${m.mood}`;
-  if (k !== lastKey) { lastKey = k; refreshHud(); }
 }
 
 boot().catch(err => {

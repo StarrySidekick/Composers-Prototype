@@ -27,10 +27,10 @@ export class Renderer {
     this.canvas.height = Math.round(rect.height * dpr);
     this.c.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    this.tile = Math.max(
-      12,
-      Math.floor(Math.min(rect.width / room.width, rect.height / room.height))
-    );
+    // Not rounded to whole pixels: the stage is sized to the room, and a rounded
+    // tile leaves a black margin round a square room on a phone. The art is scaled
+    // nearest-neighbour either way.
+    this.tile = Math.max(12, Math.min(rect.width / room.width, rect.height / room.height));
     this.ox = Math.floor((rect.width - this.tile * room.width) / 2);
     this.oy = Math.floor((rect.height - this.tile * room.height) / 2);
     this.viewW = rect.width;
@@ -63,7 +63,6 @@ export class Renderer {
 
     this._waves(game, s, p);
     this._player(game, s, p);
-    this._beatPulse(game, s, p);
     if (this.edit?.active) this._editOverlay(room, s, p);
 
     c.restore();
@@ -186,10 +185,23 @@ export class Renderer {
     const pl = game.player;
     const x = (pl.rx + 0.5) * s;
     const y = (pl.ry + 0.5) * s;
-    const bob = Math.sin(performance.now() / 380) * s * 0.03;
+
+    // The walk. Coda's art is one drawing, so the walk is in how it moves: a hop on
+    // every step and a lean into each stride, the way an old 16-bit sprite rocks
+    // between two frames. Steps are tied to distance, not time, so the feet never
+    // skate: two steps per tile. Standing still, a slow breath.
+    const STEPS_PER_TILE = 2;
+    const phase = pl.stride * STEPS_PER_TILE * Math.PI;
+    const hop = pl.walking ? Math.abs(Math.sin(phase)) * s * 0.07 : Math.sin(performance.now() / 420) * s * 0.012;
+    const lean = pl.walking ? Math.sin(phase) * 0.09 : 0;
+    const squash = pl.walking ? 1 - Math.abs(Math.cos(phase)) * 0.05 : 1;
+    // He faces left or right; walking up or down keeps the last side he faced.
+    if (pl.facing === 'left' || pl.facing === 'right') pl.side = pl.facing;
 
     c.save();
-    c.translate(x, y + bob);
+    c.translate(x, y - hop);
+    c.rotate(lean);
+    c.scale(1, squash);
 
     const art = this.assets?.get('player');
     if (art) {
@@ -197,7 +209,7 @@ export class Renderer {
       // is flipped to face left rather than rotated.
       const h = s * 1.3;
       c.save();
-      if (pl.facing === 'left') c.scale(-1, 1);
+      if ((pl.side ?? pl.facing) === 'left') c.scale(-1, 1);
       c.drawImage(art.image, art.sx, art.sy, art.sw, art.sh, -h / 2, -h * 0.62, h, h);
       c.restore();
 
@@ -291,19 +303,6 @@ export class Renderer {
       c.strokeRect(hover.x * s + 1, hover.y * s + 1, s - 2, s - 2);
     }
     c.restore();
-  }
-
-  _beatPulse(game, s, p) {
-    // A quiet downbeat tick in the corner so tempo is visible while authoring.
-    const c = this.c;
-    const beat = game.lastBeat % game.room.music.timeSignature;
-    const r = game.room;
-    for (let i = 0; i < r.music.timeSignature; i++) {
-      c.beginPath();
-      c.arc(8 + i * 12, 10, i === beat ? 4.5 : 3, 0, Math.PI * 2);
-      c.fillStyle = i === beat ? p.hot : p.grid;
-      c.fill();
-    }
   }
 
   // Screen -> tile, for click-to-paint in the editor.

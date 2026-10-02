@@ -3,59 +3,88 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#241f18">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Composer's Key — Prototype</title>
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎼</text></svg>">
 </head>
 <body>
 
-<header class="bar">
-  <div class="brand">Composer's Key <span>prototype</span></div>
-  <select id="room-select" aria-label="Room"></select>
-  <div class="spacer"></div>
-  <button id="samples" class="chip" title="Recorded instruments vs. synth voices">synth</button>
-  <button id="metronome" class="chip" title="Metronome (M)">metro</button>
-  <button id="mute" class="chip">mute</button>
-  <button id="reset" class="chip" title="Reset room (R)">reset</button>
-  <button id="toggle-editor" class="chip primary">editor</button>
-  <button id="toggle-build" class="chip" title="Paint on the canvas">build</button>
-</header>
-
 <main>
-  <section class="play">
-    <div class="hud">
-      <div class="hud-item"><label>key</label><span id="hud-key">C ionian</span></div>
-      <div class="hud-item"><label>tempo</label><span id="hud-tempo">120 bpm</span></div>
-      <div class="hud-item"><label>mood</label><span id="hud-mood">content</span></div>
-      <div class="hud-item"><label>waves</label><span id="hud-waves" class="waves">○</span></div>
+  <section class="play" id="play">
+    <!-- Status bars, the way Zelda and Doom frame the play field: what you are
+         carrying and how things stand, above and below the world. -->
+    <div class="hud hud-top" id="hud-top">
+      <div class="hud-cell hud-room"><label>room</label><span id="hud-room">—</span></div>
+      <div class="hud-cell"><label>key</label><span id="hud-key">C ionian</span></div>
+      <div class="hud-cell"><label id="hud-tempo">120 bpm</label><span class="beats" id="hud-beats"></span></div>
+      <div class="hud-cell"><label>waves</label><span id="hud-waves" class="waves">○</span></div>
+      <button id="menu-btn" class="hud-menu" aria-label="Menu" aria-haspopup="dialog">≡</button>
     </div>
 
-    <div class="stage-wrap">
+    <div class="stage-wrap" id="stage-wrap">
       <canvas id="stage"></canvas>
+      <div id="dialog" class="dialog" hidden><p id="room-hint"></p></div>
       <div id="toast" class="toast"></div>
     </div>
 
-    <p id="room-hint" class="room-hint"></p>
-
-    <div class="gameboy">
-      <div class="dpad">
-        <button id="pad-up"    class="pad up">▲</button>
-        <button id="pad-left"  class="pad left">◀</button>
-        <button id="pad-right" class="pad right">▶</button>
-        <button id="pad-down"  class="pad down">▼</button>
-      </div>
-      <div class="face">
-        <button id="btn-b" class="round b">B</button>
-        <button id="btn-a" class="round a">A</button>
-      </div>
+    <div class="hud hud-bottom" id="hud-bottom">
+      <div class="hud-cell"><label>forks</label><span id="hud-locks" class="pips"></span></div>
+      <div class="hud-cell hud-staff"><label>heard</label><canvas id="hud-staff" width="132" height="26"></canvas></div>
+      <div class="hud-cell"><label>mood</label><span id="hud-mood">content</span></div>
     </div>
 
     <p class="keys-help">
-      <b>WASD/arrows</b> move &amp; face · <b>Space</b> fire a sound wave (A) ·
-      <b>E</b> interact / strike (B) · <b>R</b> reset · <b>M</b> metronome
+      <b>WASD/arrows</b> walk · <b>Space</b> fire a sound wave (A) ·
+      <b>E</b> interact / strike (B) · <b>R</b> reset · <b>M</b> metronome · <b>Esc</b> menu
     </p>
   </section>
+
+  <!-- The Game Boy. Each cluster floats and can be dragged to fit your hands:
+       Menu -> Move controls. Positions are kept in this browser. -->
+  <div class="gameboy" id="gameboy">
+    <div class="cluster" id="cluster-pad" data-cluster="pad">
+      <div class="dpad" id="dpad" role="group" aria-label="D-pad">
+        <span class="arm up">▲</span><span class="arm right">▶</span>
+        <span class="arm down">▼</span><span class="arm left">◀</span>
+        <span class="hub"></span>
+      </div>
+    </div>
+    <div class="cluster" id="cluster-face" data-cluster="face">
+      <div class="face">
+        <button id="btn-b" class="round b" aria-label="B: interact">B</button>
+        <button id="btn-a" class="round a" aria-label="A: fire">A</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrange-bar" id="arrange-bar" hidden>
+    <span>Drag the pad and the buttons.</span>
+    <label>size <input id="arrange-size" type="range" min="0.7" max="1.6" step="0.05" value="1"></label>
+    <button id="arrange-reset" class="chip">reset</button>
+    <button id="arrange-done" class="chip primary">done</button>
+  </div>
+
+  <!-- Pause menu: everything that used to sit in the top toolbar. -->
+  <div class="menu-scrim" id="menu" hidden>
+    <div class="menu" role="dialog" aria-label="Menu">
+      <h2>Composer's Key <small>prototype</small></h2>
+      <label class="menu-row">room<select id="room-select" aria-label="Room"></select></label>
+      <div class="menu-grid">
+        <button id="menu-resume" class="chip primary">resume</button>
+        <button id="menu-hint" class="chip">show hint</button>
+        <button id="reset" class="chip" title="Reset room (R)">reset room</button>
+        <button id="arrange" class="chip">move controls</button>
+        <button id="samples" class="chip" title="Recorded instruments vs. synth voices">synth</button>
+        <button id="metronome" class="chip" title="Metronome (M)">metro</button>
+        <button id="mute" class="chip">mute</button>
+        <button id="toggle-editor" class="chip">editor</button>
+        <button id="toggle-build" class="chip" title="Paint on the canvas">build</button>
+      </div>
+    </div>
+  </div>
 
   <aside class="editor">
     <div class="ed-modes">

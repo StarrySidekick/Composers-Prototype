@@ -93,6 +93,16 @@ re-slanted to suit, and their recorded solutions prove it. Then: **the back of t
 drum absorbs the wave**, "that's kind of the behavior it has in the actual
 composer's key game." Done: only the head reflects, so a drum has eight positions.
 
+2026-10-02, on the play screen: remove Safari's tap-and-hold select (done); the
+square stage pushed to the edges of the screen (done: full width on an upright
+phone); classic top and bottom status bars "like Zelda or Doom" (done: room, key,
+tempo with beat lights, waves above; forks lit, a staff of the last notes heard,
+mood below; the old toolbar is in a pause menu); controls movable to fit his hands
+(done: drag, resize, remembered); and Coda moving "like Link in A Link to the Past,
+similar speed and feel" with a walking animation (done: free movement at Link's
+speed, sticky diagonals, corner nudging; the walk is a hop and lean per step, since
+Coda's art is a single drawing. Real walk frames would replace it; that is art).
+
 **Gaps found, with what could fill them** (proposals; nothing here is decided):
 
 - **Woodwind has no instrument at all.** The wing exists in name only. Proposal
