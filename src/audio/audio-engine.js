@@ -115,14 +115,21 @@ export class AudioEngine {
   // Main entry point. family selects the voice; midi is already snapped to the room's
   // scale. `kind` names a percussion piece directly (bass/tom/snare/hat/cymbal); when
   // it is absent the old modulation-as-drum-selector mapping is used instead.
-  play({ family = 'brass', midi = 60, intensity = 1, when = 0, modulation = 0, kind = null }) {
+  // Does the room hear this note? Everything you play does: that is how note locks
+  // listen for a phrase. A note played TO you rather than BY you, like a lock's hint
+  // phrase, passes `heard: false`, or the lock hears its own answer and opens itself.
+  heard(opts) { return opts?.heard !== false; }
+
+  play(opts) {
+    const { family = 'brass', midi = 60, intensity = 1, when = 0, modulation = 0, kind = null } = opts;
+    const notify = this.heard(opts);
     if (this.muted) return;
     const t = Math.max(when || this.now, this.now);
     const freq = midiToFreq(midi);
     const amp = Math.max(0.02, Math.min(1, intensity));
 
     if (this._playSampled(family, midi, amp, t, modulation, kind)) {
-      if (this.onNote) this.onNote(midi, family);
+      if (this.onNote && notify) this.onNote(midi, family);
       return;
     }
 
@@ -137,7 +144,7 @@ export class AudioEngine {
       default:           this._brass(freq, amp, t, modulation); break;
     }
 
-    if (this.onNote) this.onNote(midi, family);
+    if (this.onNote && notify) this.onNote(midi, family);
   }
 
   // ---- voices -------------------------------------------------------------

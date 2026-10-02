@@ -140,6 +140,7 @@ class NoteLock extends Doodad {
         midi: ctx.room.music.getNote(deg, 4),
         intensity: 0.7,
         when: t0 + i * step,
+        heard: false,   // a hint, not an answer: no lock may count it
       });
     });
     ctx.toast('Hint phrase.');

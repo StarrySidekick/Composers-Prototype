@@ -245,7 +245,7 @@ directly and stub the audio engine to record what it was asked to play:
 ```js
 const notes = [];
 const real = CK.audio.play.bind(CK.audio);
-CK.audio.play = o => { notes.push(o); CK.audio.onNote?.(o.midi, o.family); };
+CK.audio.play = o => { notes.push(o); if (CK.audio.heard(o)) CK.audio.onNote?.(o.midi, o.family); };
 CK.game.setFacing('right'); CK.game.fire();
 for (let i = 0; i < 60; i++) {
   CK.game.clock.index++;
@@ -256,4 +256,7 @@ CK.audio.play = real;
 ```
 
 Re-route `onNote` yourself if you stub `play` — that is the hook the note locks listen on,
-and forgetting it makes a working phrase look broken.
+and forgetting it makes a working phrase look broken. Gate it on `CK.audio.heard(o)`:
+a note lock's hint phrase is played with `heard: false`, because until 2026-10-02 the
+lock heard its own hint and opened the door when you pressed B on it.
+`test/solve.mjs` now checks no room can be solved that way.
