@@ -26,9 +26,11 @@ export const STATE_INK = {
   'door.open': INK_DIM,
 };
 
-// Line weight at 51 px. Measured: the Unity tube walls and wall border run 2 px,
-// the fine curls 1 px.
-export const STROKE = { main: 2, fine: 1.2 };
+// Line weight at 51 px. Measured 2026-10-02 over the Unity sprites (stroke width
+// at every ink pixel): 3 px is the most common stroke (42%), 4 px+ next (30%),
+// 2 px 21%, 1 px barely used (6%). Tube walls are exactly 3 px (rows 20-22 and
+// 28-30), the string 3 px (rows 24-26). So: structure 3, ornament 2.
+export const STROKE = { main: 3, fine: 2 };
 
 // Where a piece that connects to its neighbour must cross the tile edge, as an
 // inclusive pixel span along that edge. Measured from the real art:

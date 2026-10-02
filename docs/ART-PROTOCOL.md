@@ -28,7 +28,7 @@ not deleted: `THEME` at the top of `src/render/palette.js`.
 | Size | **51 × 51 px**, square. One tile. |
 | Colour | Pure white `#ffffff` on fully transparent. |
 | Alpha | Two values only: 0 or 255. No antialiasing. The Unity art is like this; the placeholders are thresholded to match (`crisp()` in `src/art/pen.js`). |
-| Line weight | 2 px for structure (tube walls, borders), 1 px for ornament (curls, vines). |
+| Line weight | **3 px for structure, 2 px for ornament**, measured off his art (3 px is 43% of his ink). Tube walls 3 px on rows 20-22 and 28-30. |
 | Orientation | Drawn **unrotated**. The game rotates it. One elbow drawing covers all four elbows. |
 | Name | The sprite key with dots as underscores: `brass.elbow` → `brass_elbow.png`. |
 
@@ -136,6 +136,11 @@ your plain `wall.png` beats a placeholder `wall.ns`: real art is never hidden by
 a placeholder.
 
 ## Making a placeholder for a new mechanic
+
+**Use the `composers-key-art` skill** (`.claude/skills/composers-key-art/`): it is
+the loop (draw, look, measure, critique, fix), Timothy's style as measured rules,
+and the checklist. `node tools/art-style.mjs` measures placeholders against his
+art; `node tools/art-sheet.mjs out.png` renders them to look at.
 
 1. Give the doodad its `spriteKey` (and one per state), per CLAUDE.md.
 2. Add a function to `PLACEHOLDERS` in `src/art/placeholders.js` under that key.

@@ -18,7 +18,7 @@ import { linkVariants, hasSide } from './links.js';
 
 const T = TILE;            // 51
 const M = T / 2;           // 25.5
-const A = 21, B = 30;      // tube wall centres: pixel rows 20-21 and 29-30, the measured connector
+const A = 21.5, B = 29.5;  // tube wall centres, 3 px each: rows 20-22 and 28-30, as the Unity tubes
 const fine = { width: STROKE.fine, passes: 1 };
 
 function tubeH(p, x0 = 0, x1 = T) { p.line(x0, A, x1, A); p.line(x0, B, x1, B); }
@@ -88,17 +88,19 @@ function wall(p, v = '') {
   const i = 3, o = T - 3;
   const xa = w ? 0 : i, xb = e ? T : o;
   const ya = n ? 0 : i, yb = s ? T : o;
-  const edge = { wobble: 0.35 };
+  const edge = { wobble: 0.15 };   // at 3 px more wobble reads as lumps, not a hand
   if (!n) p.line(xa, i, xb, i, edge);
   if (!s) p.line(xa, o, xb, o, edge);
   if (!w) p.line(i, ya, i, yb, edge);
   if (!e) p.line(o, ya, o, yb, edge);
-  // outside corners: both meeting sides face floor
-  const k = 8;
-  if (!n && !e) p.curl(o - k, i + k, 3.2, { dir: 1, start: -Math.PI / 2 });
-  if (!s && !e) p.curl(o - k, o - k, 3.2, { dir: 1, start: 0 });
-  if (!s && !w) p.curl(i + k, o - k, 3.2, { dir: 1, start: Math.PI / 2 });
-  if (!n && !w) p.curl(i + k, i + k, 3.2, { dir: 1, start: Math.PI });
+  // Outside corners (both meeting sides face floor) get a curl that starts ON the
+  // border and winds into the corner, so it grows from the wall instead of
+  // floating beside it (style card rule 2). r=5 keeps the spiral open at 2 px.
+  const r = 5;
+  if (!n && !e) p.curl(o - r, i + r, r, { dir: 1, start: -Math.PI / 2 });
+  if (!s && !e) p.curl(o - r, o - r, r, { dir: 1, start: 0 });
+  if (!s && !w) p.curl(i + r, o - r, r, { dir: 1, start: Math.PI / 2 });
+  if (!n && !w) p.curl(i + r, i + r, r, { dir: 1, start: Math.PI });
 }
 
 // The inside-corner patch, authored for the north-east corner and rotated by the
@@ -136,7 +138,7 @@ export const PLACEHOLDERS = {
   },
 
   // ---- strings -------------------------------------------------------------
-  'string': p => { p.line(0, M, T, M, { width: 2, passes: 1, wobble: 0.35 }); },
+  'string': p => { p.line(0, M, T, M, { width: 3, passes: 1, wobble: 0.35 }); },
   'peg': p => {
     p.line(M, 3, M, 17);
     p.circle(M, 29, 10);
@@ -205,22 +207,21 @@ for (let ext = 0; ext <= 3; ext++) {
 function flower(p, x, y, r = 1.6) {
   for (let i = 0; i < 4; i++) {
     const a = (i / 4) * Math.PI * 2 + 0.4;
-    p.circle(x + Math.cos(a) * r, y + Math.sin(a) * r, 1.1, { width: 1, wobble: 0 });
+    p.circle(x + Math.cos(a) * r, y + Math.sin(a) * r, 1.1, { width: 2, wobble: 0 });
   }
 }
 
-// A vine wound along a horizontal stretch of tubing, on the bottom wall.
-function tubeVine(p, x0, x1, { flowers = 1 } = {}) {
-  p.path(t => [x0 + (x1 - x0) * t, B + 2 + Math.sin(t * Math.PI * 2.2) * 2.2], { width: 1, wobble: 0.2 });
-  const n = 2;
-  for (let i = 0; i < n; i++) {
-    const x = x0 + (x1 - x0) * ((i + 0.6) / (n + 0.2));
-    p.curl(x, B + 7, 2.8, { dir: i % 2 ? 1 : -1, start: -Math.PI / 2 });
+// A vine that leaves the tube's bottom wall, wanders along under it, and grows two
+// curls off itself: everything attached, nothing floating (style card rule 2).
+function tubeVine(p, x0, x1) {
+  const wall = B + 1.5;                             // the bottom wall's outer edge
+  const vy = (t) => wall + 2.5 + Math.sin(t * Math.PI * 2.2) * 2.2;
+  p.line(x0, wall, x0 + 2, vy(0), { width: 2 });    // the stem off the wall
+  p.path(t => [x0 + 2 + (x1 - x0 - 2) * t, vy(t)], { width: 2, wobble: 0.2 });
+  for (const [t, dir] of [[0.35, 1], [0.8, -1]]) {
+    const x = x0 + 2 + (x1 - x0 - 2) * t, y = vy(t);
+    p.curl(x, y + 4.5, 4.5, { dir, start: -Math.PI / 2 });   // starts on the vine
   }
-  for (let i = 0; i < flowers; i++) flower(p, x0 + (x1 - x0) * 0.35 + i * 9, B + 6);
-  // a tendril over the top wall too
-  p.line(x0 + 8, A, x0 + 6, A - 5, { width: 1, wobble: 0 });
-  p.curl(x0 + 6, A - 8, 2.4, { dir: 1, start: Math.PI / 2 });
 }
 
 function stairs(p, up) {
@@ -230,26 +231,26 @@ function stairs(p, up) {
   p.poly(pts);
   // the banister, ending in a curl
   const rail = up ? [[9, 31], [39, 4]] : [[12, 4], [42, 31]];
-  p.line(...rail[0], ...rail[1], { width: 1 });
+  p.line(...rail[0], ...rail[1], { width: 2 });
   p.curl(...(up ? [9, 34] : [42, 34]), 3, { dir: up ? -1 : 1 });
 }
 
 function noteBox(p) {
   p.box(7, 7, 37, 37);
   // a clef-like curl down the left, two beamed notes on the right
-  p.path(t => [16 + Math.sin(t * Math.PI * 3) * 3, 12 + t * 26], { width: 1 });
+  p.path(t => [16 + Math.sin(t * Math.PI * 3) * 3, 12 + t * 26], { width: 2 });
   p.curl(16, 33, 3, { dir: 1 });
   note(p, 26, 33); note(p, 35, 30);
-  p.line(29, 17, 38, 14, { width: 1 });
+  p.line(29, 17, 38, 14, { width: 2 });
 }
 
 Object.assign(PLACEHOLDERS, {
-  'brass.straight': p => { tubeH(p); tubeVine(p, 7, 44); },
+  'brass.straight': p => { tubeH(p); tubeVine(p, 8, 43); },
   'brass.tee': p => {
     p.line(0, A, T, A);
     p.line(0, B, A, B); p.line(B, B, T, B);
     p.line(A, B, A, T); p.line(B, B, B, T);
-    p.line(36, A, 40, A - 6, { width: 1 }); p.curl(40, A - 9, 2.6, { dir: 1, start: Math.PI / 2 });
+    p.line(36, A, 40, A - 6, { width: 2 }); p.curl(40, A - 9, 2.6, { dir: 1, start: Math.PI / 2 });
     flower(p, 9, A - 6);
   },
   // A bridge: the horizontal channel passes over, the vertical ducks under with a
@@ -264,40 +265,40 @@ Object.assign(PLACEHOLDERS, {
   'brass.valve': p => {
     elbow(p);
     p.box(29, 6, 13, 11, { width: 2, overshoot: 0 });
-    p.line(35.5, 6, 35.5, 2, { width: 1 });
-    p.ellipse(35.5, 2, 4, 1.4, { width: 1 });
+    p.line(35.5, 6, 35.5, 2, { width: 2 });
+    p.ellipse(35.5, 2, 4, 1.4, { width: 2 });
     p.curl(42, 26, 3, { dir: 1, start: Math.PI });
   },
   'brass.mute': p => {
     tubeH(p);
-    p.poly([[14, 23.5], [34, 25.5], [14, 27.5]], { width: 1, wobble: 0 });
-    p.ellipse(14, 25.5, 1.2, 2.2, { width: 1, wobble: 0 });
-    p.curl(38, 13, 3, { dir: 1 }); p.line(38, 16, 34, 20, { width: 1 });
+    p.poly([[14, 23.5], [34, 25.5], [14, 27.5]], { width: 2, wobble: 0 });
+    p.ellipse(14, 25.5, 1.2, 2.2, { width: 2, wobble: 0 });
+    p.curl(38, 13, 3, { dir: 1 }); p.line(38, 16, 34, 20, { width: 2 });
   },
   'brass.mute.open': p => {
     tubeH(p);
-    p.poly([[14, 4], [34, 7], [14, 10]], { width: 1, wobble: 0 });
-    p.line(24, 11, 24, 19, { width: 1 });
+    p.poly([[14, 4], [34, 7], [14, 10]], { width: 2, wobble: 0 });
+    p.line(24, 11, 24, 19, { width: 2 });
     p.curl(38, 39, 3, { dir: -1 });
   },
 
   // ---- percussion, from the side -------------------------------------------
   'drum.hat': p => {
     p.ellipse(M, 14, 17, 3.5); p.ellipse(M, 20, 17, 3.5);
-    p.line(M, 23, M, 44, { width: 1 });
+    p.line(M, 23, M, 44, { width: 2 });
     p.curl(M - 7, 46, 3, { dir: -1 }); p.curl(M + 7, 46, 3, { dir: 1 });
   },
   'drum.cymbal': p => {
     p.path(t => [6 + t * 39, 20 - Math.sin(t * Math.PI) * 6]);
     p.path(t => [6 + t * 39, 20 + Math.sin(t * Math.PI) * 2]);
-    p.ellipse(M, 14, 3, 1.4, { width: 1, wobble: 0 });
-    p.line(M, 22, M, 45, { width: 1 });
+    p.ellipse(M, 14, 3, 1.4, { width: 2, wobble: 0 });
+    p.line(M, 22, M, 45, { width: 2 });
     p.curl(M + 7, 46, 3, { dir: 1 }); p.curl(M - 7, 46, 3, { dir: -1 });
   },
   'drum.timpani': p => {
     p.ellipse(M, 15, 19, 5.5);
     p.path(t => [6.5 + t * 38, 15 + Math.sin(t * Math.PI) * 19]);
-    p.line(14, 31, 11, 46, { width: 1 }); p.line(37, 31, 40, 46, { width: 1 });
+    p.line(14, 31, 11, 46, { width: 2 }); p.line(37, 31, 40, 46, { width: 2 });
     p.curl(9, 47, 2.6, { dir: -1 }); p.curl(42, 47, 2.6, { dir: 1 });
   },
   'mallet': p => { p.line(5, M, 31, M); p.circle(38, M, 7); p.curl(38, M, 3.4, { dir: 1 }); p.curl(5, M + 4, 2.4, { dir: -1 }); },
@@ -316,13 +317,13 @@ Object.assign(PLACEHOLDERS, {
   'keyshift.down': p => stairs(p, false),
   'dissonance': p => {
     p.poly([[8, 30], [14, 18], [19, 33], [25, 15], [31, 36], [37, 17], [43, 30]], { width: 2, wobble: 1.4 });
-    p.line(14, 18, 12, 13, { width: 1 }); p.line(25, 15, 26, 9, { width: 1 }); p.line(37, 17, 40, 12, { width: 1 });
+    p.line(14, 18, 12, 13, { width: 2 }); p.line(25, 15, 26, 9, { width: 2 }); p.line(37, 17, 40, 12, { width: 2 });
   },
   // A blank instrument: every face is authorable, so a notch on each face.
   'strumentino': p => {
     p.box(9, 9, 33, 33);
-    p.line(M, 9, M, 15, { width: 1 }); p.line(M, 36, M, 42, { width: 1 });
-    p.line(9, M, 15, M, { width: 1 }); p.line(36, M, 42, M, { width: 1 });
+    p.line(M, 9, M, 15, { width: 2 }); p.line(M, 36, M, 42, { width: 2 });
+    p.line(9, M, 15, M, { width: 2 }); p.line(36, M, 42, M, { width: 2 });
     p.curl(M, M, 6, { dir: 1 });
   },
 });
@@ -354,10 +355,10 @@ function sideDrum(p, ang, { r = 18, depth = 9, snare = false, lugs = 0 } = {}) {
   const nx = -uy, ny = ux;                                // its normal
   // back rim (the far head), thin
   const bx = cx - nx * depth * -1, by = cy - ny * depth * -1;
-  tilted(p, bx, by, r, r * 0.3, ang, { width: 1, wobble: 0.2 });
+  tilted(p, bx, by, r, r * 0.3, ang, { width: 2, wobble: 0.2 });
   // the shell: two lines joining the rims at the ends of the head
   for (const sgn of [-1, 1]) {
-    p.line(cx + ux * r * sgn, cy + uy * r * sgn, bx + ux * r * sgn, by + uy * r * sgn, { width: 1, wobble: 0.2 });
+    p.line(cx + ux * r * sgn, cy + uy * r * sgn, bx + ux * r * sgn, by + uy * r * sgn, { width: 2, wobble: 0.2 });
   }
   // the head itself: heavy, the mirror
   tilted(p, cx, cy, r, r * 0.3, ang, { width: 2, wobble: 0.25 });
@@ -367,12 +368,12 @@ function sideDrum(p, ang, { r = 18, depth = 9, snare = false, lugs = 0 } = {}) {
       const t = -0.8 + (1.6 * i) / 8, off = i % 2 ? 2.2 : -2.2;
       pts.push([(cx + bx) / 2 + ux * r * t + nx * off, (cy + by) / 2 + uy * r * t + ny * off]);
     }
-    p.poly(pts, { width: 1, wobble: 0 });
+    p.poly(pts, { width: 2, wobble: 0 });
   }
   for (let i = 0; i < lugs; i++) {
     const t = -0.6 + (1.2 * i) / Math.max(1, lugs - 1);
     const x = (cx + bx) / 2 + ux * r * t, y = (cy + by) / 2 + uy * r * t;
-    p.line(x, y, x - nx * 3, y - ny * 3, { width: 1, wobble: 0 });
+    p.line(x, y, x - nx * 3, y - ny * 3, { width: 2, wobble: 0 });
   }
   // a curl on the far rim, after the Unity drum's legs
   p.curl(bx - ux * r * 0.5 - nx * 4, by - uy * r * 0.5 - ny * 4, 2.6, { dir: 1 });
@@ -397,22 +398,22 @@ export const PROPOSALS = {
   // room's root, like a mouthpiece that is its own horn.
   'woodwind.reed': p => {
     p.line(4, A, 34, A); p.line(4, B, 34, B);
-    p.poly([[34, A], [46, 23], [46, 28], [34, B]], { width: 1, wobble: 0 });
+    p.poly([[34, A], [46, 23], [46, 28], [34, B]], { width: 2, wobble: 0 });
     p.curl(10, 12, 3, { dir: 1 }); flower(p, 22, 38);
   },
   // A flute run: holes along the top. Waves passing along it sound, and each
   // covered hole (a block on it) lowers the note.
   'woodwind.flute': p => {
     tubeH(p);
-    for (const x of [11, 20, 29, 38]) p.circle(x, 25.5, 2, { width: 1, wobble: 0 });
+    for (const x of [11, 20, 29, 38]) p.circle(x, 25.5, 2, { width: 2, wobble: 0 });
     p.curl(44, 12, 2.6, { dir: 1 });
   },
   // A lock that wants an ABSOLUTE pitch, not a scale degree, so the stairs
   // (key + / key -) matter to it. Marked by a sharp sign.
   'notelock.absolute': p => {
     noteBox(p);
-    p.line(36, 9, 34, 21, { width: 1 }); p.line(40, 9, 38, 21, { width: 1 });
-    p.line(32, 13, 42, 12, { width: 1 }); p.line(32, 17, 42, 16, { width: 1 });
+    p.line(36, 9, 34, 21, { width: 2 }); p.line(40, 9, 38, 21, { width: 2 });
+    p.line(32, 13, 42, 12, { width: 2 }); p.line(32, 17, 42, 16, { width: 2 });
   },
   // The Composer's Key itself, in line work: the note-key from the website.
   'key.pickup': p => {
@@ -423,7 +424,7 @@ export const PROPOSALS = {
   },
   // A floor tile with the staff showing through, for rooms that want it.
   'floor.staff': p => {
-    for (let i = 1; i <= 5; i++) p.line(0, 8 * i, T, 8 * i, { width: 1, wobble: 0 });
+    for (let i = 1; i <= 5; i++) p.line(0, 8 * i, T, 8 * i, { width: 2, wobble: 0 });
   },
 };
 
