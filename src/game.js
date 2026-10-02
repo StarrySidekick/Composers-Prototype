@@ -3,6 +3,9 @@ import { SoundWave, SoundWaveState, WaveSource, SOURCE_FOR_FAMILY } from './core
 import { Room, facingDir } from './core/room.js';
 import { DIR } from './core/direction.js';
 import { arrival } from './core/world.js';
+
+const WALK_SPEED = 5.6;   // tiles a second: Link's 1.5 px a frame, 60 fps, 16 px tiles
+const BODY = 0.34;        // half of Coda's footprint, in tiles: fits a one-tile gap
 import './doodads/index.js';
 
 export class Game {
@@ -21,7 +24,11 @@ export class Game {
     this.onDoorOpen = null;     // (door) — a puzzle was solved and opened it
     this.world = null;          // set by main.js when rooms/world.json exists
 
-    this.player = { x: 1, y: 1, rx: 1, ry: 1, facing: 'right', dir: DIR.right };
+    // x, y: the tile Coda stands on (all game logic reads these). rx, ry: where Coda
+    // actually is, in tiles, between tiles while walking. See walk() below.
+    this.player = { x: 1, y: 1, rx: 1, ry: 1, facing: 'right', dir: DIR.right, walking: false, stride: 0 };
+    this.held = [];        // directions held right now, oldest first
+    this.lastFrame = 0;
 
     // Every note that sounds is fed to the note locks — that's how a "play the
     // right melody" puzzle hears the room.
@@ -127,6 +134,8 @@ export class Game {
     this.player.dir = DIR[name] ?? DIR.right;
   }
 
+  // One tile, instantly. Used by the editor, the tests and the recorded solutions;
+  // the player walks with setHeld/walk instead.
   move(dirName) {
     const d = DIR[dirName];
     if (!d) return;
@@ -140,6 +149,7 @@ export class Game {
     // a tile can be enterable from one side and solid from another.
     if (!this.room.canEnter(nx, ny, d)) return;
     this.player.x = nx; this.player.y = ny;
+    this.player.rx = nx; this.player.ry = ny;
     const t = this.room.doodadAt(nx, ny);
     if (t) t.onPlayerEnter(this.ctx, d);
   }
@@ -197,10 +207,109 @@ export class Game {
     return w;
   }
 
+  // ---- walking, after A Link to the Past ---------------------------------
+  //
+  // Coda moves freely while a direction is held, not tile by tile. The numbers are
+  // Link's: he walks about 1.5 px a frame at 60 fps on 16 px tiles, which is
+  // 5.6 tiles a second, and he is a little narrower than a tile so he fits through
+  // a one-tile gap. Three things give it the feel:
+  //
+  // - Facing is sticky. Holding two directions (a diagonal) keeps the way you were
+  //   already facing, as Link does; you only turn when that direction is let go.
+  // - Corner nudging. Walk into the edge of a gap and you are slid sideways into it
+  //   instead of stopping dead, so doorways do not need pixel-perfect lining up.
+  // - The tile you stand on is simply the one under your centre. Crossing into a
+  //   new one triggers it (a string plucks, a key plays, stairs shift the key).
+
+  setHeld(dir, on) {
+    this.held = this.held.filter(d => d !== dir);
+    if (on) this.held.push(dir);
+    // A press turns you to face it at once, even standing still, unless you are
+    // already holding the way you face: then it is a diagonal and you keep facing.
+    if (on && !this.held.slice(0, -1).includes(this.player.facing)) this.setFacing(dir);
+    if (!on && !this.held.includes(this.player.facing) && this.held.length) {
+      this.setFacing(this.held[this.held.length - 1]);
+    }
+  }
+
+  walk(dt) {
+    const pl = this.player;
+    const h = new Set(this.held);
+    let vx = (h.has('right') ? 1 : 0) - (h.has('left') ? 1 : 0);
+    let vy = (h.has('down') ? 1 : 0) - (h.has('up') ? 1 : 0);
+    pl.walking = !!(vx || vy);
+    if (!pl.walking) return;
+    if (vx && vy) { vx *= Math.SQRT1_2; vy *= Math.SQRT1_2; }
+    const step = WALK_SPEED * dt;
+    if (vx) this.slide(vx * step, 0);
+    if (vy && this.room) this.slide(0, vy * step);
+    pl.stride += step;
+  }
+
+  // Tiles Coda's body overlaps at (rx, ry). His centre is (rx + 0.5, ry + 0.5).
+  bodyTiles(rx, ry) {
+    const out = [];
+    const x0 = Math.floor(rx + 0.5 - BODY), x1 = Math.floor(rx + 0.5 + BODY - 1e-6);
+    const y0 = Math.floor(ry + 0.5 - BODY), y1 = Math.floor(ry + 0.5 + BODY - 1e-6);
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) out.push([x, y]);
+    return out;
+  }
+
+  // Can Coda's body move into this tile, travelling `dirName`? Off the edge of the
+  // room counts as open only when the world has a room that way.
+  blocks(x, y, dirName) {
+    if (!this.room.inBounds(x, y)) return !this.world?.neighbour(this.room.id, dirName);
+    return !this.room.canEnter(x, y, DIR[dirName]);
+  }
+
+  slide(dx, dy) {
+    const pl = this.player;
+    const dirName = dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up';
+    const before = new Set(this.bodyTiles(pl.rx, pl.ry).map(t => t.join()));
+    const nx = pl.rx + dx, ny = pl.ry + dy;
+    // Only tiles the body is newly entering can stop it, so a door shutting on you
+    // never traps you inside it.
+    const hit = this.bodyTiles(nx, ny).some(([x, y]) => !before.has(`${x},${y}`) && this.blocks(x, y, dirName));
+    if (!hit) {
+      pl.rx = nx; pl.ry = ny;
+    } else {
+      // Corner nudge: if the lane your centre is in is open ahead, ease toward it.
+      const along = Math.abs(dx || dy);
+      if (dx) {
+        const lane = Math.round(pl.ry), ahead = Math.floor(pl.rx + 0.5 + Math.sign(dx) * (BODY + along));
+        if (lane !== pl.ry && !this.blocks(ahead, lane, dirName)) pl.ry += Math.sign(lane - pl.ry) * Math.min(along, Math.abs(lane - pl.ry));
+      } else {
+        const lane = Math.round(pl.rx), ahead = Math.floor(pl.ry + 0.5 + Math.sign(dy) * (BODY + along));
+        if (lane !== pl.rx && !this.blocks(lane, ahead, dirName)) pl.rx += Math.sign(lane - pl.rx) * Math.min(along, Math.abs(lane - pl.rx));
+      }
+    }
+    this.settleTile(dirName);
+  }
+
+  // Which tile Coda is on is decided by his centre. Leaving the room through an
+  // open door happens when the centre crosses the edge.
+  settleTile(dirName) {
+    const pl = this.player;
+    const tx = Math.floor(pl.rx + 0.5), ty = Math.floor(pl.ry + 0.5);
+    if (!this.room.inBounds(tx, ty)) {
+      const from = { x: pl.x, y: pl.y };
+      if (this.leaveRoom(dirName)) return;
+      pl.rx = from.x; pl.ry = from.y;   // no room that way after all: stay put
+      return;
+    }
+    if (tx === pl.x && ty === pl.y) return;
+    pl.x = tx; pl.y = ty;
+    this.room.doodadAt(tx, ty)?.onPlayerEnter(this.ctx, DIR[dirName]);
+  }
+
   // ---- loop ---------------------------------------------------------------
 
   update() {
     if (!this.room) return;
+    const now = performance.now();
+    const dt = this.lastFrame ? Math.min(0.05, (now - this.lastFrame) / 1000) : 0;
+    this.lastFrame = now;
+    this.walk(dt);
     this.clock.setBpm(this.room.music.bpm);
 
     for (const ev of this.clock.poll()) {
@@ -214,11 +323,6 @@ export class Game {
       this.waves = this.waves.filter(w => w.alive);
     }
     this.scheduledTime = 0;
-
-    // smooth the player sprite toward its tile
-    const k = 0.32;
-    this.player.rx += (this.player.x - this.player.rx) * k;
-    this.player.ry += (this.player.y - this.player.ry) * k;
   }
 
   get activeWaves() { return this.waves.filter(w => w.alive).length; }

@@ -59,6 +59,20 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   right), and each step turns it clockwise. The drum type sets the sound and default
   position, never the direction. 45° headings draw from a `.flat` sprite so pixel
   art is only ever turned by 90°.
+- **Coda walks freely, like Link in A Link to the Past** (`Game.walk`): held
+  directions move him at 5.6 tiles/s with a body narrower than a tile, sticky facing
+  on diagonals and a nudge round corners. `player.rx/ry` is where he is; `player.x/y`
+  is the tile under his centre, which is all the game logic reads, so firing, B,
+  strings and doors still work on tiles. `Game.move(dir)` is the instant one-tile
+  step kept for the editor, the tests and recorded solutions. Input sets held
+  directions (`setHeld`); never call `move` from input again.
+- **The play screen is a square stage between two status bars** (`src/ui/`): the
+  stage is sized by `fitStage` to the full width of an upright phone; the old toolbar
+  lives in the pause menu (≡ or Esc); the pad and A/B float and can be dragged
+  (Menu -> Move controls, kept in localStorage per orientation). `[hidden]` is forced
+  to `display: none !important` because a hidden overlay with its own `display` still
+  ate every touch. Safari's tap-and-hold is off on the play screen (`user-select`,
+  `-webkit-touch-callout`), back on in the editor's fields.
 - **Editor edits mutate the live room; they never reload it.** `Room.setTileChar` /
   `setOverride` rebuild one tile. Reloading would reset every lock and door mid-build.
 
@@ -174,6 +188,13 @@ Proved by injection: restore the old drawing code and it fails "7/7 late".
 `node test/world.mjs` checks every world room is square and the same size, every
 edge door leads to a room with a matching door back, and walks a player through a
 door and back (state kept, shut doors block).
+
+### And walking
+
+`node test/walk.mjs` drives `Game.walk` with exact time steps: Link's speed, walls
+stop him at his body's edge, sticky facing on a diagonal, the corner nudge carries a
+near-miss through a door into the next room, and walking over a string plucks it.
+Proved by injection: let walls stop nothing and it fails at the wall.
 
 ### And can every room be finished
 
