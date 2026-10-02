@@ -35,10 +35,49 @@ edges; the string is 3 px on rows 24-26.
 7. **Readable at a glance, then decorated.** Silhouette first (the drum, the fork,
    the bell), flourish second, and the flourish never hides the silhouette.
 
+## How he draws (studied at 6x, 2026-10-02, plus his site and itch.io page)
+
+Rules from looking, not measuring. Sources: the 15 Unity sprites at 6x; the hand-
+drawn buttons on timothyvlangas.com (Games, Music, Mail); the Composer's Key logo
+and in-game screenshot on starry-sidekick.itch.io/composers-key.
+
+8. **Two registers.** *Living* things (the brass wing) are branches: tube walls
+   with grain running inside, twigs that fork into two buds, clover flowers (four
+   small rings) hanging off a twig, and at a bend the branch loops into a coil with
+   a leaf in it. *Made* things (fork, mallet, key, door, drum, block) are crafted:
+   bilaterally symmetric, straight lines, double strokes for shafts (mallet handle,
+   fork stem), small parts SOLID (mallet head, door rails, bell rim), and paired
+   scrolls.
+9. **Curl trees.** His site's buttons are stems that branch, every branch ending
+   in an open spiral. A spiral is always the end of a stalk (`pen.stalk`,
+   `pen.curlAt`), never a free-standing glyph.
+10. **Nothing just stops.** Stalk -> spiral, twig -> two buds, leg -> bud foot,
+    frame corner -> scroll. A plain line end is the exception.
+11. **The drum is a tilted oval head on a triangular truss** with short legs; the
+    door is a ladder (two solid rails, rungs, a knob); the fork has long tapering
+    tines, a V, a double stem and a scroll each side; the peg is a stem into a ring
+    with a spiral inside; the wave is flat-in, sharp peaks, flat-out.
+12. **Frames are hand-drawn and a little irregular** (the site's button borders),
+    with a scroll finishing a corner (the Mail envelope).
+
+## Pixel mechanics learned the hard way
+
+- **A wound-up small spiral fills in.** Under r 4.5 draw a hook (under one turn);
+  under 6.5 about 1.3 turns; only bigger ones get his 1.75. `pen.spiral` does this.
+- **Odd-width lines must centre on a pixel's middle** (y = 3.5 for 3 px) or the
+  hard-pixel threshold turns 3 px into 4. `pen.line` snaps straight strokes; place
+  curves with the same parity in mind.
+- **Size before style.** Truss struts and feet drawn small enough to "fit" smear
+  into a blob; fewer, bigger triangles read.
+
+After this pass (all placeholders redrawn by these rules): coverage 17% (his 17),
+3 px strokes 61% (his 43), 4 px+ 19% (his 30), marks 1-2 (his 2).
+
 ## Known gaps in the placeholders (2026-10-02)
 
-- Small curls (wall corners, the tube's flowers) still close up into dots.
-- Some ornament floats instead of growing from a line (the tee's tendrils, the
-  mute's curl). `tools/art-style.mjs` lists the worst offenders by mark count.
+- Twigs repeat at the same place on every tile of a run, so a long tube reads as
+  wallpaper. His real tubes do too (one sprite), but variation by position would
+  need the renderer to pass a seed; not done.
+- Clover flowers at 51 px are close to the limit; some read as a smudge.
 - Walls are deliberately quieter than his old wall art (that was a pushable block);
   that is Timothy's call, not a style gap.

@@ -93,7 +93,16 @@ export class Pen {
     return this;
   }
 
-  line(x0, y0, x1, y1, o) {
+  // Straight strokes snap to the pixel grid for their width: an odd width (3 px)
+  // centres on a pixel's middle (y = 3.5), an even one (2 px) on a boundary (y = 3).
+  // Off-grid, a 3 px line half-covers a pixel each side, the hard-pixel threshold
+  // keeps both halves, and it comes out 4 px: measured, 75% of strokes were.
+  line(x0, y0, x1, y1, o = {}) {
+    const w = Math.round(o.width ?? this.width);
+    const snap = (v) => (w % 2 ? Math.floor(v) + 0.5 : Math.round(v));
+    // only snap the axis a line runs across (horizontal lines snap y, vertical x)
+    if (Math.abs(y1 - y0) < 1e-6) { y0 = y1 = snap(y0); }
+    else if (Math.abs(x1 - x0) < 1e-6) { x0 = x1 = snap(x0); }
     return this.path(t => [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t], o);
   }
 
@@ -149,6 +158,78 @@ export class Pen {
       const rr = r * (1 - t * 0.7);
       return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr];
     }, { width: STROKE.fine, passes: 1, wobble: 0.15, ...o });
+  }
+
+  // Timothy's spiral (studied 2026-10-02 from the fork, the peg, the site's curl
+  // trees): open, about 1.75 turns, finer than the structure, the gap between turns
+  // never closing. The radius falls linearly to 15% so the turns stay evenly spaced.
+  //
+  // How far it winds depends on its size, because at 51 px a wound-up small spiral
+  // fills in to a blob (seen on every pass before this rule): under r 4.5 it is a
+  // hook (under one turn), under r 6.5 a turn and a quarter, bigger the full 1.75.
+  spiral(cx, cy, r, { turns, dir = 1, start = 0, width = 1.5, ...o } = {}) {
+    turns ??= r < 4.5 ? 0.85 : r < 6.5 ? 1.3 : 1.75;
+    const shrink = turns < 1 ? 0.45 : 0.75;
+    return this.path(t => {
+      const a = start + dir * t * turns * 6.283;
+      const rr = r * (1 - t * shrink);
+      return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr];
+    }, { width, passes: 1, wobble: 0.1, ...o });
+  }
+
+  // A spiral that grows out of the end of a stroke: it starts exactly at (x, y),
+  // carrying on in the stroke's direction `ang`, and winds in. This is what keeps
+  // an ornament attached instead of floating (style card rule 2).
+  curlAt(x, y, ang, r, { dir = 1, ...o } = {}) {
+    const a = dir > 0 ? ang - Math.PI / 2 : ang + Math.PI / 2;
+    return this.spiral(x - Math.cos(a) * r, y - Math.sin(a) * r, r, { dir, start: a, ...o });
+  }
+
+  // A stalk that bends a little and ends in a spiral: the unit of his curl trees.
+  stalk(x, y, ang, len, r, { dir = 1, bend = 0.25, width = 2, ...o } = {}) {
+    const ex = x + Math.cos(ang) * len, ey = y + Math.sin(ang) * len;
+    const mx = (x + ex) / 2 - Math.sin(ang) * len * bend * dir, my = (y + ey) / 2 + Math.cos(ang) * len * bend * dir;
+    this.path(t => [(1 - t) ** 2 * x + 2 * (1 - t) * t * mx + t * t * ex, (1 - t) ** 2 * y + 2 * (1 - t) * t * my + t * t * ey], { width, passes: 1, ...o });
+    const endAng = Math.atan2(ey - my, ex - mx);
+    return this.curlAt(ex, ey, endAng, r, { dir, ...o });
+  }
+
+  // A solid shape: small parts of his crafted objects are filled, not outlined.
+  fill(pts) {
+    const c = this.c;
+    c.save(); c.fillStyle = this.ink; c.beginPath();
+    pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y)));
+    c.closePath(); c.fill(); c.restore();
+    return this;
+  }
+
+  // The terminal of a twig: a small filled bud.
+  bud(x, y, r = 1.6) {
+    const c = this.c;
+    c.save(); c.fillStyle = this.ink; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); c.restore();
+    return this;
+  }
+
+  // A twig off a branch: a stroke that forks into two short ends, each with a bud.
+  twig(x, y, ang, len, { spread = 0.6, width = 2 } = {}) {
+    const ex = x + Math.cos(ang) * len, ey = y + Math.sin(ang) * len;
+    this.line(x, y, ex, ey, { width, passes: 1, wobble: 0.3 });
+    for (const s of [-1, 1]) {
+      const a = ang + s * spread, l = len * 0.45;
+      const fx = ex + Math.cos(a) * l, fy = ey + Math.sin(a) * l;
+      this.line(ex, ey, fx, fy, { width: 1.5, passes: 1, wobble: 0.2 });
+      this.bud(fx, fy, 1.4);
+    }
+    return this;
+  }
+
+  // His flower: four small rings round a point, hung from whatever it grows on.
+  clover(x, y, r = 1.7) {
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI * 2 + 0.4;
+      this.circle(x + Math.cos(a) * r * 1.25, y + Math.sin(a) * r * 1.25, r, { width: 1.2, wobble: 0, passes: 1 });
+    }
+    return this;
   }
 
   // A short vine: a line that sprouts curls along its length.
