@@ -37,7 +37,8 @@ await page.waitForFunction(() => window.CK && window.CK.game?.world, null, { tim
 const results = await page.evaluate(async () => {
   const { DIR } = await import('./src/core/direction.js');
   const g = window.CK.game, a = window.CK.audio;
-  a.play = (o) => a.onNote?.(o.midi, o.family);
+  // Same rule as the real engine for what the room hears (see AudioEngine.heard).
+  a.play = (o) => { if (a.heard?.(o) ?? true) a.onNote?.(o.midi, o.family); };
   a.click = () => {};
   const world = g.world;
   const out = [];
@@ -68,6 +69,21 @@ const results = await page.evaluate(async () => {
       g.waves = g.waves.filter(w => w.alive);
     }
   };
+
+  // No free solves: asking a note lock for its hint (B) must not open anything.
+  // It used to: the hint phrase was played through the same speakers the locks
+  // listen to, so a lock heard its own answer and opened the door.
+  const cheats = [];
+  for (const id of world.at.keys()) {
+    g.loadRoom(world.json[id]);
+    const locks = g.room.list.filter(d => d.typeName === 'notelock');
+    for (const lock of locks) { lock.onPlayerInteract(g.ctx); run(64); }
+    const opened = g.room.list.filter(d => d.typeName === 'door' && d.group !== 'entry' && d.open);
+    const lit = locks.filter(l => l.lit);
+    if (locks.length && (opened.length || lit.length)) {
+      cheats.push(`${id}: pressing B on the note lock ${lit.length ? 'lit it' : ''}${opened.length ? ' and opened the door' : ''}`);
+    }
+  }
 
   for (const id of world.at.keys()) {
     const json = world.json[id];
@@ -105,15 +121,15 @@ const results = await page.evaluate(async () => {
       r.problems.push(`the exit at ${goal.x},${goal.y} is open but cannot be walked to`);
     }
   }
-  return out;
+  return { rooms: out, cheats };
 });
 
-const fails = [];
-for (const r of results) {
+const fails = [...results.cheats];
+for (const r of results.rooms) {
   if (r.problems.length) fails.push(...r.problems.map(p => `${r.id}: ${p}`));
   else console.log(`  ok   ${r.id} — solved in ${r.steps} step${r.steps === 1 ? '' : 's'}`);
 }
-if (results.length < 2) fails.push(`only ${results.length} world rooms found`);
+if (results.rooms.length < 2) fails.push(`only ${results.rooms.length} world rooms found`);
 const realErrors = pageErrors.filter(e => !/Unable to decode audio data/.test(e));
 if (realErrors.length) fails.push(`page threw: ${realErrors.join(' | ')}`);
 
@@ -123,4 +139,4 @@ if (fails.length) {
   for (const f of fails) console.log(`  - ${f}`);
   process.exit(1);
 }
-console.log(`\nPASS — all ${results.length} world rooms can be finished`);
+console.log(`\nPASS — all ${results.rooms.length} world rooms can be finished, none for free`);
