@@ -103,6 +103,13 @@ similar speed and feel" with a walking animation (done: free movement at Link's
 speed, sticky diagonals, corner nudging; the walk is a hop and lean per step, since
 Coda's art is a single drawing. Real walk frames would replace it; that is art).
 
+2026-10-02: "download like a pixel art skill ... to get a little bit better at making
+placeholder art and replicating my style." Searched; the one real fit was Pixel Art
+Studio (Gamezxz, MIT): its method (draw in code, look, critique, fix; study the
+artist) is adapted into `.claude/skills/composers-key-art`. Studying his sprites
+found his main line is 3 px where placeholders were 2, and his ornament grows from
+the form where placeholders floated; both fixed and measured.
+
 **Gaps found, with what could fill them** (proposals; nothing here is decided):
 
 - **Woodwind has no instrument at all.** The wing exists in name only. Proposal

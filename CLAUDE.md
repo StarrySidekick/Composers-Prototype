@@ -82,6 +82,11 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
 build. The colour wing palettes are parked behind `THEME` in `src/render/palette.js`,
 not deleted. Don't reintroduce colour without Timothy asking.
 
+**Making or changing any tile art: use the `composers-key-art` skill**
+(`.claude/skills/composers-key-art/`). It holds Timothy's style as measured rules
+(main lines 3 px, ornament 2, about 17% ink, ornament attached to the form) and the
+draw, look, measure, critique loop, with `tools/art-style.mjs` and `tools/art-sheet.mjs`.
+
 **Read `docs/ART-PROTOCOL.md` before drawing or generating any tile.** 51 × 51 px,
 pure white, two-value alpha, unrotated, connectors at fixed pixels. The numbers live
 in `src/art/protocol.js`.

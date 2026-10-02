@@ -140,12 +140,15 @@ export class Pen {
   // dir = 1 clockwise, -1 counter-clockwise (screen space, +y down).
   // Below about r=3 at 51 px there is no room for the gap between turns and it
   // fills in to a blob, so small curls get fewer turns rather than a smaller spiral.
-  curl(cx, cy, r, { turns = r < 4 ? 1.05 : 1.5, dir = 1, start = 0, ...o } = {}) {
+  // Drawn at the ornament weight (2 px), so a curl smaller than r=3.5 has no room
+  // for its gap and is lifted to that size rather than filling in.
+  curl(cx, cy, r, { turns = r < 5 ? 1.05 : 1.5, dir = 1, start = 0, ...o } = {}) {
+    r = Math.max(r, 3.5);
     return this.path(t => {
       const a = start + dir * t * turns * 6.283;
       const rr = r * (1 - t * 0.7);
       return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr];
-    }, { width: 1, passes: 1, wobble: 0.15, ...o });
+    }, { width: STROKE.fine, passes: 1, wobble: 0.15, ...o });
   }
 
   // A short vine: a line that sprouts curls along its length.
