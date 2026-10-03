@@ -86,6 +86,15 @@ function fillDot(p, x, y, rx, ry = rx, rot = -0.4) {
   c.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2); c.fill(); c.restore();
 }
 
+// A hollow note head, tilted like the solid one.
+function noteRing(p, x, y, rx, ry, rot = -0.4) {
+  const a0 = p.r() * 6.283;
+  p.path(t => {
+    const a = a0 + 6.483 * t, ex = Math.cos(a) * rx, ey = Math.sin(a) * ry;
+    return [x + ex * Math.cos(rot) - ey * Math.sin(rot), y + ex * Math.sin(rot) + ey * Math.cos(rot)];
+  }, { width: 2, wobble: 0 });
+}
+
 function note(p, x, y, stem = 14) {
   fillDot(p, x, y, 3.4, 2.5);
   p.line(x + 3, y - 1, x + 3, y - stem, fine);
@@ -222,6 +231,76 @@ function trussDrum(p, ang, { r = 18, depth = 11, snare = false } = {}) {
 function stand(p, top, bottom = 45) {
   p.line(M, top, M, bottom - 3, { width: 2, ...crafted });
   for (const s of [-1, 1]) { p.line(M, bottom - 3, M + s * 8, bottom + 1, { width: 2, ...crafted }); p.bud(M + s * 8, bottom + 1, 1.6); }
+}
+
+// ---------------------------------------------------------------------------
+// Woodwind: the made bore
+//
+// A flute is crafted, not grown: straight walls, symmetric, no grain, no twigs.
+// Its bore is narrower than a brass tube's on purpose (walls on rows 22-24 and
+// 27-29, CONNECTOR.flute, against brass 20-22 and 28-30) so a flute never reads
+// as a horn. Drawn at rot 0: the bore runs left -> right, the HEAD (where you
+// blow) at the left end, the FOOT (open) at the right; a hole opens UP out of the
+// top wall, which is where the wave leaves it (FlutePiece.holeDir).
+const FA = 23.5, FB = 28.5;     // flute wall centres, 3 px: rows 22-24 and 27-29
+const HY = 16.5, HR = 4.5;      // the hole's ring, sitting on the top wall
+const HG = 0.62;                // half-angle of the ring's opening into the bore
+
+function boreH(p, x0 = 0, x1 = T) { p.line(x0, FA, x1, FA, crafted); p.line(x0, FB, x1, FB, crafted); }
+
+// A band round the body: one short stroke standing proud of both walls.
+function band(p, x) {
+  p.line(x, FA - 3, x, FB + 3, { width: 2, ...crafted });
+}
+
+// The tone hole: a ring standing on the top wall, open at the bottom into the
+// bore (an omega), the wall cut away under it. Open means the wave can leave.
+function toneHole(p) {
+  const lx = M - Math.sin(HG) * HR, rx = M + Math.sin(HG) * HR, ly = HY + Math.cos(HG) * HR;
+  p.line(0, FA, lx - 1.5, FA, crafted); p.line(rx + 1.5, FA, T, FA, crafted);
+  p.line(lx - 1.5, FA, lx, ly, { wobble: 0 }); p.line(rx + 1.5, FA, rx, ly, { wobble: 0 });
+  p.arc(M, HY, HR, Math.PI / 2 + HG, Math.PI * 2.5 - HG, { wobble: 0.1 });
+  p.line(0, FB, T, FB, crafted);
+}
+
+// ---------------------------------------------------------------------------
+// The score gate
+
+// Clear back to the floor: whatever `fn` draws is erased instead of inked (a
+// keyhole in a solid lock, the embouchure in a solid lip plate).
+function erase(p, fn) {
+  const c = p.c;
+  c.save(); c.globalCompositeOperation = 'destination-out'; fn(); c.restore();
+}
+
+// A staff in a frame that is music's own: a bracket with hooked ends on the left,
+// the closing barline on the right (the gate is the end of the piece). A padlock
+// sits on the staff, the lines broken round it. The game writes "n/N" across the
+// bottom of this tile (ScoreLock.overlay, rows ~40-50), so the art stops at row 38.
+// Lit: the shackle lifts out of the lock and it shines, as lock.lit does.
+function scoreGate(p, lit) {
+  // the staff runs from the bracket to the barline, broken round the lock
+  for (const y of [14, 19, 24, 29, 34]) {
+    p.line(8, y, 18, y, { width: 2, wobble: 0 });
+    p.line(33, y, 42, y, { width: 2, wobble: 0 });
+  }
+  p.line(7.5, 12, 7.5, 36, crafted);
+  p.stalk(7.5, 12, -Math.PI / 3, 1.5, 4.2, { dir: 1, bend: 0.1, turns: 0.7 });
+  p.stalk(7.5, 36, Math.PI / 3, 1.5, 4.2, { dir: -1, bend: -0.1, turns: 0.7 });
+  p.line(43, 13, 43, 35, { width: 2, ...crafted });
+  // the padlock: a solid body with the keyhole cut out, a shackle over it
+  p.fill([[20, 21], [31, 21], [31, 29], [20, 29]]);
+  erase(p, () => { fillDot(p, M, 24, 1.7, 1.7, 0); p.fill([[M - 1, 24], [M + 1, 24], [M + 1, 27], [M - 1, 27]]); });
+  const lift = lit ? 3.5 : 0;
+  p.line(21.5, 21 - lift, 21.5, 16 - lift, { wobble: 0 });
+  p.line(29.5, 21, 29.5, 16 - lift, { wobble: 0 });
+  p.arc(M, 16 - lift, 4, Math.PI, Math.PI * 2, { wobble: 0.05 });
+  if (lit) {
+    for (let k = -2; k <= 2; k++) {
+      const a = -Math.PI / 2 + k * 0.48;
+      p.line(M + Math.cos(a) * 9.5, 15 + Math.sin(a) * 9.5, M + Math.cos(a) * 12.5, 15 + Math.sin(a) * 12.5, fine);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -366,6 +445,110 @@ export const PLACEHOLDERS = {
     p.fill([[10, M - 4], [10, M + 4], [15, M]]); p.fill([[41, M - 4], [41, M + 4], [36, M]]);
     p.spiral(M, M, 6, { dir: 1, width: 2 });
   },
+
+  // ---- woodwind: made, not grown ----------------------------------------------
+  // The head (rot 0: the left end; joins only its right edge): a solid crown
+  // closing the bore, a scroll off each end of it; the lip plate on top where you
+  // blow, solid with the embouchure cut in it (the wall is whole under it: nothing
+  // leaves here, unlike a hole); a band at the joint.
+  'flute.head': p => {
+    boreH(p, 13, T);
+    p.fill([[10, FA - 3.5], [14, FA - 3.5], [14, FB + 3.5], [10, FB + 3.5]]);
+    p.stalk(12, FA - 3.5, -Math.PI / 2 - 0.2, 2, 4.8, { dir: -1, bend: 0.1 });
+    p.stalk(12, FB + 3.5, Math.PI / 2 + 0.2, 2, 4.8, { dir: 1, bend: -0.1 });
+    fillDot(p, 28, FA - 4.6, 7.5, 3.4, 0);
+    erase(p, () => fillDot(p, 28, FA - 5, 3.2, 1.4, 0));
+    band(p, 43);
+  },
+  // An open hole: the ring stands on the top wall, open into the bore.
+  'flute.hole': p => toneHole(p),
+  // Covered: the same ring with its pad seated in it, solid, and the key's arm.
+  'flute.covered': p => {
+    toneHole(p);
+    fillDot(p, M, HY, HR + 1.5, HR + 1.5, 0);
+    p.line(M - 5, FA, M + 5, FA, { wobble: 0 });                 // sealed
+    p.line(M + HR + 1, HY, 41, HY + 2, { width: 2, ...crafted });
+    p.bud(41.5, HY + 2, 2);
+  },
+  // The foot (joins only its left edge): a band, then the bore left open, its lips
+  // rolling back over into a scroll each side.
+  'flute.foot': p => {
+    boreH(p, 0, 37);
+    band(p, 12);
+    p.stalk(37, FA, -Math.PI / 4, 2.5, 4.8, { dir: -1, bend: 0.1 });
+    p.stalk(37, FB, Math.PI / 4, 2.5, 4.8, { dir: 1, bend: -0.1 });
+  },
+  // The reed (rot 0: the reed at the left, the bell opening right, where its waves
+  // leave). A reed of cane WIDENING to a flat tip (so it never reads as an
+  // arrowhead pointing the wrong way), bound with thread into a slim
+  // body like the flute's, keys on top, and a modest bell with an oval mouth: a
+  // woodwind's bell, smaller than a horn's flare.
+  'reed': p => {
+    p.fill([[3, 22.5], [10, 24], [10, 27], [3, 28.5]]);                   // the cane
+    p.fill([[10, 21.5], [14, 21], [14, 30], [10, 29.5]]);               // thread
+    boreH(p, 14, 35);
+    band(p, 17.5);
+    for (const x of [23, 30]) fillDot(p, x, FA - 3, 2, 1.6, 0);          // keys
+    for (const s of [-1, 1]) {
+      const y0 = s < 0 ? FA : FB;
+      p.path(t => [35 + t * 9, y0 + s * 9 * t ** 2], { width: 3, wobble: 0.08 });
+    }
+    p.ellipse(44, M + 0.5, 2.5, 11, { width: 3, wobble: 0.05 });
+  },
+
+  // ---- things to find ----------------------------------------------------------
+  // An Overtone: a note, and above it a smaller, hollow one: its echo, the higher
+  // pitch it sounds over its fundamental. The big note's flag ends in a scroll.
+  'pickup.overtone': p => {
+    fillDot(p, 17.5, 40, 7, 5);
+    p.line(23.5, 39, 23.5, 16, crafted);
+    p.curlAt(23.5, 16, -Math.PI / 2 + 0.5, 4.5, { dir: 1, width: 2 });
+    noteRing(p, 34, 26.5, 5, 3.5);
+    p.line(38.5, 25.5, 38.5, 9, crafted);
+  },
+  // The Burin, cutting. Its handle is a wooden knob (solid, a shine of grain in it)
+  // cut flat underneath along the blade, then a solid ferrule, the steel drawn
+  // double, and the tip cut at an angle underneath, sitting in the groove it has
+  // cut, with the curl of metal it lifts rolling up ahead of it. Drawn in use
+  // because, alone, a knob on a stick reads as a match, a drumstick or a magnifier.
+  'pickup.burin': p => {
+    const ang = 0.8, u = [Math.cos(ang), Math.sin(ang)], o = [15, 16], L = 33, R = 8.5;
+    const P = (lx, ly) => [o[0] + lx * u[0] - ly * u[1], o[1] + lx * u[1] + ly * u[0]];
+    const cx = 2, cy = -1.5, flat = 3.2, a0 = Math.asin((flat - cy) / R);
+    const s0 = Math.PI - a0, s1 = Math.PI * 2 + a0, knob = [];
+    for (let i = 0; i <= 30; i++) { const a = s1 - (i / 30) * (s1 - s0); knob.push(P(cx + Math.cos(a) * R, cy + Math.sin(a) * R)); }
+    p.fill(knob);
+    erase(p, () => p.path(t => { const a = Math.PI * 1.15 + t * 0.85; return P(cx + Math.cos(a) * R * 0.55, cy + Math.sin(a) * R * 0.55); }, { width: 1.6, wobble: 0 }));
+    p.fill([P(cx + R - 1.5, -3.4), P(12, -3), P(12, 3), P(cx + R - 1.5, 3.4)]);   // ferrule
+    p.line(...P(12, -1), ...P(L - 6, -1), { width: 2, ...crafted });
+    p.line(...P(12, 2), ...P(L - 6, 2), { width: 2, ...crafted });
+    p.fill([P(L - 6, -2.4), P(L, 2.6), P(L - 6, 3)]);                          // the tip
+    const [tx, ty] = P(L, 2.6);
+    p.line(tx - 16, ty, tx + 1, ty, { width: 2, wobble: 0.05 });               // the groove
+    p.stalk(tx + 0.5, ty - 0.5, -0.15, 3.5, 4.8, { dir: -1, bend: 0.1, width: 2 });
+  },
+
+  // ---- dissonance ------------------------------------------------------------------
+  // A dissonant: a sour note that walks. The note head is its body, its outline a
+  // little jagged; mismatched eyes and a sour zigzag mouth; the stem breaks like the
+  // dissonance wave and its flag splinters; two legs with bud feet, mid-stride.
+  'dissonant': p => {
+    p.path(t => {
+      const a = t * 6.483, rr = 1 + (Math.floor(t * 16) % 2 ? 0.09 : -0.04);
+      const x = Math.cos(a) * 12 * rr, y = Math.sin(a) * 9 * rr, k = -0.3;
+      return [21 + x * Math.cos(k) - y * Math.sin(k), 31 + x * Math.sin(k) + y * Math.cos(k)];
+    }, { width: 3, wobble: 0.25 });
+    fillDot(p, 16.5, 30.5, 1.8, 2.3, 0); fillDot(p, 24.5, 28.5, 2.5, 3, 0);
+    p.poly([[15.5, 36], [18, 34.5], [20.5, 36.5], [23, 34.5], [25.5, 36]], { width: 2, wobble: 0 });
+    p.poly([[31, 25.5], [34, 20], [30.5, 15], [34, 10], [32.5, 5]], { width: 3, wobble: 0.1 });
+    p.poly([[32.5, 5], [40, 9], [37, 12], [43, 16]], { width: 2, wobble: 0.1 });
+    p.line(16, 39.5, 13, 44.5, { width: 2, wobble: 0.1 }); p.bud(13, 45, 2);
+    p.line(25, 39, 29, 43.5, { width: 2, wobble: 0.1 }); p.bud(29.5, 44, 2);
+  },
+
+  // ---- the score gate ------------------------------------------------------------
+  'scorelock': p => scoreGate(p, false),
+  'scorelock.lit': p => scoreGate(p, true),
 
   // ---- not tiles -------------------------------------------------------------
   // His wave: flat lead-in, sharp peaks, flat lead-out.
