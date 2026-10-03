@@ -3,13 +3,12 @@
   "name": "The Keyboard Floor",
   "wing": "keys",
   "hint": "Two locks. Step on K to swing the mallet; press B on the note lock to hear the phrase it wants.",
-  "maxWaves": 1,
   "music": {
-    "root": 5,
-    "mode": "lydian",
-    "bpm": 96,
+    "root": 9,
+    "mode": "aeolian",
+    "bpm": 88,
     "timeSignature": 4,
-    "mood": "mysterious"
+    "mood": "sad"
   },
   "legend": {
     "1": {
@@ -51,6 +50,14 @@
       ]
     }
   },
+  "overrides": [
+    {
+      "x": 12,
+      "y": 6,
+      "open": true,
+      "group": "entry"
+    }
+  ],
   "layout": [
     "#############",
     "#...........#",
@@ -65,14 +72,6 @@
     "#...........#",
     "#...........#",
     "######D######"
-  ],
-  "overrides": [
-    {
-      "x": 12,
-      "y": 6,
-      "open": true,
-      "group": "entry"
-    }
   ],
   "solution": [
     {

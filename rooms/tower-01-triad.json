@@ -1,0 +1,114 @@
+{
+  "id": "tower-01-triad",
+  "name": "The Triad",
+  "wing": "brass",
+  "hint": "Three chord forks at the ends of three long horns. Each rings for a few beats; the doors open only while all three ring together. One wave cannot be in three places.",
+  "music": {
+    "root": 7,
+    "mode": "mixolydian",
+    "bpm": 100,
+    "timeSignature": 4,
+    "mood": "confident"
+  },
+  "overrides": [
+    {
+      "x": 0,
+      "y": 6,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 2,
+      "y": 1,
+      "sustain": 3,
+      "degree": 0
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "sustain": 3,
+      "degree": 2
+    },
+    {
+      "x": 10,
+      "y": 1,
+      "sustain": 3,
+      "degree": 4
+    },
+    {
+      "x": 11,
+      "y": 4,
+      "latch": true
+    },
+    {
+      "x": 6,
+      "y": 12,
+      "latch": true
+    }
+  ],
+  "layout": [
+    "#############",
+    "##%#######%##",
+    "#.|#%---7#|!#",
+    "#.|#####|#|.#",
+    "#.|###F-J#|D#",
+    "#.|###|###|.#",
+    "D@|###|###|.#",
+    "#.|###|###|.#",
+    "#.|###|###|.#",
+    "#.|###|###|.#",
+    "#.L---.---J.#",
+    "#...........#",
+    "######D######"
+  ],
+  "with": {
+    "waves": 3
+  },
+  "solution": [
+    {
+      "at": [
+        6,
+        10
+      ],
+      "face": "up",
+      "do": "fire",
+      "wait": 2,
+      "why": "into the middle horn (14 tiles to its fork)"
+    },
+    {
+      "at": [
+        6,
+        10
+      ],
+      "face": "left",
+      "do": "fire",
+      "wait": 2,
+      "why": "into the left horn (13)"
+    },
+    {
+      "at": [
+        6,
+        10
+      ],
+      "face": "right",
+      "do": "fire",
+      "why": "into the right horn (13): all three ring at once, do mi sol, and both doors latch open"
+    },
+    {
+      "at": [
+        11,
+        5
+      ],
+      "move": "up",
+      "why": "into the alcove"
+    },
+    {
+      "at": [
+        11,
+        3
+      ],
+      "move": "up",
+      "why": "the Burin"
+    }
+  ]
+}

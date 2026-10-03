@@ -18,6 +18,21 @@ export class Renderer {
     // Set by the editor: where the brush is hovering, what is selected, whether the
     // grid should be loud. Null when playing.
     this.edit = null;
+    // The screen scroll between rooms, Zelda style: the last frame of the old room
+    // slides out as the new room slides in. See beginScroll().
+    this.scroll = null;
+    this.clock = null;   // set by draw(); moving doodads ease between tiles on it
+  }
+
+  // Called just before the room changes, with the way Coda is going. Copies the
+  // frame still on the canvas (the old room) to slide it away.
+  beginScroll(dirName, ms = 320) {
+    const cv = this.canvas;
+    if (!cv.width || !cv.height) return;
+    const snap = document.createElement('canvas');
+    snap.width = cv.width; snap.height = cv.height;
+    snap.getContext('2d').drawImage(cv, 0, 0);
+    this.scroll = { snap, dir: dirName, t0: performance.now(), ms };
   }
 
   resize(room) {
@@ -44,7 +59,28 @@ export class Renderer {
     const p = PALETTE.wing(room.wing);
 
     c.clearRect(0, 0, this.viewW ?? 0, this.viewH ?? 0);
+    this.clock = game.clock;
+
+    // Mid-scroll: the old room's frame slides out, this room follows it in.
+    let shift = null;
+    if (this.scroll) {
+      const k = (performance.now() - this.scroll.t0) / this.scroll.ms;
+      if (k >= 1) this.scroll = null;
+      else {
+        const e = 1 - Math.pow(1 - k, 3);
+        const v = { right: [-1, 0], left: [1, 0], down: [0, -1], up: [0, 1] }[this.scroll.dir] ?? [0, 0];
+        const W = this.viewW, H = this.viewH;
+        c.save();
+        c.setTransform(1, 0, 0, 1, 0, 0);
+        const dpr = this.canvas.width / W;
+        c.drawImage(this.scroll.snap, v[0] * e * W * dpr, v[1] * e * H * dpr);
+        c.restore();
+        shift = [-v[0] * (1 - e) * W, -v[1] * (1 - e) * H];
+      }
+    }
+
     c.save();
+    if (shift) c.translate(shift[0], shift[1]);
     c.translate(this.ox, this.oy);
 
     this._floor(room, s, p);
@@ -56,6 +92,11 @@ export class Renderer {
         if (!d) continue;
         c.save();
         c.translate(x * s, y * s);
+        // Something that walks (a dissonant) hops from its last tile over a sixteenth.
+        if (d.from && d.movedAt) {
+          const k = Math.max(0, Math.min(1, (game.clock.ctx.currentTime - d.movedAt) / game.clock.subInterval));
+          if (k < 1) c.translate((d.from.x - x) * (1 - k) * s, (d.from.y - y) * (1 - k) * s - Math.sin(k * Math.PI) * s * 0.12);
+        }
         this._doodad(d, s, game.ctx, room);
         c.restore();
       }

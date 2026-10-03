@@ -87,6 +87,8 @@ for (const entry of manifest) {
       a.onNote?.(o.midi, o.family);
     };
 
+    // Every room's waves: a shot out through an open door carries on next door.
+    const clearWaves = () => { for (const r of g.liveRooms()) r.waves = []; };
     const DIRS = { right: [1, 0], left: [-1, 0], down: [0, 1], up: [0, -1] };
     const travels = [];
     let shots = 0, stands = new Set(), dud = 0;
@@ -95,7 +97,7 @@ for (const entry of manifest) {
         const px = p.x - dx, py = p.y - dy;
         if (!room.inBounds(px, py) || room.doodadAt(px, py)) continue;
         g.player.x = px; g.player.y = py; g.setFacing(name);
-        g.waves = [];
+        clearWaves();
         const before = heard.length;
         g.fire(); shots++; stands.add(`${px},${py}`);
         let s = 0;
@@ -106,7 +108,7 @@ for (const entry of manifest) {
         }
         travels.push(s);
         if (heard.length === before) dud++;
-        g.waves = [];
+        clearWaves();
       }
     }
     a.play = realPlay;

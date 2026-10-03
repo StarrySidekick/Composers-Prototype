@@ -3,13 +3,12 @@
   "name": "The Slide",
   "wing": "brass",
   "hint": "The slide is an instrument on its own: every pull plays the horn's new note. Press B on the lock to hear the phrase.",
-  "maxWaves": 1,
   "music": {
-    "root": 5,
-    "mode": "ionian",
-    "bpm": 92,
+    "root": 2,
+    "mode": "dorian",
+    "bpm": 100,
     "timeSignature": 4,
-    "mood": "content"
+    "mood": "reflective"
   },
   "legend": {
     "n": {
@@ -36,12 +35,12 @@
     "#...........#",
     "#.....n.....#",
     "#...........#",
-    "D...........#",
+    "D...........D",
     "#...........#",
     "#...........#",
     "#...........#",
-    "######D######",
-    "#.....X.....#",
+    "#...........#",
+    "#...........#",
     "#############"
   ],
   "solution": [

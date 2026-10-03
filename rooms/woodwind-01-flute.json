@@ -1,0 +1,102 @@
+{
+  "id": "woodwind-01-flute",
+  "name": "The Flute",
+  "wing": "woodwind",
+  "hint": "A flute: press B on its head to blow. The note leaves by the first open hole. Cover holes with B to send it further down the flute, lower, and out somewhere else.",
+  "music": {
+    "root": 5,
+    "mode": "lydian",
+    "bpm": 96,
+    "timeSignature": 4,
+    "mood": "mysterious"
+  },
+  "overrides": [
+    {
+      "x": 6,
+      "y": 12,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 10,
+      "y": 4,
+      "group": "a"
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "group": "b"
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "group": "a"
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "group": "b"
+    }
+  ],
+  "layout": [
+    "#############",
+    "#.......#...#",
+    "#.......#.O.#",
+    "#....*..#...#",
+    "#.......##D##",
+    "#..*........#",
+    "D...........#",
+    "#...........#",
+    "#...........#",
+    "#.Qqqqd.....#",
+    "#...........#",
+    "#.....@.....#",
+    "######D######"
+  ],
+  "solution": [
+    {
+      "at": [
+        1,
+        9
+      ],
+      "face": "right",
+      "do": "interact",
+      "why": "blow: every hole is open, so the note (la) leaves by the first hole and rises to the near fork; the alcove opens"
+    },
+    {
+      "at": [
+        10,
+        3
+      ],
+      "move": "up",
+      "why": "the Overtone: two waves at once from now on"
+    },
+    {
+      "at": [
+        3,
+        10
+      ],
+      "face": "up",
+      "do": "interact",
+      "why": "cover the first hole"
+    },
+    {
+      "at": [
+        4,
+        10
+      ],
+      "face": "up",
+      "do": "interact",
+      "why": "cover the second"
+    },
+    {
+      "at": [
+        1,
+        9
+      ],
+      "face": "right",
+      "do": "interact",
+      "why": "blow again: now it leaves by the third hole, lower (fa), and reaches the far fork; the west door opens"
+    }
+  ]
+}

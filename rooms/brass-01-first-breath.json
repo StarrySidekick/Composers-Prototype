@@ -3,7 +3,6 @@
   "name": "First Breath",
   "wing": "brass",
   "hint": "Face right and press A. The wave travels one tile per sixteenth note: follow it, light the fork, and the door east opens.",
-  "maxWaves": 1,
   "music": {
     "root": 0,
     "mode": "ionian",
@@ -11,8 +10,15 @@
     "timeSignature": 4,
     "mood": "content"
   },
+  "overrides": [
+    {
+      "x": 6,
+      "y": 0,
+      "group": "s"
+    }
+  ],
   "layout": [
-    "#############",
+    "######D######",
     "#...........#",
     "#.@......-Y.#",
     "#...........#",

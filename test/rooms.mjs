@@ -96,6 +96,10 @@ for (const entry of manifest) {
     const real = a.play.bind(a);
     a.play = (o) => { heard.push(o); a.onNote?.(o.midi, o.family); };
 
+    // Every room's waves, not just this one's: a shot out through an open door
+    // carries on into the next room (Game.crossEdge) and would still count
+    // against the wave limit for the next shot.
+    const clearWaves = () => { for (const r of g.liveRooms()) r.waves = []; };
     const DIRS = { right: [1, 0], left: [-1, 0], down: [0, 1], up: [0, -1] };
     try {
       for (let y = 0; y < room.height; y++) for (let x = 0; x < room.width; x++) {
@@ -104,7 +108,7 @@ for (const entry of manifest) {
           const px = x - dx, py = y - dy;                 // stand behind it, facing in
           if (!room.inBounds(px, py) || room.doodadAt(px, py)) continue;
           g.player.x = px; g.player.y = py; g.setFacing(name);
-          g.waves = []; g.fire(); out.shots++;
+          clearWaves(); g.fire(); out.shots++;
           let s = 0;
           for (; s < steps && g.waves.length; s++) {
             g.clock.index++;
@@ -112,7 +116,7 @@ for (const entry of manifest) {
             g.waves = g.waves.filter(w => w.alive);
           }
           if (s > out.maxTravel) out.maxTravel = s;
-          g.waves = [];
+          clearWaves();
         }
       }
     } catch (e) { out.threw = 'step: ' + e.message; }

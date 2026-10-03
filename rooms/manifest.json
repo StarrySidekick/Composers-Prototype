@@ -8,5 +8,12 @@
   {"file": "brass-04-valve.json", "name": "Brass 04 — The Valve"},
   {"file": "percussion-02-left-right.json", "name": "Percussion 02 — Left and Right"},
   {"file": "brass-05-slide.json", "name": "Brass 05 — The Slide"},
+  {"file": "woodwind-01-flute.json", "name": "Woodwind 01 — The Flute"},
+  {"file": "woodwind-02-reed.json", "name": "Woodwind 02 — The Reed Loft"},
+  {"file": "tower-01-triad.json", "name": "Tower 01 — The Triad"},
+  {"file": "tower-02-carry.json", "name": "Tower 02 — The Stand"},
+  {"file": "tower-03-stair.json", "name": "Tower 03 — The Stair"},
+  {"file": "discord-01-hall.json", "name": "Discord 01 — The Hall"},
+  {"file": "discord-02-coda.json", "name": "Discord 02 — The Coda"},
   {"file": "sandbox.json", "name": "Sandbox"}
 ]

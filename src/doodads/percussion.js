@@ -103,6 +103,9 @@ class Drum extends Doodad {
     this.solid = spec.solid ?? preset.solid;
     this.blocksWave = true;
     this.hit = 0;
+    // Drums can be cut free with the burin and carried (Game.shoulderL).
+    this.portable = spec.portable !== false;
+    this.carryName = { bass: 'bass drum', tom: 'tom', snare: 'snare', hat: 'hi-hat', cymbal: 'cymbal', timpani: 'timpani' }[this.part];
     // A face table given in the room file still wins: that is the hand-authored
     // Strumentino-style override, and it predates mirrors.
     this.mirror = MIRROR_PARTS.includes(this.part) && !spec.faces;

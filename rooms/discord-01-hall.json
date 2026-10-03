@@ -1,0 +1,94 @@
+{
+  "id": "discord-01-hall",
+  "name": "The Discord",
+  "wing": "brass",
+  "hint": "Dissonants walk here on the beat: a wave resolves them, touching one shoves you. The gate to the west wants nine layers of the score. Past it, the last room is listening.",
+  "music": {
+    "root": 4,
+    "mode": "phrygian",
+    "bpm": 108,
+    "timeSignature": 4,
+    "mood": "tense"
+  },
+  "overrides": [
+    {
+      "x": 6,
+      "y": 0,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "group": "g"
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "group": "g",
+      "layers": 9
+    },
+    {
+      "x": 3,
+      "y": 6,
+      "rot": 180
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "rot": 180
+    },
+    {
+      "x": 11,
+      "y": 3,
+      "rot": 180
+    },
+    {
+      "x": 6,
+      "y": 5,
+      "rot": 90
+    },
+    {
+      "x": 2,
+      "y": 9,
+      "rot": 0
+    }
+  ],
+  "layout": [
+    "######D######",
+    "#.....@.....#",
+    "#..$........#",
+    "#..........&#",
+    "#.###...###.#",
+    "#.....&.....#",
+    "D..dQ.......#",
+    "#...........#",
+    "#.###...###.#",
+    "#.&.........#",
+    "#...........#",
+    "#...........#",
+    "#############"
+  ],
+  "with": {
+    "layers": 9
+  },
+  "solution": [
+    {
+      "at": [
+        6,
+        1
+      ],
+      "wait": 8,
+      "why": "the score is long enough: the gate gives way and the west door opens"
+    },
+    {
+      "at": [
+        5,
+        6
+      ],
+      "face": "left",
+      "do": "interact",
+      "why": "blow the short flute: la, and the wave goes on through the door into the last room"
+    }
+  ]
+}

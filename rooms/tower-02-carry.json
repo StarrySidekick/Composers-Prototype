@@ -1,0 +1,108 @@
+{
+  "id": "tower-02-carry",
+  "name": "The Stand",
+  "wing": "brass",
+  "hint": "An empty stand at the head of a slot, and a chord fork at the bottom that rings only while waves keep coming. Nothing you can fire keeps it ringing long enough to run round to the gate. Something that breathes would.",
+  "music": {
+    "root": 7,
+    "mode": "mixolydian",
+    "bpm": 100,
+    "timeSignature": 4,
+    "mood": "confident"
+  },
+  "overrides": [
+    {
+      "x": 6,
+      "y": 0,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 2,
+      "y": 11,
+      "group": "c"
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "group": "c"
+    }
+  ],
+  "layout": [
+    "######D######",
+    "#.....@.....#",
+    "#.#.........#",
+    "#...........#",
+    "##.########.#",
+    "##.#........#",
+    "##.########.#",
+    "##.#........#",
+    "##.#........#",
+    "##.#D######D#",
+    "##.#........#",
+    "##%#.......*#",
+    "######D######"
+  ],
+  "with": {
+    "items": [
+      "burin"
+    ],
+    "satchel": [
+      {
+        "name": "reed",
+        "spec": {
+          "type": "reed",
+          "rot": 0,
+          "breath": 8
+        }
+      }
+    ]
+  },
+  "solution": [
+    {
+      "at": [
+        1,
+        3
+      ],
+      "do": "turn",
+      "wait": 0,
+      "why": "turn the reed in your hand to face down the slot (R once: 90)"
+    },
+    {
+      "at": [
+        1,
+        3
+      ],
+      "face": "right",
+      "do": "place",
+      "wait": 0,
+      "why": "set it on the stand"
+    },
+    {
+      "at": [
+        1,
+        3
+      ],
+      "face": "right",
+      "do": "interact",
+      "wait": 10,
+      "why": "set it breathing: eight waves down the slot, and the fork at the bottom holds the gate open"
+    },
+    {
+      "at": [
+        4,
+        10
+      ],
+      "why": "run: along the top, down the right side, back along the bottom corridor, through the gate, about 22 tiles"
+    },
+    {
+      "at": [
+        4,
+        11
+      ],
+      "face": "right",
+      "do": "fire",
+      "why": "light the fork in the chamber's far corner: the south door, and the chamber's own way back out, latch open"
+    }
+  ]
+}

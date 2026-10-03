@@ -2,6 +2,11 @@
 // two shoulders, pause. Keyboard maps onto exactly the same model, so nothing
 // can be authored on desktop that a touch player can't do.
 //
+//   A  Space / Enter     fire a wave
+//   B  E / F             play / strike what you face
+//   L  Q                 lift what you face into the satchel, or set it down
+//   R  Tab               turn what you are carrying
+//
 // Directions are HELD, not pressed: the game walks Coda while a direction is
 // down (Game.setHeld / Game.walk), the way A Link to the Past does.
 
@@ -28,6 +33,10 @@ export function bindInput(game, els, hooks = {}) {
         e.preventDefault(); if (!e.repeat) { game.fire(); hooks.onAction?.(); } break;
       case 'e': case 'E': case 'f': case 'F':
         if (!e.repeat) { game.interact(); hooks.onAction?.(); } break;
+      case 'q': case 'Q':
+        if (!e.repeat) { game.shoulderL(); hooks.onAction?.(); } break;
+      case 'Tab':
+        e.preventDefault(); if (!e.repeat) { game.shoulderR(); hooks.onAction?.(); } break;
       case 'r': case 'R':
         game.reload(); hooks.onAction?.(); break;
       case 'm': case 'M':
@@ -96,9 +105,11 @@ export function bindInput(game, els, hooks = {}) {
   };
   button(els['btn-a'], () => game.fire());
   button(els['btn-b'], () => game.interact());
+  button(els['btn-l'], () => game.shoulderL());
+  button(els['btn-r'], () => game.shoulderR());
 
   // Nothing on the play screen should open Safari's long-press menu.
-  for (const el of [pad, els['btn-a'], els['btn-b'], els.stage]) {
+  for (const el of [pad, els['btn-a'], els['btn-b'], els['btn-l'], els['btn-r'], els.stage]) {
     el?.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 }

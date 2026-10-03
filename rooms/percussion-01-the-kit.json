@@ -2,14 +2,13 @@
   "id": "percussion-01-the-kit",
   "name": "The Kit",
   "wing": "percussion",
-  "hint": "Drums are mirrors, and only the head reflects: hit a drum from behind and the shell swallows the wave. Watch which way each head faces. The kettle drum is tuned with B — find the phrase the lock wants.",
-  "maxWaves": 1,
+  "hint": "Drums are mirrors, and only the head reflects: hit a drum from behind and the shell swallows the wave. Watch which way each head faces. The kettle drum is tuned with B \u2014 find the phrase the lock wants.",
   "music": {
-    "root": 4,
-    "mode": "phrygian",
-    "bpm": 108,
+    "root": 9,
+    "mode": "aeolian",
+    "bpm": 88,
     "timeSignature": 4,
-    "mood": "tense"
+    "mood": "sad"
   },
   "legend": {
     "n": {
@@ -21,6 +20,19 @@
       ]
     }
   },
+  "overrides": [
+    {
+      "x": 6,
+      "y": 0,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 11,
+      "y": 2,
+      "rot": 270
+    }
+  ],
   "layout": [
     "######D######",
     "#...........#",
@@ -35,19 +47,6 @@
     "#...........#",
     "#...........#",
     "#############"
-  ],
-  "overrides": [
-    {
-      "x": 6,
-      "y": 0,
-      "open": true,
-      "group": "entry"
-    },
-    {
-      "x": 11,
-      "y": 2,
-      "rot": 270
-    }
   ],
   "solution": [
     {

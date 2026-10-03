@@ -113,6 +113,9 @@ const r = await page.evaluate(async () => {
   g.clock.start();
   run(fake.currentTime + 0.237);
   const lock = g.room.list.find(d => d.typeName === 'notelock');
+  // Only the phrase: the level's tune (src/audio/score.js) has been playing too,
+  // on the same grid, and its notes are checked with everything else above.
+  notes.length = 0;
   lock.onPlayerInteract(g.ctx);
   out.hint = notes.map(n => n.when);
   out.hintOnGrid = notes.length > 0 && notes.every(n => n.grid);

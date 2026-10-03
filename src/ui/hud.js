@@ -51,7 +51,14 @@ export class Hud {
       [...this.beatsEl.children].forEach((el, i) => el.classList.toggle('on', i === beat));
     }
 
-    $('hud-waves').textContent = '◉'.repeat(g.activeWaves).padEnd(r.maxWaves, '○');
+    const allow = g.waveAllowance;
+    $('hud-waves').textContent = '◉'.repeat(Math.min(allow, g.activeWaves)).padEnd(allow, '○');
+    // The satchel: what is in hand (L sets it down, R turns it), and how many more.
+    const pr = g.progress, held = pr.held;
+    $('hud-bag-label').textContent = pr.has('burin') ? 'satchel ✎' : 'satchel';
+    $('hud-bag').textContent = held
+      ? `${held.name}${held.spec.rot ? ` ${held.spec.rot}°` : ''}${pr.satchel.length > 1 ? ` +${pr.satchel.length - 1}` : ''}`
+      : '—';
     const locks = r.list.filter(d => d.isLock);
     $('hud-locks').textContent = locks.length ? locks.map(l => (l.lit ? '◆' : '◇')).join('') : '—';
     this.drawStaff();
