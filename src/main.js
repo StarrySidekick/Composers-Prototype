@@ -162,7 +162,13 @@ async function boot() {
   const flight = new KeyFlight(document.querySelector('.stage-wrap'), { game, renderer });
   game.onDoorOpen = (door) => flight.play(door);
   window.CK.flight = flight;
-  game.onRoomComplete = () => showToast('★ Room resolved');
+  // The end of the world (the Coda's X), or the end of a room played on its own.
+  game.onRoomComplete = () => {
+    const s = game.score;
+    if (!game.world?.has(game.room.id) || !s) { showToast('★ Room resolved'); return; }
+    const have = s.layers.filter(l => game.progress.layers.has(l.id)).length;
+    showHint(`The end. The piece is ${have === s.layers.length ? 'whole' : 'nearly whole'}: ${have} of ${s.layers.length} layers of the score, playing together. Thank you for playing.`, true);
+  };
 
   // The screen scrolls to the next room, Zelda style; Coda waits for it.
   game.onBeforeRoomChange = (dir) => {

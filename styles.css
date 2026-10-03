@@ -403,3 +403,4 @@ body.arranging .cluster * { pointer-events: none; }
 /* A dissonant caught Coda: the stage flinches. */
 .stage-wrap.hurt #stage { animation: flinch .3s; }
 @keyframes flinch { 0%, 100% { transform: none; } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.chip:disabled { opacity: .35; cursor: default; border-color: var(--line); }

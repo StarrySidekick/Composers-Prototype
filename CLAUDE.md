@@ -73,6 +73,30 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   to `display: none !important` because a hidden overlay with its own `display` still
   ate every touch. Safari's tap-and-hold is off on the play screen (`user-select`,
   `-webkit-touch-callout`), back on in the editor's fields.
+- **Waves live in their room** (`room.waves`); `game.waves` is the current room's.
+  A wave that steps off an edge through an open door carries on in the next room
+  (`Game.crossEdge`), and rooms Coda is not in keep stepping their waves and
+  anything `awake` (a breathing reed, a ringing chord fork). A test that clears
+  waves between shots must clear every room's (`g.liveRooms()`), or a wave that
+  went next door still counts against the allowance. Drive the sim with
+  `g.stepWaves(ev)`, not a hand loop over `g.waves`.
+- **Only the Key's own waves count against the allowance** (`source ===
+  ComposersKey`), and the allowance is `room.maxWaves ?? progress.waves` (1 plus
+  an Overtone each). World rooms leave `maxWaves` unset on purpose.
+- **Doors in an outer wall are paired** with the matching door next door and open
+  and shut together; walking off an edge needs the far door open. A door group
+  with no locks in its room (`s` on Brass 01's north door) is a shortcut opened
+  from the other side.
+- **The save replays onto rebuilt rooms** (`src/core/progress.js`): pickups taken,
+  instruments lifted or placed, doors opened. Only a game started from the title
+  saves (`game.saving`); boot, free play, the editor and every test leave it off,
+  so they never touch localStorage. A test that wants a clean slate sets
+  `g.progress = new Progress()` and calls `world.forgetAll()`.
+- **Score notes are played `heard: false`** (`src/audio/score.js`): background
+  music must never answer a lock. `test/mechanics.mjs` fails if one leaks.
+- **New legend characters (2026-10-03):** `Q q d` flute head / hole / foot, `r`
+  reed, `O` Overtone, `!` Burin, `&` dissonant, `%` chord fork, `$` score gate,
+  `^` stair. Check this list and `DEFAULT_LEGEND` before claiming one.
 - **Editor edits mutate the live room; they never reload it.** `Room.setTileChar` /
   `setOverride` rebuild one tile. Reloading would reset every lock and door mid-build.
 
@@ -148,7 +172,8 @@ untouched, the renderer composes the linked key. Don't move it into the doodads.
 ## Testing
 
 **There is a runner now: `node test/rooms.mjs`** — serve the repo root on :8080
-first. It plays every room in the manifest and checks the two things that break
+first. (There are eight now: `rooms world walk timing art solve route
+mechanics`, each `node test/<name>.mjs`.) `rooms.mjs` plays every room in the manifest and checks the two things that break
 silently in a port like this: a legend character claimed twice (an object
 literal just lets the later one win), and a doodad playing a pitch that never
 came through the room's scale.
@@ -209,6 +234,35 @@ the end and walkable to. Each step's spot must be WALKABLE from the last one, so
 a solution cannot cheat through a wall. **Every world room needs a solution**; a
 new room without one fails. Proved by injection: turn Brass 04's valve once
 instead of twice and it fails naming the shut door.
+
+### And the whole world, in one game
+
+`node test/route.mjs` plays ONE game from the start through the `route` in
+`rooms/world.json`, walking Coda tile by tile through every doorway (no
+teleports), and checks each room's `with` (waves, items, satchel, layers) is
+already in the save when the route reaches it. That is the check a metroidvania
+needs: an item gated behind itself, or a one-way door with no way back, fails
+here and nowhere else. It found a soft-lock on its first run (the Stand's
+chamber trapped you if you came in from the south). Proved by injection: take
+the Burin out of the Triad and it fails at "could not lift".
+
+`test/solve.mjs` now takes a room's `with` as its starting kit, new verbs
+(`lift`, `place`, `turn`), `wait` (sixteenths) and steps in another room
+(`"room": id`). A door held open only by a ringing chord fork, or a shortcut whose
+locks are elsewhere, is not counted as that room's exit.
+
+### And every gate really is a gate
+
+`node test/mechanics.mjs` checks the other direction: that the thing a room gates
+on is actually needed. The Triad cannot open with two waves in any order; the
+Stand's gate shuts before Coda can walk there unless a reed is breathing (it
+measures the open window against an 8-way shortest walk at Link's speed); the
+Stair refuses the phrase in G and A sharp; the Coda cannot finish its phrase
+without the Hall. Plus the flute's fingering, reed breaths, dissonants, the burin
+and the save, waves through doors, paired doors, the allowance, and the score in
+key and unheard. Its first run found the Stand solvable with a drum and three
+quick shots; the room was rebuilt. Proved by injection: let the chord forks ring
+eight beats and it fails naming every two-wave order that now works.
 
 ### And a report, for when you are making rooms rather than fixing them
 

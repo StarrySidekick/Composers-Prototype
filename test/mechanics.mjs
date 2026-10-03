@@ -296,6 +296,11 @@ const r = await page.evaluate(async () => {
     const saved = JSON.parse(JSON.stringify(g.progress.toJSON()));
     const back = new Progress(saved);
     out.burin.save = JSON.stringify(back.toJSON()) === JSON.stringify(saved);
+    // Continue puts you back in the saved room, on the saved tile.
+    const cont = new Progress(); cont.room = 'brass-02-crossroads'; cont.at = { x: 3, y: 4, facing: 'down' };
+    g.continueGame(new Progress(JSON.parse(JSON.stringify(cont.toJSON()))));
+    g.saving = false; Progress.erase();
+    out.burin.continued = [g.room.id, g.player.x, g.player.y, g.player.facing];
   }
 
   // ---- waves through doors, and paired doors ----------------------------------------
@@ -421,6 +426,7 @@ ok('set down elsewhere, turned, it stays there after a rebuild, once',
   r.burin.placed && r.burin.afterRebuild.at6_5 === 'reed' && r.burin.afterRebuild.rot === 90 && r.burin.afterRebuild.reeds === 1, s(r.burin.afterRebuild));
 ok('an Overtone raises the allowance and does not come back', r.burin.overtone.waves === 2 && r.burin.overtone.back === null, s(r.burin.overtone));
 ok('the save round-trips', r.burin.save);
+ok('continue puts you back where you were', s(r.burin.continued) === s(['brass-02-crossroads', 3, 4, 'down']), s(r.burin.continued));
 
 ok('a wave out of an open door carries on in the next room', r.through.inNext === 1 && r.through.here === 0, s(r.through));
 ok('and keeps going there, far enough to light that room\'s fork', r.through.litNextDoor === true, s(r.through));

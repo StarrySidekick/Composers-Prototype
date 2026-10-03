@@ -8,10 +8,10 @@ It doubles as the seed for a smaller, self-contained, mobile-friendly music game
 of these prototypes turns out to want its own life.
 
 ## Run it
-A regression harness lives at `test/rooms.mjs` — serve the root, then
-`node test/rooms.mjs`. It plays every room in the manifest and checks that no
-legend character is claimed twice and that nothing plays a pitch outside its
-room's scale. See CLAUDE.md for what it does and does not prove.
+Eight test scripts live in `test/` (`rooms world walk timing art solve route
+mechanics`): serve the root, then `node test/<name>.mjs`. `route.mjs` plays the
+whole dungeon from the start; `mechanics.mjs` checks every gate holds. See
+CLAUDE.md for what each does and does not prove.
 
 
 Rooms are loaded with `fetch`, so it needs a server (any server):
@@ -29,11 +29,16 @@ Then open <http://localhost:8080>. On GitHub Pages it just works — see *Publis
 | WASD / arrows | move and face |
 | Space | **A** — fire a sound wave from the Composer's Key |
 | E or F | **B** — interact / melee strike the tile you're facing |
+| Q | **L** — lift what you face into the satchel, or set it down (needs the Burin) |
+| Tab | **R** — turn what you are carrying |
+| Esc | pause menu: map, satchel, score, workshop |
 | R | reset the room |
 | M | metronome |
 | Ctrl/⌘ Z | undo an edit (Ctrl ⇧ Z / Ctrl Y to redo) |
 
-On touch, the same six inputs are the on-screen Game Boy at the bottom. Everything is
+The game opens on a title screen: continue, new game, free play (any room, every
+tool, nothing saved) or the editor. On touch, the same inputs are the on-screen
+Game Boy at the bottom, shoulders included. Everything is
 designed touch-first, per GDD §9 — nothing here can be authored that a phone can't play.
 
 ## Author
@@ -125,21 +130,31 @@ Faithful to the GDD and to the Unity architecture, deliberately:
   cello / bass by tile count, same thresholds as `String.cs`.
 - **Locks with many solutions, and locks with one.** A trigger lock accepts any wave; a
   note lock wants a specific phrase and will play you the hint.
-- **Mode ↔ mood mapping** from GDD §11, live in the editor.
+- **Mode ↔ mood mapping** from GDD §11, live in the editor, and by area: the world is
+  six areas, each with one key, mode and tempo.
+- **A dungeon.** Sixteen rooms with branches, a shortcut, backtracking, Overtones (more
+  waves at once), the Burin and a satchel (carry instruments, set them down elsewhere),
+  and a tune that grows a layer per solved room. See [docs/WORLD.md](docs/WORLD.md).
+- **Woodwinds.** A flute whose fingering picks the note and the way out; a reed that keeps
+  breathing.
+- **A first enemy**, the dissonant, resolved by any wave. Enemies and a boss are scoped in
+  [docs/SCOPE-ENEMIES-AND-BOSS.md](docs/SCOPE-ENEMIES-AND-BOSS.md).
 
-Not modelled yet: the four area instruments, fabric-bending, sheet-music scooping, the
-Strumentini inventory, bosses. Those come when there's something to test.
+Not modelled yet: the four area instruments, fabric-bending, sheet-music scooping, a
+boss. Those come when there's something to test.
 
 ## Layout
 
 ```
 index.html          shell + virtual Game Boy
 src/core/           beat clock, musical state, sound wave, room, doodad base, directions
-src/doodads/        brass, strings, percussion, keys, locks, structure
-src/audio/          Web Audio synths — the FMOD stand-in
+src/doodads/        brass, woodwind, strings, percussion, keys, locks, structure, pickups, enemy
+src/audio/          Web Audio synths — the FMOD stand-in — and the level's growing score
+src/ui/             status bars, title and pause menus, movable controls
 src/render/         canvas renderer, wing palettes, sprite store, placeholder baker
 src/editor/         the room editor — catalog, canvas painting, panel
-rooms/*.json        the rooms, plus manifest.json
+rooms/*.json        the rooms, plus manifest.json and world.json (the dungeon)
+test/*.mjs          the eight checks
 assets/             sprites, if there are any — optional
 docs/PORTING.md     how each piece maps back to the Unity project
 docs/ASSETS.md      the sprite pipeline, both directions

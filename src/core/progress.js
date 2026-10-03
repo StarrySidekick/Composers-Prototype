@@ -39,6 +39,7 @@ export class Progress {
     this.layers = new Set();
     this.visited = new Set();
     this.room = null;          // where to continue from
+    this.at = null;            // and where in it: { x, y, facing }
     this.free = false;         // free play: every tool, no saving
     return this;
   }
@@ -131,7 +132,7 @@ export class Progress {
     return {
       waves: this.waves, items: [...this.items], satchel: this.satchel, selected: this.selected,
       taken: [...this.taken], placed: this.placed, opened: [...this.opened],
-      layers: [...this.layers], visited: [...this.visited], room: this.room,
+      layers: [...this.layers], visited: [...this.visited], room: this.room, at: this.at,
     };
   }
 
@@ -146,6 +147,7 @@ export class Progress {
     this.layers = new Set(j.layers ?? []);
     this.visited = new Set(j.visited ?? []);
     this.room = j.room ?? null;
+    this.at = j.at ?? null;
     return this;
   }
 

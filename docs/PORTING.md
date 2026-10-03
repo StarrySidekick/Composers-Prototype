@@ -127,6 +127,74 @@ to `draw()`, which is the designed behaviour, not a gap to rush. `player` and `w
 extra keys outside `spriteSlots()`; the store resolves any key, but the editor's
 drop-zone matcher only offers the enumerated ones.
 
+## Written here 2026-10-03: the dungeon pass
+
+All new, none in Unity yet. Each line is the rule that made it work, in the form
+it should be ported.
+
+**Woodwinds (`src/doodads/woodwind.js`).**
+- *Flute*: a straight run of `flute` tiles sharing one `rot`, head at local left,
+  foot at local right, holes open on local top. A wave moving along the bore
+  leaves through the **first open hole** it meets: it sounds there and is
+  redirected out of the hole (`rotate(up, rot)`); a covered hole passes it on; the
+  foot sounds and passes it on (all covered). Pitch: `degree = 7 - n`, `n` = tiles
+  from the head to the sounding tile inclusive, octave 5. B on a hole toggles
+  `covered`; B on the head launches a wave down the bore. Waves into the side of
+  the bore are destroyed; a wave travelling back up into the head is swallowed.
+- *Reed*: one tile, bell at local right. Any wave entering (from any side) is
+  destroyed and starts it **breathing**: it sounds `degree`/`octave` and emits a
+  wave out of the bell at once, then once per beat until `breath` breaths are
+  spent. A wave of intensity under 0.6 gives one breath only. A wave arriving while
+  it breathes is just absorbed (no restart). Portable (see the satchel).
+
+**Progress (`src/core/progress.js`).** The save: `waves` (1 + Overtones, max 4),
+`items`, `satchel`, `taken` / `placed` tile edits, `opened` doors, score `layers`,
+`visited`. Rooms rebuild from their data and replay these. In Unity this is a
+save system plus per-scene persistent state; keep the "rebuild then replay" shape,
+it is what stops duplicates.
+
+**Wave allowance.** Only the Key's own waves count (`source === ComposersKey`); an
+instrument's waves (a blown horn, a mallet, a reed) do not. A room's `maxWaves`, if
+set, overrides the found allowance (free play, or a deliberate cap).
+
+**The satchel (L / R).** With the burin, L on a `portable` doodad (drums, reeds)
+removes it and stores its spec (with its current `rot`); L on empty floor in front
+places the held one (never in the outer wall, never on a wave). R turns the held
+spec by 45° for a mirror drum, 90° otherwise. The GDD's two shoulders, finally used.
+
+**Chord forks.** A trigger lock with `sustain: n` is lit for `n` beat boundaries
+after each hit, then goes dark and re-checks its group. A door with `latch: true`
+stays open once opened. Unlatched doors in a sustain group are "held" doors.
+
+**Stairs that climb.** A keyshift with `climb: true` applies `delta` times the dot
+product of Coda's move direction with its up direction (`rotate(up, rot)`): up the
+stair raises, down lowers, across does nothing. Mind the Y axis.
+
+**Note locks: `key`, `listen`, `patience`.** `key` builds the target scale from
+the room's mode on the lock's own tonic, so the same degrees are wanted in another
+key. `listen: 'world'` hears notes from every room. `patience` (beats) forgets a
+half-played phrase after that much silence, measured lazily on the next note.
+
+**Score gate.** A lock lit once the save holds `layers` score layers; checked on the beat.
+
+**Doors in the outer wall are paired** with the matching door next door; they open
+and shut together unless the partner is an entry door. Walking off an edge needs
+the far door open, so a door is a wall from both sides. A wave stepping off an edge
+through an open door is re-spawned on the far door tile and resolved against it in
+the same sixteenth (`Game.crossEdge`); the room it is in keeps simulating while
+Coda is elsewhere. In Unity, rooms are scenes: this needs either adjacent scenes
+loaded additively or a per-room simulation that runs off-screen.
+
+**The score (`src/audio/score.js`).** Layers of `[sixteenth, degree, octave?,
+kind?]` over a fixed loop, each earned by `by` (start, or a room's first opened
+door), played through the current room's `MusicalState` so it follows key, mode and
+tempo, and never heard by a lock. In FMOD: one event with stems, a parameter per
+layer, and the key and mode applied by playing the stems from MIDI through the
+room's scale (or by authoring per-mode stems).
+
+**The dissonant (`src/doodads/enemy.js`).** See
+[SCOPE-ENEMIES-AND-BOSS.md](SCOPE-ENEMIES-AND-BOSS.md).
+
 ## Mirror drums: new here, port this
 
 Since 2026-10-01 the bass drum, tom and snare are **mirrors**, not face tables: the

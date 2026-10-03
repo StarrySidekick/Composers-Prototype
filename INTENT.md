@@ -112,13 +112,9 @@ the form where placeholders floated; both fixed and measured.
 
 **Gaps found, with what could fill them** (proposals; nothing here is decided):
 
-- **Woodwind has no instrument at all.** The wing exists in name only. Proposal
-  tiles on the review page: a reed (blown like a mouthpiece that is its own horn)
-  and a flute run (holes along it; a block on a hole lowers the note).
-- **The stairs (key + / key -) mean nothing to a puzzle.** Instruments and locks
-  are both scale degrees, so shifting the key moves both together. Proposal: a
-  note lock that wants an *absolute* pitch (`notelock.absolute` on the review page),
-  so climbing the stairs is how you reach a phrase outside the room's key.
+- ~~Woodwind has no instrument at all.~~ Done 2026-10-03: flute and reed.
+- ~~The stairs mean nothing to a puzzle.~~ Done 2026-10-03: stairs climb, and a
+  note lock can want its phrase in another key (`key`), so where you stand matters.
 - **Dissonance does nothing a puzzle can feel.** It sours a wave, and every lock
   still accepts the sour wave. Proposal: note locks reject soured notes, or a sour
   wave cannot light a fork.
@@ -130,6 +126,56 @@ the form where placeholders floated; both fixed and measured.
 Still open on art: the rest of the Unity sprite folder has not been brought across,
 because this repo cannot see it. Copying `Assets/Sprites` (or a listing of it) into the
 repo is the next step for parity.
+
+## 2026-10-03: the dungeon pass
+
+Asked for by Timothy, in one list. What was done with each, and what is a guess
+he should check:
+
+- **Interconnected rooms, like a Zelda dungeon or a metroidvania.** Done: sixteen
+  rooms, branches, a shortcut back to the start (doors are paired, so it opens from
+  the far side), backtracking for a reed found two areas earlier, a map in the
+  pause menu. `docs/WORLD.md`. `node test/route.mjs` plays it start to finish.
+- **Woodwinds with unique mechanics.** Done: the **flute** (the fingering picks the
+  note AND the way the wave leaves: it goes out the first open hole) and the
+  **reed** (keeps breathing: a wave a beat for several beats). Two rooms teach them.
+- **Start menu and pause menu.** Done: title screen with continue / new game / free
+  play / editor (the room plays behind it, the 3D key spins); the pause menu has
+  the map, the satchel, the score's layers, and the old toolbar under "workshop".
+- **Upgrades for more waves at once.** Done: **Overtones**, two in the woodwind
+  wing. The Triad needs three waves in the air at once; `test/mechanics.mjs` proves
+  two cannot do it in any order.
+- **Collect instruments, place them later; the burin.** Done: the **Burin** (in
+  the Triad) lets L lift drums and reeds into the satchel and set them down, R
+  turns the one in hand. The Stand needs the reed from the Reed Loft.
+- **Playing a piece continuously over multiple rooms.** Done two ways, a guess at
+  what was meant: waves **carry on through open doors** into the next room, and a
+  lock can **listen to the whole world** with a patience in beats. The Coda's lock
+  wants la-sol-mi-do: la is played by a flute next door, and the same wave walks
+  on through the doorway to play sol, mi and do. If he meant something else (a
+  piece you perform room by room, against a timer?) it is a small change.
+- **Raising or lowering the key as a puzzle.** Done: stairs now **climb** (up
+  raises, down lowers, as a raised dais should), and a note lock can want its
+  phrase **in another key**. The Stair: the lock wants A, the room is in G, there
+  are a two-step and a three-step stair.
+- **Areas with a mode that reflects a mood.** Done: six areas, each one key, mode
+  and tempo, with a title card on entry. The Coda turns from phrygian to ionian
+  when it is solved.
+- **A motif that loops and grows through the level.** Done: a four-bar tune in
+  scale degrees, a layer added per solved room (ten), played in each area's key and
+  mode. The score gate before the end wants nine. The tune itself is a first draft
+  composed blind (no one has listened to it yet): judge it by ear.
+- **Smoother movement, with the waves still on the beat.** Coda already walked
+  freely like Link (2026-10-02). Added: the Zelda screen scroll between rooms, and
+  dissonants hop between tiles instead of jumping.
+- **Scope a limited enemy.** Prototyped: the **dissonant**, a sour note that walks
+  on the beat, shoves Coda, and is resolved by any wave. Scope and options in
+  `docs/SCOPE-ENEMIES-AND-BOSS.md`.
+- **Scope a boss.** Written, not built: the Unresolved Chord, a call-and-response
+  exam on the level's mechanics, in the same doc.
+
+Judgement calls worth his eye: the timing windows of the two "set it breathing and
+run" rooms on a real phone; whether the dissonant's shove is too soft; the tune.
 
 ## Something that needs Timothy
 
