@@ -11,6 +11,11 @@
 //   - Nothing just stops. A stalk ends in a spiral, a twig in two buds, a frame
 //     corner in a scroll. Ornament grows OUT of the form, never floats beside it.
 //   - Structure 3 px, ornament 2 px, spirals finer (1.5) and open (~1.75 turns).
+//   - It must read at PLAY SIZE: a tile is about 30 px on his phone (a 13-tile room
+//     in ~390 px), so 2 px becomes ~1 and a 2 px gap closes. Timothy, 2026-10-04:
+//     "the slide and some other sprites don't read well as they are so small".
+//     The part that carries the meaning is drawn as big as the tile allows, at
+//     3 px or solid; small marks are dropped rather than shrunk.
 //
 // One function per sprite key, drawn unrotated in a 51 x 51 space with a Pen seeded
 // from the key (the same drawing every frame). Connectors are fixed by the protocol:
@@ -93,11 +98,6 @@ function noteRing(p, x, y, rx, ry, rot = -0.4) {
     const a = a0 + 6.483 * t, ex = Math.cos(a) * rx, ey = Math.sin(a) * ry;
     return [x + ex * Math.cos(rot) - ey * Math.sin(rot), y + ex * Math.sin(rot) + ey * Math.cos(rot)];
   }, { width: 2, wobble: 0 });
-}
-
-function note(p, x, y, stem = 14) {
-  fillDot(p, x, y, 3.4, 2.5);
-  p.line(x + 3, y - 1, x + 3, y - stem, fine);
 }
 
 // A pair of scrolls, mirror images, growing out of a point on each side: the
@@ -271,21 +271,27 @@ function kitDrum(p, ang, { r, ry = r * 0.36, depth, legs = false, snare = false 
   // a point on the back of the head's rim, k from -1 to 1 along it
   const rim = (k) => { const h = ry * Math.sqrt(Math.max(0, 1 - k * k)); return [cx + ux * r * k + nx * h, cy + uy * r * k + ny * h]; };
   const bar = (k, o = 0) => [bx + ux * r * k + nx * o, by + uy * r * k + ny * o];
-  p.line(...rim(-0.85), ...bar(-0.7), { width: 3, ...crafted });
-  p.line(...rim(0.85), ...bar(0.7), { width: 3, ...crafted });
   if (snare) {
-    // the back is the wire: a zigzag where the tom has its bar
+    // a shallow shell whose back is the wire: a zigzag where the tom has its bar
+    p.line(...rim(-0.85), ...bar(-0.7), { width: 3, ...crafted });
+    p.line(...rim(0.85), ...bar(0.7), { width: 3, ...crafted });
     const pts = [];
     for (let i = 0; i <= 7; i++) { const k = -0.7 + i * 0.2; pts.push(bar(Math.min(k, 0.7), i % 2 ? 3.5 : 0)); }
     p.poly(pts, { width: 3, wobble: 0 });
     return;
   }
-  p.line(...bar(-0.7), ...bar(0.7), { width: 3, ...crafted });
-  p.line(...rim(-0.25), ...bar(0.7), { width: 2, ...crafted });     // one brace across the truss
-  if (legs) for (const k of [-0.5, 0.5]) {
-    const [x, y] = bar(k), L = 7;
-    p.line(x, y, x + nx * L, y + ny * L, { width: 3, ...crafted });
-    p.bud(x + nx * L, y + ny * L, 2.4);
+  // the tom: his triangular truss, struts closing in to a short back bar, and
+  // legs splaying out from it (parallel legs read as a table at play size)
+  const kb = 0.38;
+  p.line(...rim(-0.85), ...bar(-kb), { width: 3, ...crafted });
+  p.line(...rim(0.85), ...bar(kb), { width: 3, ...crafted });
+  p.line(...bar(-kb), ...bar(kb), { width: 3, ...crafted });
+  p.line(...rim(0), ...bar(kb), { width: 2, ...crafted });           // one brace across the truss
+  if (legs) for (const s of [-1, 1]) {
+    const [x, y] = bar(s * kb), L = 7.5;
+    const fx = x + nx * L + ux * s * L * 0.7, fy = y + ny * L + uy * s * L * 0.7;
+    p.line(x, y, fx, fy, { width: 3, ...crafted });
+    p.bud(fx, fy, 2.4);
   }
 }
 
@@ -305,12 +311,14 @@ function plate(p, half, y, rise, dir, tilt = 0) {
   p.path(t => R([M - half + 2 + t * (2 * half - 4), y + dir * Math.sin(t * Math.PI) ** 0.7 * rise]), { width: 3, wobble: 0.1 });
 }
 
-// A straight mute lying along the tube, wide end (the cork flange) at x0, centred
-// on row cy, the flange `h` either side of it; the cone runs 22 px to a knob.
+// The mute as a bung: a stopper as wide as the bore with a heavy flange at its
+// left end (x0), centred on row cy, the flange `h` either side. Seated, the
+// stopper fills the bore, so the tube reads as blocked solid for a stretch; pulled,
+// the same bung lies above the clear tube. Not a long cone: at play size a cone in
+// a tube reads as an arrow (or a play button).
 function mute(p, x0, cy, h) {
   p.fill([[x0, cy - h], [x0 + 4, cy - h], [x0 + 4, cy + h], [x0, cy + h]]);       // the flange
-  p.fill([[x0 + 4, cy - h + 2.5], [x0 + 21, cy - 2], [x0 + 21, cy + 2], [x0 + 4, cy + h - 2.5]]);
-  fillDot(p, x0 + 22, cy, 2.6, 2.6, 0);                                             // the knob
+  p.fill([[x0 + 4, cy - 3.5], [x0 + 19, cy - 3], [x0 + 19, cy + 3], [x0 + 4, cy + 3.5]]);   // the stopper
 }
 
 // ---------------------------------------------------------------------------
@@ -323,7 +331,7 @@ function mute(p, x0, cy, h) {
 // blow) at the left end, the FOOT (open) at the right; a hole opens UP out of the
 // top wall, which is where the wave leaves it (FlutePiece.holeDir).
 const FA = 23.5, FB = 28.5;     // flute wall centres, 3 px: rows 22-24 and 27-29
-const HY = 16.5, HR = 4.5;      // the hole's ring, sitting on the top wall
+const HY = 15, HR = 6;          // the hole's ring, sitting on the top wall (r 4.5 until 2026-10-04: a speck at play size)
 const HG = 0.62;                // half-angle of the ring's opening into the bore
 
 function boreH(p, x0 = 0, x1 = T) { p.line(x0, FA, x1, FA, crafted); p.line(x0, FB, x1, FB, crafted); }
@@ -331,6 +339,15 @@ function boreH(p, x0 = 0, x1 = T) { p.line(x0, FA, x1, FA, crafted); p.line(x0, 
 // A band round the body: one short stroke standing proud of both walls.
 function band(p, x) {
   p.line(x, FA - 3, x, FB + 3, { width: 2, ...crafted });
+}
+
+// pen.stalk, but its spiral at 2 px rather than the pen's 1.5, which is lost at
+// the ~30 px a tile is shown at on a phone. For the scrolls that carry the form.
+function stalk2(p, x, y, ang, len, r, { dir = 1, bend = 0.25, width = 2.5 } = {}) {
+  const ex = x + Math.cos(ang) * len, ey = y + Math.sin(ang) * len;
+  const mx = (x + ex) / 2 - Math.sin(ang) * len * bend * dir, my = (y + ey) / 2 + Math.cos(ang) * len * bend * dir;
+  p.path(t => [(1 - t) ** 2 * x + 2 * (1 - t) * t * mx + t * t * ex, (1 - t) ** 2 * y + 2 * (1 - t) * t * my + t * t * ey], { width, passes: 1 });
+  p.curlAt(ex, ey, Math.atan2(ey - my, ex - mx), r, { dir, width: 2 });
 }
 
 // The tone hole: a ring standing on the top wall, open at the bottom into the
@@ -361,24 +378,26 @@ function erase(p, fn) {
 function scoreGate(p, lit) {
   // the staff runs from the bracket to the barline, broken round the lock
   for (const y of [14, 19, 24, 29, 34]) {
-    p.line(8, y, 18, y, { width: 2, wobble: 0 });
-    p.line(33, y, 42, y, { width: 2, wobble: 0 });
+    p.line(8, y, 16, y, { width: 2, wobble: 0 });
+    p.line(35, y, 42, y, { width: 2, wobble: 0 });
   }
   p.line(7.5, 12, 7.5, 36, crafted);
   p.stalk(7.5, 12, -Math.PI / 3, 1.5, 4.2, { dir: 1, bend: 0.1, turns: 0.7 });
   p.stalk(7.5, 36, Math.PI / 3, 1.5, 4.2, { dir: -1, bend: -0.1, turns: 0.7 });
   p.line(43, 13, 43, 35, { width: 2, ...crafted });
-  // the padlock: a solid body with the keyhole cut out, a shackle over it
-  p.fill([[20, 21], [31, 21], [31, 29], [20, 29]]);
-  erase(p, () => { fillDot(p, M, 24, 1.7, 1.7, 0); p.fill([[M - 1, 24], [M + 1, 24], [M + 1, 27], [M - 1, 27]]); });
-  const lift = lit ? 3.5 : 0;
-  p.line(21.5, 21 - lift, 21.5, 16 - lift, { wobble: 0 });
-  p.line(29.5, 21, 29.5, 16 - lift, { wobble: 0 });
-  p.arc(M, 16 - lift, 4, Math.PI, Math.PI * 2, { wobble: 0.05 });
+  // the padlock, bigger since 2026-10-04 so it reads at play size: a solid body
+  // with the keyhole cut out, a 3 px shackle over it
+  p.fill([[18, 20], [33, 20], [33, 32], [18, 32]]);
+  erase(p, () => { fillDot(p, M, 24.5, 2.3, 2.3, 0); p.fill([[M - 1.2, 24.5], [M + 1.2, 24.5], [M + 1.2, 29], [M - 1.2, 29]]); });
+  const lift = lit ? 4.5 : 0;
+  p.line(20.5, 20 - lift, 20.5, 14.5 - lift, { wobble: 0 });
+  p.line(30.5, 20, 30.5, 14.5 - lift, { wobble: 0 });
+  p.arc(M, 14.5 - lift, 5, Math.PI, Math.PI * 2, { wobble: 0.05 });
   if (lit) {
     for (let k = -2; k <= 2; k++) {
-      const a = -Math.PI / 2 + k * 0.48;
-      p.line(M + Math.cos(a) * 9.5, 15 + Math.sin(a) * 9.5, M + Math.cos(a) * 12.5, 15 + Math.sin(a) * 12.5, fine);
+      if (!k) continue;
+      const a = -Math.PI / 2 + k * 0.55;
+      p.line(M + Math.cos(a) * 11, 13 + Math.sin(a) * 11, M + Math.cos(a) * 14.5, 13 + Math.sin(a) * 14.5, { width: 2.5, wobble: 0 });
     }
   }
 }
@@ -399,12 +418,18 @@ export const PLACEHOLDERS = {
   },
   // A bridge: the horizontal channel passes over, the vertical ducks under, its
   // walls stopping short with a scroll either side so it reads as "under".
+  // 2026-10-04: the under-channel now stops a clear 5 px short of the bridge and
+  // each wall ends turning outward (a bridge's wing walls), 3 px, so the gap reads
+  // at play size; before, it closed up and the cross read as a plain junction.
   'brass.cross': p => {
     tubeH(p); grain(p, 6, 16); grain(p, 35, 45);
-    p.line(A, 0, A, A - 4); p.line(B, 0, B, A - 4);
-    p.line(A, B + 4, A, T); p.line(B, B + 4, B, T);
-    p.curlAt(A, A - 4, Math.PI / 2 + 0.6, 3, { dir: 1 });
-    p.curlAt(B, B + 4, -Math.PI / 2 + 0.6, 3, { dir: 1 });
+    const top = A - 6.5, bot = B + 6.5;
+    p.line(A, 0, A, top); p.line(B, 0, B, top);
+    p.line(A, bot, A, T); p.line(B, bot, B, T);
+    for (const [x, s] of [[A, -1], [B, 1]]) {
+      p.line(x, top, x + s * 4, top + 3, { wobble: 0 });
+      p.line(x, bot, x + s * 4, bot - 3, { wobble: 0 });
+    }
   },
   // His mouthpiece: a cup like a trapezoid with a heavy rim bar on the left (where
   // you blow), the stem out of the right edge, fleur curls in the cup.
@@ -443,12 +468,12 @@ export const PLACEHOLDERS = {
   // (Redrawn 2026-10-04: the old one was a sliver inside the bore.)
   'brass.mute': p => {
     tubeH(p); grain(p, 38, 47);
-    mute(p, 11, M, 9.5);
+    mute(p, 15, M, 10.5);
   },
   'brass.mute.open': p => {
     tubeH(p); grain(p, 6, 45);
-    mute(p, 9, 9.5, 7);
-    p.path(t => [33 + t * 5, 9.5 + t * 10 + Math.sin(t * Math.PI) * -3], { width: 2, wobble: 0.1 });   // the cord
+    mute(p, 15, 9.5, 7);
+    p.path(t => [34 + t * 6, 9.5 + t * 10 + Math.sin(t * Math.PI) * -3.5], { width: 2, wobble: 0.1 });   // the cord
   },
 
   // ---- strings ------------------------------------------------------------
@@ -466,11 +491,11 @@ export const PLACEHOLDERS = {
   // and the rod through both; the cymbal is ONE wide flat plate with a solid bell.
   // Before, both were thin ellipses that merged into a mushroom at ~30 px.
   'drum.hat': p => {
-    plate(p, 15, 14.5, 5, -1);
-    plate(p, 15, 20.5, 5, 1);
-    p.line(M, 5, M, 13, { width: 3, ...crafted });
-    p.bud(M, 5, 2.2);
-    stand(p, 22);
+    plate(p, 17, 14.5, 4.5, -1);
+    plate(p, 17, 21.5, 4.5, 1);
+    p.line(M, 7, M, 13, { width: 3, ...crafted });
+    p.bud(M, 7, 2.2);
+    stand(p, 23);
   },
   'drum.cymbal': p => {
     plate(p, 20, 15, 5, -1, -0.2);
@@ -530,7 +555,10 @@ export const PLACEHOLDERS = {
     p.line(11, 44, 11, 20, crafted); p.line(40, 44, 40, 20, crafted);
     p.arc(M, 20, 14.5, Math.PI, 2 * Math.PI, crafted);
     p.line(5, 45, 46, 45, { width: 3, ...crafted });
-    note(p, 23, 36, 13); p.curlAt(26, 23, -Math.PI / 2, 3, { dir: 1 });
+    // the note inside, big enough to read at play size (2026-10-04): solid head,
+    // 3 px stem and flag
+    fillDot(p, 22, 36, 5, 3.8); p.line(26.5, 35, 26.5, 18, { width: 3, wobble: 0 });
+    p.path(t => [26.5 + t * 6.5, 18 + t * 9 - Math.sin(t * Math.PI) * 2.5], { width: 3, wobble: 0.05 });
   },
   // Sour: his sound wave, broken: flat in, jagged, splinters off the peaks.
   'dissonance': p => {
@@ -554,10 +582,10 @@ export const PLACEHOLDERS = {
   'flute.head': p => {
     boreH(p, 13, T);
     p.fill([[10, FA - 3.5], [14, FA - 3.5], [14, FB + 3.5], [10, FB + 3.5]]);
-    p.stalk(12, FA - 3.5, -Math.PI / 2 - 0.2, 2, 4.8, { dir: -1, bend: 0.1 });
-    p.stalk(12, FB + 3.5, Math.PI / 2 + 0.2, 2, 4.8, { dir: 1, bend: -0.1 });
-    fillDot(p, 28, FA - 4.6, 7.5, 3.4, 0);
-    erase(p, () => fillDot(p, 28, FA - 5, 3.2, 1.4, 0));
+    stalk2(p, 12, FA - 3.5, -Math.PI / 2 - 0.2, 2, 5.5, { dir: -1, bend: 0.1 });
+    stalk2(p, 12, FB + 3.5, Math.PI / 2 + 0.2, 2, 5.5, { dir: 1, bend: -0.1 });
+    fillDot(p, 28, FA - 5.5, 9.5, 4.6, 0);                       // the lip plate, bigger 2026-10-04
+    erase(p, () => fillDot(p, 28, FA - 6.2, 4.4, 2.1, 0));        // so the embouchure survives at play size
     band(p, 43);
   },
   // An open hole: the ring stands on the top wall, open into the bore.
@@ -567,16 +595,16 @@ export const PLACEHOLDERS = {
     toneHole(p);
     fillDot(p, M, HY, HR + 1.5, HR + 1.5, 0);
     p.line(M - 5, FA, M + 5, FA, { wobble: 0 });                 // sealed
-    p.line(M + HR + 1, HY, 41, HY + 2, { width: 2, ...crafted });
-    p.bud(41.5, HY + 2, 2);
+    p.line(M + HR + 1, HY + 1, 42, HY + 3, { width: 3, ...crafted });
+    p.bud(42.5, HY + 3, 2.6);
   },
   // The foot (joins only its left edge): a band, then the bore left open, its lips
   // rolling back over into a scroll each side.
   'flute.foot': p => {
     boreH(p, 0, 37);
     band(p, 12);
-    p.stalk(37, FA, -Math.PI / 4, 2.5, 4.8, { dir: -1, bend: 0.1 });
-    p.stalk(37, FB, Math.PI / 4, 2.5, 4.8, { dir: 1, bend: -0.1 });
+    stalk2(p, 37, FA, -Math.PI / 4, 2.5, 5.5, { dir: -1, bend: 0.1 });
+    stalk2(p, 37, FB, Math.PI / 4, 2.5, 5.5, { dir: 1, bend: -0.1 });
   },
   // The reed (rot 0: the reed at the left, the bell opening right, where its waves
   // leave). A reed of cane WIDENING to a flat tip (so it never reads as an
@@ -584,16 +612,17 @@ export const PLACEHOLDERS = {
   // body like the flute's, keys on top, and a modest bell with an oval mouth: a
   // woodwind's bell, smaller than a horn's flare.
   'reed': p => {
-    p.fill([[3, 22.5], [10, 24], [10, 27], [3, 28.5]]);                   // the cane
-    p.fill([[10, 21.5], [14, 21], [14, 30], [10, 29.5]]);               // thread
-    boreH(p, 14, 35);
+    // 2026-10-04: keys and bell made bigger so it reads at play size
+    p.fill([[3, 22], [10, 23.5], [10, 27.5], [3, 29]]);                   // the cane
+    p.fill([[10, 21], [14, 20.5], [14, 30.5], [10, 30]]);               // thread
+    boreH(p, 14, 33);
     band(p, 17.5);
-    for (const x of [23, 30]) fillDot(p, x, FA - 3, 2, 1.6, 0);          // keys
+    for (const x of [23, 29.5]) fillDot(p, x, FA - 3.5, 2.6, 2.2, 0);    // keys
     for (const s of [-1, 1]) {
       const y0 = s < 0 ? FA : FB;
-      p.path(t => [35 + t * 9, y0 + s * 9 * t ** 2], { width: 3, wobble: 0.08 });
+      p.path(t => [33 + t * 11, y0 + s * 11 * t ** 2], { width: 3, wobble: 0.08 });
     }
-    p.ellipse(44, M + 0.5, 2.5, 11, { width: 3, wobble: 0.05 });
+    p.ellipse(44.5, M + 0.5, 3, 14, { width: 3, wobble: 0.05 });
   },
 
   // ---- things to find ----------------------------------------------------------
@@ -689,9 +718,112 @@ function slide(p, ext) {
 }
 for (let ext = 0; ext <= 3; ext++) PLACEHOLDERS[`brass.slide.${ext}`] = p => slide(p, ext);
 
+// The metronome (2026-10-04): a wind-up pendulum metronome, crafted register,
+// symmetric. A pyramid case on a solid plinth, a scale of ticks up the front, and
+// the pendulum: a 3 px rod from a pivot low in the case, a solid weight slid up it,
+// a bud at its tip. Stopped, the rod stands upright over the scale; running, the
+// game swaps `metronome.left` and `metronome.right` on every beat, the rod swung
+// 30 degrees each way about the pivot (left = its tip to the left).
+const MET_PIVOT = [M, 39], MET_ROD = 29, MET_SWING = 0.52;
+function metronome(p, swing) {
+  p.fill([[6, 43.5], [45, 43.5], [44, 47.5], [7, 47.5]]);                  // the plinth
+  p.line(11, 43, 19.5, 7.5, crafted); p.line(40, 43, 31.5, 7.5, crafted);  // the case
+  p.line(18, 7.5, 33, 7.5, crafted);
+  fillDot(p, M, 4.5, 2.6, 2.2, 0);                                         // the finial
+  for (let y = 15; y <= 33; y += 6) p.line(M - 4, y, M + 4, y, { width: 2, wobble: 0 });   // the scale
+  const a = swing * MET_SWING, [px, py] = MET_PIVOT;
+  const at = (u, v = 0) => [px + Math.sin(a) * u + Math.cos(a) * v, py - Math.cos(a) * u + Math.sin(a) * v];
+  p.line(...at(0), ...at(MET_ROD), { width: 3, wobble: 0.05 });
+  p.fill([at(12.5, -6), at(12.5, 6), at(19.5, 4.5), at(19.5, -4.5)]);       // the weight
+  p.bud(...at(MET_ROD), 2);
+  fillDot(p, px, py, 3, 3, 0);                                             // the pivot
+}
+Object.assign(PLACEHOLDERS, {
+  'metronome':       p => metronome(p, 0),
+  'metronome.left':  p => metronome(p, -1),
+  'metronome.right': p => metronome(p, 1),
+});
+
+// ---------------------------------------------------------------------------
+// The boss: the Unresolved Chord (2026-10-04). Three note-heads, three voices,
+// stacked on one shared stem, standing on 3 x 3 tiles, so drawn on a 153 px
+// canvas (SPAN in protocol.js). The enemy family's look scaled up (the dissonant
+// above: a jagged note-head body, mismatched eyes, a zigzag mouth, a broken stem
+// with a splintered flag, legs with bud feet), at heavier weights so it holds up
+// at ~90 px on a phone: main lines 5 px, faces and flag 4, nothing under 3.
+//
+// One key per stage of the fight, bottom voice first: `boss.3` all three sour,
+// `boss.2` the bottom head resolved, `boss.1` only the top one still sour. A
+// sour head is jagged, knocked a little out of line and scowling; a resolved one
+// is a plain smooth note-head, back in line, eyes closed, a small smile. Each part
+// draws with its own seeded pen, so the heads that have not changed between
+// stages are the same drawing in every stage.
+const BOSS = { cx: 55, ys: [111, 71.5, 32], rx: 32, ry: 18.5, stem: 91.5 };
+// how far each voice is knocked out of line while it is sour, bottom to top
+const BOSS_SOUR = [{ dx: -3, tilt: -0.42 }, { dx: 2.5, tilt: -0.16 }, { dx: -2, tilt: -0.46 }];
+
+function bossHead(p, i, sour) {
+  const { dx, tilt } = sour ? BOSS_SOUR[i] : { dx: 0, tilt: -0.3 };
+  const cx = BOSS.cx + dx, cy = BOSS.ys[i], { rx, ry } = BOSS;
+  const tri = (u) => { const f = u - Math.floor(u); return f < 0.5 ? f * 2 : 2 - f * 2; };
+  p.path(t => {
+    const a = t * 6.483, rr = sour ? 0.91 + 0.15 * tri(t * 10) : 1;
+    const x = Math.cos(a) * rx * rr, y = Math.sin(a) * ry * rr;
+    return [cx + x * Math.cos(tilt) - y * Math.sin(tilt), cy + x * Math.sin(tilt) + y * Math.cos(tilt)];
+  }, { width: 5, wobble: sour ? 0.7 : 0.35 });
+  const ex = [cx - 11, cx + 8], ey = cy - 0.5;
+  if (sour) {
+    // mismatched eyes (one small, one staring) under a scowl, and a sour zigzag
+    // of a mouth, lopsided
+    fillDot(p, ex[0], ey + 0.5, 3, 3.4, 0);
+    fillDot(p, ex[1], ey, 4.6, 5.2, 0.2);
+    p.line(ex[0] - 6, ey - 10, ex[0] + 4, ey - 6, { width: 4, wobble: 0.1 });
+    p.line(ex[1] + 7, ey - 13.5, ex[1] - 4, ey - 8.5, { width: 4, wobble: 0.1 });
+    const pts = [];
+    for (let k = 0; k <= 6; k++) pts.push([cx - 15 + k * 5, cy + 12 + (k % 2 ? -4.5 : 0) - k * 0.6]);
+    p.poly(pts, { width: 4, wobble: 0 });
+  } else {
+    // resolved: eyes closed, a small smile
+    for (const x of ex) p.arc(x, ey - 4, 5, Math.PI * 0.18, Math.PI * 0.82, { width: 4, wobble: 0 });
+    p.arc(cx - 1.5, cy + 2, 8, Math.PI * 0.25, Math.PI * 0.75, { width: 4, wobble: 0 });
+  }
+}
+
+function boss(p, stage) {
+  const c = p.c, pen = (part) => new Pen(c, `boss.${part}`);
+  // the shared stem, cracked like the dissonant's, from the bottom head to the top
+  const sp = [];
+  for (let k = 0, y = BOSS.ys[0] - 2; y >= 9; k++, y -= 12) sp.push([BOSS.stem + (k % 3 === 1 ? 2.5 : 0), y]);
+  pen('stem').poly(sp, { width: 5, wobble: 0.2 });
+  const top = sp[sp.length - 1];
+  // the flag, splintering off the top of the stem
+  pen('flag').poly([top, [top[0] + 21, top[1] + 9], [top[0] + 13, top[1] + 16], [top[0] + 33, top[1] + 25],
+    [top[0] + 25, top[1] + 31], [top[0] + 42, top[1] + 41]], { width: 4, wobble: 0.15 });
+  // an arm off the top voice (the last to resolve), raised, splintering into a claw
+  const ap = pen('arm'), ay = BOSS.ys[2] + 9;
+  ap.poly([[BOSS.cx - 30, ay], [BOSS.cx - 40, ay - 3], [BOSS.cx - 37, ay - 11], [BOSS.cx - 46, ay - 17]], { width: 4, wobble: 0.1 });
+  const [hx, hy] = [BOSS.cx - 46, ay - 17];
+  for (const [ddx, ddy] of [[-5, -6], [0, -8], [5, -7]]) ap.line(hx, hy, hx + ddx, hy + ddy, { width: 3, wobble: 0 });
+  // legs, mid-stride, bud feet
+  const lp = pen('legs'), by = BOSS.ys[0] + BOSS.ry - 2;
+  lp.line(BOSS.cx - 12, by, BOSS.cx - 22, 141, { width: 5, wobble: 0.2 }); lp.bud(BOSS.cx - 23, 142, 4.5);
+  lp.line(BOSS.cx + 10, by - 2, BOSS.cx + 19, 139, { width: 5, wobble: 0.2 }); lp.bud(BOSS.cx + 20, 140, 4.5);
+  // the voices: `stage` of them are still sour, counted from the top
+  for (let i = 0; i < 3; i++) {
+    const sour = i >= 3 - stage;
+    bossHead(pen(`head${i}.${sour ? 'sour' : 'calm'}`), i, sour);
+  }
+}
+Object.assign(PLACEHOLDERS, {
+  'boss.3': p => boss(p, 3),
+  'boss.2': p => boss(p, 2),
+  'boss.1': p => boss(p, 1),
+});
+
 // Mirror drums. The plain key has the head slanted "/" facing up-left (rot 0, as his
 // bass drum is drawn, legs lower right); `.flat` has it level "—" facing up (rot 45,
-// then turned in 90° steps). Sizes differ by drum: bass big, tom small, snare wired.
+// then turned in 90° steps). The bass keeps trussDrum (his drum is the real art for
+// it); the tom (legs) and snare (wire) use the bolder kitDrum, drawn for play size.
 const SLANT = -Math.PI / 4, LEVEL = 0;
 Object.assign(PLACEHOLDERS, {
   'drum.bass':       p => trussDrum(p, SLANT, { r: 19, depth: 14 }),
@@ -723,9 +855,9 @@ export const PROPOSALS = {
   },
   // A lock that wants an ABSOLUTE pitch, so the stairs matter. Marked by a sharp.
   'notelock.absolute': p => {
-    noteBox(p);
-    p.line(37, 9, 35, 21, { width: 1.5 }); p.line(41, 9, 39, 21, { width: 1.5 });
-    p.line(33, 13, 43, 12, { width: 1.5 }); p.line(33, 17, 43, 16, { width: 1.5 });
+    noteBox(p);   // the sharp sits top-left, where the clef was until 2026-10-04
+    p.line(14, 10, 12.5, 22, { width: 2 }); p.line(18, 10, 16.5, 22, { width: 2 });
+    p.line(10.5, 14, 20, 13, { width: 2 }); p.line(10.5, 18.5, 20, 17.5, { width: 2 });
   },
   // The Composer's Key itself, in line work: the note-key from his website.
   'key.pickup': p => {
