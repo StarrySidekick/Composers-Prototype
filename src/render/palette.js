@@ -92,3 +92,17 @@ export const PALETTE = {
   wing(name) { return THEME === 'mono' ? MONO : (WINGS[name] ?? WINGS.brass); },
   wings: Object.keys(WINGS),
 };
+
+// The floor's tint, by mode (Timothy, 2026-10-04: "slightly recolour the
+// background from black to other colours when in a different mode"). Still near
+// black, so the white line-work keeps all its contrast; only the hue says which
+// mode, and with it which mood, the room is in. The line-work never changes colour.
+export const MODE_FLOOR = {
+  ionian:     [0x15, 0x12, 0x0b],   // content: warm umber
+  dorian:     [0x0b, 0x14, 0x16],   // reflective: deep teal
+  phrygian:   [0x1a, 0x0b, 0x0c],   // tense: oxblood
+  lydian:     [0x13, 0x0d, 0x1c],   // mysterious: violet
+  mixolydian: [0x16, 0x14, 0x0a],   // confident: dark gold
+  aeolian:    [0x0b, 0x0f, 0x1a],   // sad: night blue
+  locrian:    [0x0f, 0x17, 0x0b],   // unhinged: sickly green
+};

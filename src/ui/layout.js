@@ -14,13 +14,17 @@ export function fitStage(renderer, game) {
   const top = document.getElementById('hud-top').offsetHeight;
   const bottom = document.getElementById('hud-bottom').offsetHeight;
   const help = document.querySelector('.keys-help');
+  // The text box's slot under the bottom bar is always kept, so the stage does
+  // not jump when a message comes and goes.
+  const slot = document.getElementById('dialog-slot');
+  const slotH = slot ? slot.offsetHeight + 6 : 0;
   const helpH = help && help.offsetParent ? help.offsetHeight + 8 : 0;
   const upright = window.innerHeight > window.innerWidth;
   const reserve = TOUCH.matches && upright ? CONTROLS_ROOM : 0;
   const cs = getComputedStyle(play);
   const padTop = parseFloat(cs.paddingTop) || 0;
   const w = play.clientWidth;
-  const h = play.clientHeight - padTop - top - bottom - helpH - reserve;
+  const h = play.clientHeight - padTop - top - bottom - slotH - helpH - reserve;
   const size = Math.max(160, Math.floor(Math.min(w, h)));
   document.documentElement.style.setProperty('--stage', `${size}px`);
   if (game.room) renderer.resize(game.room);

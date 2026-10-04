@@ -69,6 +69,30 @@ const r = await page.evaluate(async () => {
     }
   };
 
+  // "resolve": what a player does against dissonants. Stand at the step's spot and,
+  // each sixteenth, if a wave is free, fire at any dissonant in a clear straight
+  // line; until none are left (after giving the boss a beat to release them).
+  const resolveAll = (limit = 600) => {
+    for (let i = 0; i < limit; i++) {
+      const ds = g.room.list.filter(d => d.typeName === 'dissonant');
+      if (!ds.length && i > 8) return true;
+      if (g.keyWaves < g.waveAllowance) {
+        for (const d of ds) {
+          const dx = Math.sign(d.x - g.player.x), dy = Math.sign(d.y - g.player.y);
+          if ((dx && dy) || (!dx && !dy)) continue;
+          let x = g.player.x + dx, y = g.player.y + dy, clear = true;
+          while (x !== d.x || y !== d.y) { const t = g.room.doodadAt(x, y); if (t && t.blocksWave) { clear = false; break; } x += dx; y += dy; }
+          if (!clear) continue;
+          g.setFacing(dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up');
+          g.fire();
+          break;
+        }
+      }
+      run(1);
+    }
+    return false;
+  };
+
   // Shortest walk, through rooms, to (room, x, y), by the same rules Game.move
   // uses. A dissonant's tile is avoided: walking into one shoves you.
   const path = (toRoom, tx, ty) => {
@@ -142,6 +166,7 @@ const r = await page.evaluate(async () => {
         else if (step.do === 'lift' || step.do === 'place') {
           if (!g.shoulderL()) { out.problems.push(`${roomId} step ${i + 1}: could not ${step.do}`); return false; }
         } else if (step.do === 'turn') g.shoulderR();
+        else if (step.do === 'resolve') { if (!resolveAll()) out.problems.push(`${roomId} step ${i + 1}: dissonants still standing`); }
         run(2);
       }
       run(step.wait ?? 64);

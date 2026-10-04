@@ -2,7 +2,7 @@
   "id": "sandbox",
   "name": "Sandbox",
   "wing": "brass",
-  "hint": "Everything the editor can paint, in one room. Switch to build mode and draw — or press B on the slide, valve, mute and kettle drum to hear what they do.",
+  "hint": "Everything the editor can paint, in one room. Switch to build mode and draw \u2014 or press B on the slide, valve, mute and kettle drum to hear what they do.",
   "maxWaves": 3,
   "music": {
     "root": 2,
@@ -22,13 +22,30 @@
     "#................#",
     "#....s.b.t.h.c.p.#",
     "#................#",
-    "#....k.m.V.u.+...#",
+    "#....k.m.........#",
     "#................#",
     "#....*.n.x.<.>...#",
-    "#................#",
-    "#................#",
-    "#................#",
+    "#............M...#",
+    "#.M-V.M-uY.M-+Y..#",
+    "#...Y........Y...#",
     "#................#",
     "##################"
+  ],
+  "overrides": [
+    {
+      "x": 4,
+      "y": 15,
+      "rot": 90
+    },
+    {
+      "x": 13,
+      "y": 15,
+      "rot": 90
+    },
+    {
+      "x": 13,
+      "y": 13,
+      "rot": 90
+    }
   ]
 }

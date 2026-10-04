@@ -73,6 +73,25 @@ and in-game screenshot on starry-sidekick.itch.io/composers-key.
 After this pass (all placeholders redrawn by these rules): coverage 17% (his 17),
 3 px strokes 61% (his 43), 4 px+ 19% (his 30), marks 1-2 (his 2).
 
+## Play size (2026-10-04)
+
+Timothy, on his phone: "the slide and some other sprites don't read well as they
+are so small". The stage is ~390 px for a 13-tile room, so **a 51 px tile is shown
+at about 30 px** (0.59x, nearest neighbour; the renderer caps dpr at 2). Measured:
+
+- 3 px lines survive as ~2 px; **2 px lines become 1 px or vanish**; 1.5 px
+  spirals (pen default) are gone. A gap under 3 px closes.
+- So the part that carries the meaning is as big as the tile allows, at 3 px or
+  solid; details no thinner than 2 px; small curls are dropped rather than shrunk.
+  This beats his 2 px median where they conflict (placeholders now 7% 2 px against
+  his 21%), and lets a bold instrument sit at 22-29% ink, as his own elbow (23),
+  flare (27) and bass drum (29) do.
+- A long thin cone or triangle reads as an arrow or a play button at this size.
+- Look at every new tile scaled to 30 px nearest neighbour, not only at 3x.
+- Bigger-than-a-tile art (the boss, `SPAN` in protocol.js) is drawn at the same
+  pixel density on a 153 px canvas; it uses 5 px main lines so it reads as heavier
+  than the tiles around it.
+
 ## Known gaps in the placeholders (2026-10-02)
 
 - Twigs repeat at the same place on every tile of a run, so a long tube reads as

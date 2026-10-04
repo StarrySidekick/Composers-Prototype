@@ -5,6 +5,8 @@ game in sketch mode. Finish with SHIP or FIX (and the list).
 
 ## Reads as the thing
 - [ ] At 1x (51 px) the subject is recognisable: a horn bell, a fork, a drum.
+- [ ] At PLAY SIZE (scaled to 30 px nearest neighbour, as on his phone) it still
+      reads, and each state still differs from the others.
 - [ ] Its silhouette survives without the ornament.
 - [ ] If it has a direction (drum head, peg stem, mouthpiece cup, mallet head),
       the direction at rot 0 is obvious and matches the comment and the mechanics.

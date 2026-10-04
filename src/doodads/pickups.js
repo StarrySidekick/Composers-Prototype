@@ -18,7 +18,7 @@ export const ITEMS = {
   },
   burin: {
     name: 'the Burin',
-    text: 'An engraver\'s tool. Face a drum or a reed and press L to cut it free and carry it; L again sets it down, R turns it in your hand.',
+    text: 'An engraver\'s tool, for cutting instruments free. Face a drum or a reed and press L (Q on a keyboard): it goes into your satchel. L again sets it down in front of you; R (Tab) turns it in your hand. The L button says when it can. Try the hi-hat just below you.',
   },
 };
 

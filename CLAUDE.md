@@ -97,6 +97,29 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
 - **New legend characters (2026-10-03):** `Q q d` flute head / hole / foot, `r`
   reed, `O` Overtone, `!` Burin, `&` dissonant, `%` chord fork, `$` score gate,
   `^` stair. Check this list and `DEFAULT_LEGEND` before claiming one.
+- **Every tubing structure is a horn** (Timothy, 2026-10-04): a mouthpiece where a
+  wave goes in, a bell at every open end, no loose tube (`hornProblems` in
+  `brass.js`; `test/rooms.mjs` fails a room that breaks it). Valves and crosses
+  join whatever meets them. Bells now **let the wave out** after sounding
+  (`PlayAndPass` out of the mouth), which is what lets a horn end in a bell and
+  still deliver a wave to a fork. A wave Coda blows with B is **his** (`w.mine`)
+  and counts against the allowance, or mouthpieces would get round the Overtones.
+- **The text box is under the stage, never over it** (`src/ui/dialog.js`): a word
+  per sixteenth on the room's clock, each word sung (`family: 'voice'`) on a tone
+  of the score's current chord, `heard: false`. It stays until tapped. The area's
+  name and mood head it; there is no card over the play area any more.
+- **The tune plays only while the metronome runs** (`progress.metronome`, the `N`
+  doodad, the world's first room). Stopped, the score waits at its position and
+  resumes from there, always on a beat (`Score.pos`). `game.attract` lets it play
+  under the title without starting the metronome; tests that check the score set
+  `progress.metronome`.
+- **The floor is tinted by mode** (`MODE_FLOOR` in `palette.js`), near black, so the
+  line-work keeps its contrast. Only the floor: the line-work stays white.
+- **The boss stands on 3 x 3** (`W` with eight `U` around it): `span = 3`, art drawn
+  at 153 px (`SPAN` in `src/art/protocol.js`). Its chord phase listens for three
+  different notes within a beat and ignores the Key's own shot (`key: true` on the
+  fire sound). Solutions fight its swarm with the `resolve` verb.
+- **More legend characters (2026-10-04):** `N` metronome, `W` boss, `U` boss body.
 - **Editor edits mutate the live room; they never reload it.** `Room.setTileChar` /
   `setOverride` rebuild one tile. Reloading would reset every lock and door mid-build.
 
@@ -260,8 +283,12 @@ measures the open window against an 8-way shortest walk at Link's speed); the
 Stair refuses the phrase in G and A sharp; the Coda cannot finish its phrase
 without the Hall. Plus the flute's fingering, reed breaths, dissonants, the burin
 and the save, waves through doors, paired doors, the allowance, and the score in
-key and unheard. Its first run found the Stand solvable with a drum and three
-quick shots; the room was rebuilt. Proved by injection: let the chord forks ring
+key and unheard; since 2026-10-04 also the metronome (silent, start on a beat,
+pause in place, resume), the boss (each phase only gives way to its real answer,
+and its chord cannot be played with two waves), blown waves counting, and the L
+button's labels. Its first run found the Stand solvable with a drum and three
+quick shots; the room was rebuilt. Its boss check found the Key's own shot
+standing in as a chord's third note; the chord now ignores it. Proved by injection: let the chord forks ring
 eight beats and it fails naming every two-wave order that now works.
 
 ### And a report, for when you are making rooms rather than fixing them

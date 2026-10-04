@@ -79,10 +79,11 @@ const r = await page.evaluate(async () => {
     }
   }
 
-  // Walk it: open brass-01's east door, step through, come back.
+  // Walk it: open brass-01's east door, step through, come back. (Brass 01 by
+  // name: the world starts in the metronome's room now.)
   const g = window.CK.game;
   g.world = world;
-  g.loadRoom(world.json[world.start]);
+  g.loadRoom(world.json['brass-01-first-breath']);
   const start = g.room;
   const door = edgeDoors(start).right[0];
   door.setOpen(true, g.ctx);

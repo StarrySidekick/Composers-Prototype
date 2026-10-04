@@ -177,6 +177,30 @@ he should check:
 Judgement calls worth his eye: the timing windows of the two "set it breathing and
 run" rooms on a real phone; whether the dissonant's shove is too soft; the tune.
 
+## 2026-10-04: after playing it
+
+Timothy played the dungeon and asked for eight things. What was done:
+
+- **Every tubing structure has a mouthpiece and ends in bells.** Done: the rule is
+  checked on every room (`test/rooms.mjs`); seven rooms were rebuilt to it. Bells now
+  let the wave out after they sound, so horns still feed forks.
+- **He could not work out how to scoop instruments with the burin.** The L and R
+  buttons now say what they would do ("lift", "set", "turn") and glow when they can;
+  the burin's message says L (and Q); a hi-hat waits right below the burin to try.
+- **The hint box covered the play area.** It now sits under the stage, above the
+  controls, and stays until tapped.
+- **It should type like a game, each word a sound in the mode and song.** Done: a
+  word per sixteenth, each sung on a tone of the tune's current chord, in the room's
+  key and mode; a full stop comes home to the root.
+- **A boss.** Done: the Unresolved Chord, west of the Coda. Echo its call, resolve
+  its swarm, answer it with a three-note chord. Judge whether phase three's timing
+  (longest horn first, a beat to land all three) is fun or fiddly on a phone.
+- **The slide and other sprites read badly small.** Placeholders redrawn bolder for
+  play size (his real art untouched).
+- **A metronome room: on starts the motif loop, off pauses it.** Done, as the first
+  room of the world: the tune is silent until it runs.
+- **Tint the background by mode.** Done: a near-black floor per mode.
+
 ## Something that needs Timothy
 
 **The GDD should come into this repo.** It currently lives at

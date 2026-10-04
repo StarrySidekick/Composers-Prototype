@@ -11,6 +11,13 @@ import { BRASS_EDGES } from '../doodads/brass.js';
 // the authoring grid, not a display size.
 export const TILE = 51;
 
+// A few pieces are bigger than one tile: the boss stands on 3 x 3. Their art is
+// drawn at TILE * span on a side (153 px for the boss), still white on
+// transparent, still two-value alpha, and the renderer draws it centred on the
+// doodad's own tile, covering its neighbours. Keyed by the first part of the key.
+export const SPAN = { boss: 3 };
+export function spanOf(key) { return SPAN[String(key).split('.')[0]] ?? 1; }
+
 // Ink. The game is white line-work on black; Unity tints per object, so the art
 // itself stays pure white and colour is applied at draw time.
 export const INK = '#ffffff';

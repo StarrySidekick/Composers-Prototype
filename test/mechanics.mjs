@@ -121,7 +121,22 @@ const r = await page.evaluate(async () => {
     return opened;
   };
   const orders = [['up', 'left', 'right'], ['up', 'right', 'left'], ['left', 'up', 'right'], ['left', 'right', 'up'], ['right', 'up', 'left'], ['right', 'left', 'up']];
+  // The same, blowing the three mouthpieces with B instead of firing: a breath
+  // is Coda's wave too, or the Overtones would not be needed at all.
+  const blow = (waves, order) => {
+    const room = fresh(TRIAD, { waves });
+    at(6, 10, order[0]);
+    const exit = door(room, 6, 12);
+    let next = 0;
+    for (let i = 0; i < 200 && !exit.open; i++) {
+      if (next < order.length && i % 2 === 0) { g.setFacing(order[next]); const n = g.keyWaves; g.interact(); if (g.keyWaves > n) next++; }
+      run(1);
+    }
+    return exit.open;
+  };
   out.triad = {
+    blowThree: blow(3, ['up', 'left', 'right']),
+    blowTwo: orders.filter(o => blow(2, o)).map(o => o.join('-')),
     three: triad(3, ['up', 'left', 'right']),
     two: orders.filter(o => triad(2, o)).map(o => o.join('-')),
     one: orders.filter(o => triad(1, o)).map(o => o.join('-')),
@@ -213,6 +228,14 @@ const r = await page.evaluate(async () => {
     out.coda.moodAfter = coda.music.mood;
   }
 
+  // ---- the bell lets the wave out ------------------------------------------------------
+  {
+    const room = fresh('brass-05-slide');
+    played.length = 0;
+    at(1, 2, 'right'); g.interact(); run(8);
+    out.bell = { out: g.waves.some(w => w.alive && w.y === 2 && w.x > 6), brass: played.filter(p => p.family === 'brass').length };
+  }
+
   // ---- the flute -------------------------------------------------------------------
   {
     const room = fresh('woodwind-01-flute');
@@ -269,8 +292,17 @@ const r = await page.evaluate(async () => {
 
   // ---- the burin, the satchel, and what the world remembers -----------------------
   {
-    let room = fresh('woodwind-02-reed');
+    // In the Triad's alcove: the L button offers to lift the hi-hat once you hold
+    // the burin, offers to set it down once you carry it, and R offers to turn it.
+    let room = fresh('tower-01-triad', { items: ['burin'] });
+    at(11, 2, 'down');
+    const hints = [g.shoulderHint()];
+    g.shoulderL();                           // the hat is in the satchel; floor in front now
+    hints.push(g.shoulderHint());
+    out.hints = hints.map(h => `${h.l}/${h.r}`);
+    room = fresh('woodwind-02-reed');
     at(1, 2, 'right');
+    out.hints.push((() => { const h = g.shoulderHint(); return `${h.l}/${h.r}`; })());
     out.burin = { without: g.shoulderL() };
     g.progress.items.add('burin');
     out.burin.with = g.shoulderL();
@@ -350,10 +382,98 @@ const r = await page.evaluate(async () => {
     out.stairs = { up: (up - k0 + 12) % 12, across: (across - up + 12) % 12, down: (room.music.root - k0 + 12) % 12 };
   }
 
+  // ---- the boss: each phase only gives way to its real answer ------------------------
+  {
+    const BOSS = 'discord-03-chord';
+    let room = fresh(BOSS, { waves: 3 });
+    const boss = () => room.list.find(d => d.typeName === 'boss');
+    const b0 = boss();
+    // Waves do not hurt it.
+    at(9, 6, 'left'); g.fire(); run(16);
+    const hurt = b0.phase;
+    // The wrong phrase (do mi sol, the call backwards) does nothing...
+    for (const x of [4, 6, 8]) { at(x, 3, 'up'); g.move('up'); run(2); }
+    const wrong = b0.phase;
+    run(40);
+    // ...the call (sol mi do) resolves the first voice and releases the swarm.
+    for (const x of [8, 6, 4]) { at(x, 3, 'up'); g.move('up'); run(2); }
+    run(8);
+    const swarm = room.list.filter(d => d.typeName === 'dissonant').length;
+    out.boss = { hurt, wrong, echo: b0.phase, swarm, mood2: room.music.mood };
+    // Phase three, the chord, with N waves in the air: fire into the three horns
+    // in an order, a sixteenth or two apart, as fast as the allowance lets.
+    const chord = (waves, order, gap = 2) => {
+      room = fresh(BOSS, { waves });
+      const b = boss();
+      b.phase = 3; b.spawned = true;
+      at(6, 10, order[0]);
+      let next = 0;
+      for (let i = 0; i < 160 && b.phase === 3; i++) {
+        if (next < order.length && i % gap === 0) { g.setFacing(order[next]); const n = g.keyWaves; g.fire(); if (g.keyWaves > n) next++; }
+        run(1);
+      }
+      return b.phase > 3;
+    };
+    const orders = [['right', 'up', 'left'], ['right', 'left', 'up'], ['up', 'right', 'left'], ['up', 'left', 'right'], ['left', 'up', 'right'], ['left', 'right', 'up']];
+    out.boss.chordThree = chord(3, ['right', 'up', 'left']);
+    out.boss.chordTwo = orders.filter(o => chord(2, o, 1) || chord(2, o, 2)).map(o => o.join('-'));
+    // Won: the figure is gone, an exit stands there, the room is content, the
+    // tune's last layer is earned, and a rebuilt room remembers.
+    chord(3, ['right', 'up', 'left']);
+    const won = { exit: room.doodadAt(6, 6)?.typeName, parts: room.list.filter(d => d.typeName === 'bosspart' || d.typeName === 'boss').length, mood: room.music.mood, finale: g.progress.layers.has('finale') };
+    world.forgetAll();
+    const again = world.room(BOSS);
+    won.rebuilt = { exit: again.doodadAt(6, 6)?.typeName, boss: again.list.some(d => d.typeName === 'boss') };
+    out.boss.won = won;
+  }
+
+  // ---- the metronome: no tune until it runs; stopping it pauses the tune in place ----
+  {
+    const room = fresh('atrium-00-metronome');
+    g.score.muted = false;
+    g.score.reset();
+    g.unlockLayers('start');                 // a new game has the motif
+    const tick = (n) => {
+      const before = played.length;
+      for (let i = 0; i < n; i++) {
+        const index = ++g.clock.index;
+        const ev = { index, time: g.clock.timeOf(index), isBeat: index % 4 === 0, beat: Math.floor(index / 4) };
+        if (ev.isBeat) for (const d of [...g.room.list]) d.onBeat(ev.beat, g.ctx);
+        g.score.tick(ev, g);
+      }
+      return played.slice(before).filter(p => p.family !== 'percussion' || p.kind);
+    };
+    const exit = door(room, 12, 6);
+    const silent = tick(64).filter(p => p.heard === false && p.family === 'keys').length;
+    at(6, 6, 'up'); g.interact();
+    const on = g.progress.metronome;
+    const first = tick(8).filter(p => p.family === 'keys');
+    const posAfterStart = g.score.pos;
+    const firstOnBeat = first.length > 0 && (() => {
+      const k = (first[0].when - g.clock.startTime) / g.clock.subInterval;
+      return Math.round(k) % 4 === 0;
+    })();
+    const playedOn = tick(24).filter(p => p.family === 'keys').length;
+    const pos = g.score.pos;
+    at(6, 6, 'up'); g.interact();
+    const pausedNotes = tick(64).filter(p => p.family === 'keys').length;
+    const posPaused = g.score.pos;
+    at(6, 6, 'up'); g.interact();
+    tick(8);
+    out.metronome = {
+      silent, on, firstOnBeat, playedOn, pausedNotes, held: posPaused === pos,
+      resumed: g.score.pos > pos && g.score.pos <= pos + 8, doorOpen: exit.open,
+      ticks: played.filter(p => p.click).length,
+    };
+    g.score.muted = true;
+  }
+
   // ---- the score: in key, unheard, growing ---------------------------------------------
   {
     const room = fresh('brass-01-first-breath');
     g.score.muted = false;
+    g.score.reset();
+    g.progress.metronome = true;
     for (const l of g.score.layers) g.progress.layers.add(l.id);
     played.length = 0;
     const heardBefore = g.noteHistory.length;
@@ -388,6 +508,9 @@ const s = (v) => JSON.stringify(v);
 ok('the Triad opens with three waves in the air', r.triad.three);
 ok('the Triad cannot be opened with two, in any order', r.triad.two.length === 0, r.triad.two.join(', '));
 ok('or with one', r.triad.one.length === 0, r.triad.one.join(', '));
+ok('blowing the three mouthpieces (B) opens it with three waves', r.triad.blowThree);
+ok('but not with two: a breath is Coda\'s wave too', r.triad.blowTwo.length === 0, r.triad.blowTwo.join(', '));
+ok('a bell lets the wave out after it sounds', r.bell.out, s(r.bell));
 
 ok('the Stand: a breathing reed holds the gate until Coda can walk there',
   r.stand.reed && r.stand.reed.to > r.stand.walk + 0.25, `${s(r.stand.reed)}, walk ${r.stand.walk.toFixed(2)} s`);
@@ -419,6 +542,8 @@ ok('a dissonant walks a tile a beat', Math.abs(r.dissonant.moved) === 1, s(r.dis
 ok('a wave resolves it', r.dissonant.resolved);
 ok('touching one shoves Coda back', r.dissonant.shoved > 0.9, s(r.dissonant));
 
+ok('L says "lift" facing the hi-hat, then "set" and R "turn" while carrying, and nothing without the burin',
+  s(r.hints) === s(['lift/null', 'set/turn', 'null/null']), s(r.hints));
 ok('nothing lifts without the burin', r.burin.without === false);
 ok('with it, the reed goes into the satchel', r.burin.with === true && r.burin.carrying === 'reed', s(r.burin));
 ok('a rebuilt room does not grow the lifted reed back', r.burin.reedBack === null, s(r.burin));
@@ -436,6 +561,18 @@ ok('one wave at a time to start', r.allowance.one === 1, s(r.allowance));
 ok('an Overtone makes it two', r.allowance.afterOvertone === 2, s(r.allowance));
 ok('a room can cap it', r.allowance.capped === 2, s(r.allowance));
 
+ok('the boss cannot be hurt by a wave', r.boss.hurt === 1, s(r.boss));
+ok('the boss ignores the wrong phrase', r.boss.wrong === 1, s(r.boss));
+ok('the echo (sol mi do) resolves its first voice and releases four dissonants', r.boss.echo === 2 && r.boss.swarm === 4 && r.boss.mood2 === 'sad', s(r.boss));
+ok('the chord, longest horn first, three waves: the last voice resolves', r.boss.chordThree, s(r.boss));
+ok('the chord cannot be played with two waves, in any order or spacing', r.boss.chordTwo.length === 0, r.boss.chordTwo.join(', '));
+ok('won: gone, an exit where it stood, content, the last layer earned', r.boss.won.exit === 'exit' && r.boss.won.parts === 0 && r.boss.won.mood === 'content' && r.boss.won.finale, s(r.boss.won));
+ok('and a rebuilt room remembers', r.boss.won.rebuilt.exit === 'exit' && !r.boss.won.rebuilt.boss, s(r.boss.won.rebuilt));
+ok('the tune is silent until the metronome starts', r.metronome.silent === 0, s(r.metronome));
+ok('B on the metronome starts it, and the tune with it, on a beat', r.metronome.on && r.metronome.playedOn > 0 && r.metronome.firstOnBeat, s(r.metronome));
+ok('stopping it pauses the tune where it is', r.metronome.pausedNotes === 0 && r.metronome.held, s(r.metronome));
+ok('starting it again carries on from there', r.metronome.resumed, s(r.metronome));
+ok('and its door stays open, latched', r.metronome.doorOpen, s(r.metronome));
 ok('the score plays', r.score.notes > 60, `${r.score.notes} notes`);
 ok('every score note is in the room\'s scale', r.score.offScale === 0, `${r.score.offScale} off`);
 ok('no lock can hear the score', r.score.heard === 0 && r.score.staff === 0, s(r.score));

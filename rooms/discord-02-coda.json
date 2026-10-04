@@ -2,7 +2,7 @@
   "id": "discord-02-coda",
   "name": "The Coda",
   "wing": "strings",
-  "hint": "The last lock listens to the whole world and wants the motif you have heard all along: la sol mi do. This room plays the end of it. The start is next door.",
+  "hint": "The last lock listens to the whole world and wants the motif you have heard all along: la sol mi do. This room plays the end of it. The start is next door. Past it, something waits.",
   "music": {
     "root": 4,
     "mode": "phrygian",
@@ -41,12 +41,12 @@
   ],
   "layout": [
     "#############",
-    "#...#...#...#",
-    "#...#.X.#...#",
-    "#...##D##...#",
+    "#...........#",
+    "#...........#",
+    "#...........#",
     "#...........#",
     "#..........@#",
-    "#.r=====.===D",
+    "D.r=====.===D",
     "#...........#",
     "#...........#",
     "#.....n.....#",
@@ -78,22 +78,14 @@
       ],
       "face": "left",
       "do": "interact",
-      "why": "the flute plays la, and its wave crosses into this room: sol on the short string, mi on the long one, do on the reed. One wave, two rooms, the whole phrase"
+      "why": "the flute plays la, and its wave crosses into this room: sol on the short string, mi on the long one, do on the reed. One wave, two rooms, the whole phrase: the west door opens"
     },
     {
       "at": [
-        6,
-        4
+        1,
+        5
       ],
-      "why": "the chamber is open"
-    },
-    {
-      "at": [
-        6,
-        3
-      ],
-      "move": "up",
-      "why": "to the end"
+      "why": "to the west door"
     }
   ]
 }

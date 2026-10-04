@@ -139,6 +139,7 @@ export class AudioEngine {
       case 'strings':    this._pluck(freq, amp, t); break;
       case 'woodwind':   this._reed(freq, amp, t, modulation); break;
       case 'keys':       this._key(freq, amp, t); break;
+      case 'voice':      this._voice(freq, amp, t); break;
       case 'percussion': this._drum(freq, amp, t, modulation, kind); break;
       case 'timpani':    this._timpani(freq, amp, t, modulation); break;
       case 'sour':       this._brass(freq * 1.03, amp, t, 0.9); break;
@@ -256,6 +257,24 @@ export class AudioEngine {
     if (this._ksCache.size > 96) this._ksCache.clear();
     this._ksCache.set(key, buf);
     return buf;
+  }
+
+  // The text box's voice: a short, round blip per word, the way an old game
+  // "speaks" its dialogue. A triangle with a quick pitch dip into the note, so it
+  // reads as a syllable rather than a beep.
+  _voice(freq, amp, t) {
+    const osc = this.ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq * 1.06, t);
+    osc.frequency.exponentialRampToValueAtTime(freq, t + 0.03);
+    const env = this.ctx.createGain();
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.exponentialRampToValueAtTime(amp * 0.5, t + 0.008);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+    osc.connect(env);
+    this._out(env, 1, 0.4);
+    osc.start(t);
+    osc.stop(t + 0.16);
   }
 
   _key(freq, amp, t) {

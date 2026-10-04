@@ -1,0 +1,157 @@
+{
+  "id": "discord-03-chord",
+  "name": "The Unresolved Chord",
+  "wing": "brass",
+  "hint": "Something here is a chord that will not resolve. Listen to what it calls, and answer. Press B on it to hear the call again.",
+  "music": {
+    "root": 4,
+    "mode": "phrygian",
+    "bpm": 108,
+    "timeSignature": 4,
+    "mood": "tense"
+  },
+  "legend": {
+    "1": {
+      "type": "pianokey",
+      "degree": 0
+    },
+    "2": {
+      "type": "pianokey",
+      "degree": 1
+    },
+    "3": {
+      "type": "pianokey",
+      "degree": 2
+    },
+    "4": {
+      "type": "pianokey",
+      "degree": 3
+    },
+    "5": {
+      "type": "pianokey",
+      "degree": 4
+    }
+  },
+  "overrides": [
+    {
+      "x": 12,
+      "y": 6,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "rot": 180
+    },
+    {
+      "x": 6,
+      "y": 9,
+      "rot": 270
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "rot": 270
+    },
+    {
+      "x": 8,
+      "y": 7,
+      "rot": 270
+    },
+    {
+      "x": 11,
+      "y": 8,
+      "rot": 270
+    }
+  ],
+  "layout": [
+    "#############",
+    "#...........#",
+    "#...12345...#",
+    "#...........#",
+    "#...........#",
+    "#....UUU....#",
+    "#....UWU...@D",
+    "#....UUUY...#",
+    "#.....F-J..Y#",
+    "#...Y.M....|#",
+    "#...LM.M---J#",
+    "#...........#",
+    "#############"
+  ],
+  "with": {
+    "waves": 3
+  },
+  "solution": [
+    {
+      "at": [
+        8,
+        3
+      ],
+      "move": "up",
+      "why": "phase one, the echo: it calls sol mi do. Key 5 is sol"
+    },
+    {
+      "at": [
+        6,
+        3
+      ],
+      "move": "up",
+      "why": "key 3, mi"
+    },
+    {
+      "at": [
+        4,
+        3
+      ],
+      "move": "up",
+      "why": "key 1, do: the first voice resolves, and it breaks into four dissonants"
+    },
+    {
+      "at": [
+        3,
+        3
+      ],
+      "do": "resolve",
+      "why": "phase two, the swarm: fire at each dissonant as it comes into line, until all four are resolved"
+    },
+    {
+      "at": [
+        6,
+        10
+      ],
+      "face": "right",
+      "do": "fire",
+      "wait": 0,
+      "why": "phase three, the chord: the longest horn first (do, seven tiles to its bell)"
+    },
+    {
+      "at": [
+        6,
+        10
+      ],
+      "face": "up",
+      "do": "fire",
+      "wait": 0,
+      "why": "then the middle one (mi, five)"
+    },
+    {
+      "at": [
+        6,
+        10
+      ],
+      "face": "left",
+      "do": "fire",
+      "why": "then the shortest (sol, three): the three bells sound in the same beat, a chord, and the last voice resolves"
+    },
+    {
+      "at": [
+        7,
+        6
+      ],
+      "move": "left",
+      "why": "where it stood, the way out"
+    }
+  ]
+}

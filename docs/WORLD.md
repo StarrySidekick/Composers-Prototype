@@ -13,25 +13,30 @@ once. The sandbox is 18 × 18 and is not in the world.
 
 ## The world (`rooms/world.json`, `src/core/world.js`)
 
-Since 2026-10-03 the world is a small dungeon, not a corridor: sixteen rooms on a
+Since 2026-10-03 the world is a small dungeon, not a corridor: eighteen rooms on a
 grid, with branches, a shortcut back to the start, and things found in one place
 that are needed in another. Rooms sit on the grid like this (`=` and `|` are
 doorways; `s` is the shortcut, shut until opened from the far side):
 
 ```
-             x=0            x=1              x=2               x=3
-  y=-1   Reed Loft ==== Flute
-         Overtone 2     Overtone 1
-             s             |
-  y=0    Brass 01 ===== Brass 02 ===== Brass 03 ======== Triad (3 waves; Burin)
-         start                            |                 |
-  y=1    Keys 01 ====== Strings 01 ==== Percussion 01     Stand (carry the reed here)
-            |                                               |
-  y=2    Brass 04 ===== Percussion 02 = Brass 05 ========= Stair (a lock in another key)
-                                                            |
-  y=3                                   Coda ============= Hall (dissonants, score gate)
-                                        the end
+             x=-1           x=0            x=1              x=2               x=3
+  y=-1                  Reed Loft ==== Flute
+                        Overtone 2     Overtone 1
+                            s             |
+  y=0    Metronome ==== Brass 01 ===== Brass 02 ===== Brass 03 ======== Triad (3 waves; Burin)
+         start: B starts the tune             |                 |
+  y=1                   Keys 01 ====== Strings 01 ==== Percussion 01     Stand (carry the reed here)
+                           |                                               |
+  y=2                   Brass 04 ===== Percussion 02 = Brass 05 ========= Stair (a lock in another key)
+                                                                           |
+  y=3                                  Unresolved === Coda ============= Hall (dissonants, score gate)
+                                       Chord (boss)
 ```
+
+It starts in **the Metronome** (2026-10-04): silence until you press B on it, then
+the tune begins on the next beat. Stop it any time and the tune waits where it is.
+It ends in **the Unresolved Chord**, the boss, west of the Coda: an echo, a swarm,
+a chord (docs/SCOPE-ENEMIES-AND-BOSS.md). The exit appears where it stood.
 
 ### Areas and their moods
 
@@ -42,12 +47,15 @@ a room that drifts from its area.
 
 | area | rooms | key, mode | mood | bpm |
 |---|---|---|---|---|
-| The Atrium | Brass 01, 02, 03 | C ionian | content | 104 |
+| The Atrium | Metronome, Brass 01, 02, 03 | C ionian | content | 104 |
 | The Reed Gallery | Flute, Reed Loft | F lydian | mysterious | 96 |
 | The Undercroft | Percussion 01, Strings 01, Keys 01 | A aeolian | sad | 88 |
 | The Cloister | Brass 04, Percussion 02, Brass 05 | D dorian | reflective | 100 |
 | The Bell Tower | Triad, Stand, Stair | G mixolydian | confident | 100 |
-| The Discord | Hall, Coda | E phrygian | tense | 108 |
+| The Discord | Hall, Coda, Unresolved Chord | E phrygian | tense | 108 |
+
+The floor is tinted by mode (umber, teal, oxblood, violet, gold, night blue,
+green), so a new area, or the boss changing key, is seen as well as heard.
 
 The Coda turns content (ionian) when its phrase is played: the room's file says
 `"solved": { "mood": "content" }`. The dissonance resolves.
@@ -58,7 +66,8 @@ The Coda turns content (ionian) when its phrase is played: the room's file says
 played quietly under everything (`src/audio/score.js`). It starts as one motif in
 the first room. Every room you solve adds a **layer** (a bass line, a pulse, horn
 calls, a flute's answer, the reed's broken chords, chords, an answering phrase, a
-descant, the whole band), until by the Coda it is close to a finished piece.
+descant, the whole band), until at the boss it is close to a finished piece. It
+plays only while the metronome runs.
 Because it is in degrees and played through whichever room you are in, it takes on
 each area's key and mode: the same tune is content in the Atrium and tense in the
 Discord. Its notes are never heard by a lock. The pause menu lists the layers.

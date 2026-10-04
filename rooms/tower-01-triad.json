@@ -2,7 +2,7 @@
   "id": "tower-01-triad",
   "name": "The Triad",
   "wing": "brass",
-  "hint": "Three chord forks at the ends of three long horns. Each rings for a few beats; the doors open only while all three ring together. One wave cannot be in three places.",
+  "hint": "Three horns, three chord forks at their bells. Each fork rings for a few beats; the doors open only while all three ring together. One wave cannot be in three places.",
   "music": {
     "root": 7,
     "mode": "mixolydian",
@@ -44,20 +44,45 @@
       "x": 6,
       "y": 12,
       "latch": true
+    },
+    {
+      "x": 5,
+      "y": 10,
+      "rot": 180
+    },
+    {
+      "x": 6,
+      "y": 9,
+      "rot": 270
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "rot": 270
+    },
+    {
+      "x": 10,
+      "y": 2,
+      "rot": 270
+    },
+    {
+      "x": 5,
+      "y": 2,
+      "rot": 180
     }
   ],
   "layout": [
     "#############",
     "##%#######%##",
-    "#.|#%---7#|!#",
-    "#.|#####|#|.#",
+    "#.Y#%Y--7#Y!#",
+    "#.|#####|#|h#",
     "#.|###F-J#|D#",
     "#.|###|###|.#",
     "D@|###|###|.#",
     "#.|###|###|.#",
     "#.|###|###|.#",
-    "#.|###|###|.#",
-    "#.L---.---J.#",
+    "#.|###M###|.#",
+    "#.L--M.M--J.#",
     "#...........#",
     "######D######"
   ],
@@ -73,7 +98,7 @@
       "face": "up",
       "do": "fire",
       "wait": 2,
-      "why": "into the middle horn (14 tiles to its fork)"
+      "why": "into the middle horn's mouthpiece (14 tiles to its bell and fork)"
     },
     {
       "at": [

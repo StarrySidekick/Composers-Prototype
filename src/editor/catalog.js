@@ -86,6 +86,7 @@ export const GROUPS = [
       { char: '%', label: 'chord fork', hint: 'rings for a few beats after a hit; a group of them opens only while all ring' },
       { char: 'n', label: 'note lock', hint: 'wants a phrase — press B to hear it. Set key to want it in another key' },
       { char: '$', label: 'score gate', hint: 'opens once the level\'s tune has this many layers' },
+      { char: 'N', label: 'metronome', hint: 'B starts the level\'s tune (and opens its group), B again pauses it' },
     ],
   },
   {
@@ -93,6 +94,8 @@ export const GROUPS = [
       { char: 'O', label: 'overtone', hint: 'pickup: one more wave at once' },
       { char: '!', label: 'burin', hint: 'pickup: L lifts drums and reeds into the satchel' },
       { char: '&', label: 'dissonant', hint: 'a sour note that walks on the beat; a wave resolves it, touching it shoves Coda' },
+      { char: 'W', label: 'boss', hint: 'the Unresolved Chord, three phases; surround it with eight U' },
+      { char: 'U', label: 'boss body', hint: 'the rest of the boss: solid, swallows waves, drawn by the boss' },
     ],
   },
 ];
@@ -142,6 +145,11 @@ export const PROPS = {
     { key: 'listen', type: 'enum', values: ['room', 'world'], hint: 'world: hears notes from every room, for a phrase across rooms' },
     { key: 'patience', type: 'int', min: 0, max: 32, hint: 'beats of silence before a half-played phrase is forgotten (0 = never)' },
   ],
+  metronome: [
+    { key: 'group', type: 'text', hint: 'doors that open when it first starts (latch them)' },
+  ],
+  boss: [],
+  bosspart: [],
   scorelock: [
     { key: 'group', type: 'text' },
     { key: 'layers', type: 'int', min: 1, max: 12, hint: 'score layers needed' },
