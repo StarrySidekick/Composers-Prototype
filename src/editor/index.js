@@ -52,7 +52,13 @@ export function buildEditor(game, renderer, assets, els, hooks = {}) {
     els.mode.value = MOOD_TO_MODE[els.mood.value] ?? game.room.music.mode;
     onReload?.();
   });
-  on(els.maxWaves, 'change', () => { game.room.maxWaves = Number(els.maxWaves.value) || 1; onReload?.(); });
+  // Blank means "as many as Coda has found" (1 + an Overtone each), which is what a
+  // world room wants. A number caps it, or in free play sets it.
+  on(els.maxWaves, 'change', () => {
+    const v = els.maxWaves.value.trim();
+    game.room.maxWaves = v === '' ? null : Math.max(1, Number(v) || 1);
+    onReload?.();
+  });
   on(els.hint, 'input', () => { game.room.hint = els.hint.value; hooks.onHint?.(els.hint.value); });
   on(els.bpm, 'input', () => {
     els.bpmOut.textContent = els.bpm.value;
@@ -149,7 +155,7 @@ export function buildEditor(game, renderer, assets, els, hooks = {}) {
     els.root.value = room.music.root;
     els.mode.value = room.music.mode;
     els.mood.value = room.music.mood;
-    els.maxWaves.value = room.maxWaves;
+    els.maxWaves.value = room.maxWaves ?? '';
     els.hint.value = room.hint ?? '';
     els.bpmOut.textContent = `${room.music.bpm}`;
     paint.state.selected = null;

@@ -10,12 +10,27 @@
      { "at": [x, y], "face": "down", "do": "fire" }        stand, face, press A
      { "at": [x, y], "face": "left", "do": "interact", "times": 2 }   press B twice
      { "at": [x, y], "move": "right" }                      stand, then walk one tile
+     { "at": [x, y], "face": "up", "do": "lift" }            L: into the satchel (burin)
+     { "at": [x, y], "face": "up", "do": "place" }           L: set the held one down
+     { "at": [x, y], "do": "turn", "times": 2 }              R: turn the held one
+     { ..., "wait": 4 }                  sixteenths to run after the step (default 64)
+     { "room": "other-id", "at": ..., ... }  a step taken in another world room
      "why": "..."                                           what the step is for
+
+   A room that needs something found elsewhere says so beside its solution:
+
+     "with": { "waves": 3, "items": ["burin"], "layers": 9,
+               "satchel": [{ "name": "reed", "spec": { "type": "reed", "rot": 0 } }] }
+
+   Each room here is solved from a fresh game plus its `with`. That the world
+   hands you those things in time is test/route.mjs's job.
 
    `at` has to be somewhere the player can WALK to from where they were, with
    the doors as they are at that moment; the test checks that rather than
    teleporting through walls, so a step that only works by cheating fails.
-   After each step the simulation runs four bars, so every wave resolves.
+   After each step the simulation runs four bars (or `wait` sixteenths), so
+   every wave resolves. A door held open only by a ringing chord fork is
+   expected to shut again and is not counted as an exit.
 
    Every room in rooms/world.json must have a solution. A room without one
    fails, because an unproven room is how a world becomes unfinishable.
@@ -36,12 +51,27 @@ await page.waitForFunction(() => window.CK && window.CK.game?.world, null, { tim
 
 const results = await page.evaluate(async () => {
   const { DIR } = await import('./src/core/direction.js');
+  const { Progress } = await import('./src/core/progress.js');
   const g = window.CK.game, a = window.CK.audio;
   // Same rule as the real engine for what the room hears (see AudioEngine.heard).
-  a.play = (o) => { if (a.heard?.(o) ?? true) a.onNote?.(o.midi, o.family); };
+  a.play = (o) => { if (a.heard?.(o) ?? true) a.onNote?.(o.midi, o.family, o); };
   a.click = () => {};
+  g.saving = false;
+  if (g.score) g.score.muted = true;
   const world = g.world;
   const out = [];
+
+  // A fresh game, plus whatever the room says it needs from elsewhere.
+  const fresh = (json) => {
+    const p = new Progress();
+    const w = json.with ?? {};
+    if (w.waves) p.waves = w.waves;
+    for (const i of w.items ?? []) p.items.add(i);
+    for (const e of w.satchel ?? []) p.carry(JSON.parse(JSON.stringify(e)));
+    for (let i = 0; i < (w.layers ?? 0); i++) p.layers.add(`given-${i}`);
+    g.progress = p;
+    world.forgetAll();
+  };
 
   // Where can the player walk to from here, right now?
   const reachable = (room, from) => {
@@ -58,23 +88,32 @@ const results = await page.evaluate(async () => {
     }
     return seen;
   };
+  // The game's own loop, one sixteenth at a time, without the wall clock.
   const run = (subs) => {
     for (let i = 0; i < subs; i++) {
-      g.clock.index++;
-      if (g.clock.index % 4 === 0) {
-        const beat = g.clock.index / 4;
-        for (const d of g.room.list) { d.onBeat(beat, g.ctx); d.tickHold(beat, g.ctx); }
-      }
-      for (const w of g.waves) w.step(g.ctx);
-      g.waves = g.waves.filter(w => w.alive);
+      const index = ++g.clock.index;
+      const ev = { index, isBeat: index % 4 === 0, beat: Math.floor(index / 4) };
+      if (ev.isBeat) for (const d of [...g.room.list]) { d.onBeat(ev.beat, g.ctx); d.tickHold(ev.beat, g.ctx); }
+      g.stepWaves(ev);
     }
   };
+  // This room's exits: doors its own locks open and keep open. Not entry doors;
+  // not a shortcut whose locks are in another room (it opens from there, paired
+  // with its partner); and not a door a ringing chord fork only holds open for a
+  // few beats, unless it latches.
+  const exitsOf = (room) => room.list.filter(d => {
+    if (d.typeName !== 'door' || d.group === 'entry') return false;
+    const locks = room.ofGroup(d.group).filter(l => l.isLock);
+    if (!locks.length) return false;
+    return d.latch || !locks.some(l => l.sustain);
+  });
 
   // No free solves: asking a note lock for its hint (B) must not open anything.
   // It used to: the hint phrase was played through the same speakers the locks
   // listen to, so a lock heard its own answer and opened the door.
   const cheats = [];
   for (const id of world.at.keys()) {
+    fresh(world.json[id]);
     g.loadRoom(world.json[id]);
     const locks = g.room.list.filter(d => d.typeName === 'notelock');
     for (const lock of locks) { lock.onPlayerInteract(g.ctx); run(64); }
@@ -90,34 +129,44 @@ const results = await page.evaluate(async () => {
     const r = { id, steps: 0, problems: [] };
     out.push(r);
     if (!json.solution?.length) { r.problems.push('no solution recorded'); continue; }
+    fresh(json);
     g.loadRoom(json);
+    const home = g.room;
     // A world room is entered through a door; start where the spawn is.
     let pos = { x: g.player.x, y: g.player.y };
     for (const [i, step] of json.solution.entries()) {
+      const room = step.room ? world.room(step.room) : home;
+      if (!room) { r.problems.push(`step ${i + 1}: no room ${step.room}`); break; }
       const [x, y] = step.at;
-      if (!reachable(g.room, pos).has(`${x},${y}`)) {
+      // Within a room every step must be walkable from the last. A step in
+      // another room is a jump; test/route.mjs walks those for real.
+      if (room === g.room && !reachable(room, pos).has(`${x},${y}`)) {
         r.problems.push(`step ${i + 1}: cannot walk to ${x},${y} from ${pos.x},${pos.y}`);
         break;
       }
-      g.enterRoom(g.room, { x, y, facing: step.face ?? step.move ?? g.player.facing });
+      g.enterRoom(room, { x, y, facing: step.face ?? step.move ?? g.player.facing });
       if (step.move) g.move(step.move);
       for (let t = 0; t < (step.times ?? 1); t++) {
         if (step.do === 'fire') g.fire();
         else if (step.do === 'interact') g.interact();
-        run(2);
+        else if (step.do === 'lift' || step.do === 'place') {
+          if (!g.shoulderL()) r.problems.push(`step ${i + 1}: could not ${step.do} at ${x},${y} facing ${g.player.facing}`);
+        } else if (step.do === 'turn') g.shoulderR();
+        run(step.wait != null && step.times > 1 ? 1 : 2);
       }
-      run(64);
+      run(step.wait ?? 64);
       pos = { x: g.player.x, y: g.player.y };
       r.steps++;
     }
-    const exits = g.room.list.filter(d => d.typeName === 'door' && d.group !== 'entry');
+    if (g.room !== home) g.enterRoom(home, pos);
+    const exits = exitsOf(home);
     r.exits = exits.length;
     const shut = exits.filter(d => !d.open);
     if (!exits.length) r.problems.push('no exit door to open');
     if (shut.length) r.problems.push(`still shut after the solution: ${shut.map(d => `${d.x},${d.y}`).join(' ')}`);
     // And then can the player get out? Walk to the exit door, or to an X.
-    const goal = g.room.list.find(d => d.typeName === 'exit') ?? exits[0];
-    if (goal && !shut.length && !reachable(g.room, pos).has(`${goal.x},${goal.y}`)) {
+    const goal = home.list.find(d => d.typeName === 'exit') ?? exits[0];
+    if (goal && !shut.length && !reachable(home, pos).has(`${goal.x},${goal.y}`)) {
       r.problems.push(`the exit at ${goal.x},${goal.y} is open but cannot be walked to`);
     }
   }

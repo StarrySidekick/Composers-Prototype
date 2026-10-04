@@ -7,7 +7,7 @@
 // variable --stage, which the stage and both status bars read.
 
 const TOUCH = window.matchMedia('(max-width: 860px), (pointer: coarse)');
-const CONTROLS_ROOM = 170;   // px kept under the stage for the pad, upright phones only
+const CONTROLS_ROOM = 220;   // px kept under the stage for the pad and shoulders, upright phones only
 
 export function fitStage(renderer, game) {
   const play = document.getElementById('play');

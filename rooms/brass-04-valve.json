@@ -3,7 +3,6 @@
   "name": "The Valve",
   "wing": "brass",
   "hint": "One horn, two forks. Press B on the valve to turn it, then blow the mouthpiece again.",
-  "maxWaves": 1,
   "music": {
     "root": 2,
     "mode": "dorian",

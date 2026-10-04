@@ -3,13 +3,12 @@
   "name": "Left and Right",
   "wing": "percussion",
   "hint": "Drums are mirrors, but only on the head side. Find where to stand so the wave meets each head, not its shell.",
-  "maxWaves": 1,
   "music": {
-    "root": 9,
-    "mode": "aeolian",
-    "bpm": 112,
+    "root": 2,
+    "mode": "dorian",
+    "bpm": 100,
     "timeSignature": 4,
-    "mood": "sad"
+    "mood": "reflective"
   },
   "overrides": [
     {

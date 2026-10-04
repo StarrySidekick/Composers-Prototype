@@ -6,3 +6,6 @@ import './percussion.js';
 import './keys.js';
 import './locks.js';
 import './strumentino.js';
+import './woodwind.js';
+import './pickups.js';
+import './enemy.js';

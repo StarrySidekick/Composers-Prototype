@@ -1,0 +1,87 @@
+{
+  "id": "woodwind-02-reed",
+  "name": "The Reed Loft",
+  "wing": "woodwind",
+  "hint": "A reed keeps breathing: hit it (A or B) and it sends a wave every beat for a few beats. The fork in the slot only rings while waves keep reaching it. Set the reed going, then run.",
+  "music": {
+    "root": 5,
+    "mode": "lydian",
+    "bpm": 96,
+    "timeSignature": 4,
+    "mood": "mysterious"
+  },
+  "overrides": [
+    {
+      "x": 12,
+      "y": 6,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 8,
+      "y": 2,
+      "group": "c"
+    },
+    {
+      "x": 6,
+      "y": 8,
+      "group": "c"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "breath": 8
+    }
+  ],
+  "layout": [
+    "#############",
+    "#..#######..#",
+    "#.r.....%#..#",
+    "#..#######..#",
+    "#...........#",
+    "#...........#",
+    "#..........@D",
+    "#...........#",
+    "#..###D###..#",
+    "#..#.....D..#",
+    "#..#O...*#..#",
+    "#..#.....#..#",
+    "######D######"
+  ],
+  "solution": [
+    {
+      "at": [
+        1,
+        2
+      ],
+      "face": "right",
+      "do": "interact",
+      "wait": 8,
+      "why": "set the reed breathing: eight waves, a beat apart, down the slot to the chord fork, which holds the chamber door open"
+    },
+    {
+      "at": [
+        6,
+        9
+      ],
+      "why": "run into the chamber while the door is held (about 11 tiles, a couple of seconds)"
+    },
+    {
+      "at": [
+        5,
+        10
+      ],
+      "move": "left",
+      "why": "the second Overtone: three waves at once"
+    },
+    {
+      "at": [
+        5,
+        10
+      ],
+      "face": "right",
+      "do": "fire",
+      "why": "light the fork in the chamber: the south door opens, a shortcut home to the start, and so does the chamber's side door"
+    }
+  ]
+}

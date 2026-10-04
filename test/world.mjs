@@ -41,6 +41,22 @@ const r = await page.evaluate(async () => {
     return doors;
   };
 
+  // Areas: a run of rooms shares a key, a mode and a tempo, so the music only
+  // changes mood at an area's border. A room that drifts from its area's key
+  // makes the level's tune jump at a doorway for no reason.
+  const MOOD = { content: 'ionian', reflective: 'dorian', tense: 'phrygian', mysterious: 'lydian', confident: 'mixolydian', sad: 'aeolian', unhinged: 'locrian' };
+  for (const id of world.at.keys()) {
+    const area = world.area(id);
+    if (!area) { out.problems.push(`${id} is in no area`); continue; }
+    const m = world.json[id].music ?? {};
+    const want = { root: area.root, mode: MOOD[area.mood], bpm: area.bpm, mood: area.mood };
+    for (const [k, v] of Object.entries(want)) {
+      if (v != null && m[k] !== v) out.problems.push(`${id}: ${k} is ${m[k]}, its area (${area.name}) is ${v}`);
+    }
+  }
+  out.areas = Object.keys(world.areas).length;
+  out.moods = new Set(Object.values(world.areas).map(a => a.mood)).size;
+
   for (const id of world.at.keys()) {
     const room = new Room(world.json[id]);
     out.rooms.push({ id, w: room.width, h: room.height });
@@ -92,6 +108,7 @@ const ok = (name, cond, detail = '') =>
   cond ? console.log(`  ok   ${name}`) : fails.push(`${name}${detail ? ' — ' + detail : ''}`);
 
 ok('the world has rooms', r.rooms.length >= 2, `${r.rooms.length}`);
+ok('every area has its own mood', r.areas > 1 && r.moods === r.areas, `${r.areas} areas, ${r.moods} moods`);
 ok('every world room is the same size', new Set(r.rooms.map(x => x.w)).size === 1,
   r.rooms.map(x => `${x.id} ${x.w}`).join(', '));
 ok('walking onto an open edge door stays in the room', r.walk[0][0] === 'brass-01-first-breath' && r.walk[0][1] === 12,

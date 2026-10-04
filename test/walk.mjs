@@ -55,7 +55,7 @@ const r = await page.evaluate(async () => {
   g.setHeld('up', false);
 
   // Corner nudge: a little off the door's row, walking right through the open door.
-  const door = g.room.list.find(d => d.typeName === 'door');
+  const door = g.room.doodadAt(12, 6);   // the east door (there is a north one too)
   door.setOpen(true, g.ctx);
   at(9, 6); g.player.ry = 6.3;           // 0.3 of a tile low
   hold(['right'], 1.2);

@@ -23,6 +23,7 @@ export const FLOOR = '#000000';
 export const STATE_INK = {
   'lock': INK_DIM,
   'notelock': INK_DIM,
+  'scorelock': INK_DIM,
   'door.open': INK_DIM,
 };
 
@@ -36,11 +37,24 @@ export const STROKE = { main: 3, fine: 2 };
 // inclusive pixel span along that edge. Measured from the real art:
 //   brass tube walls   y 20..30 on the left/right edges (centre 25)
 //   string             y 24..26
+//   flute bore walls   y 22..29 (not measured: no Unity flute yet. Chosen
+//                      narrower than brass on purpose, so a flute never reads
+//                      as a horn; centred on the tile like the string)
 // A tube drawn with its walls anywhere else will look broken where it meets the
 // next tube, which is the whole reason this table exists.
 export const CONNECTOR = {
   brass:  { from: 20, to: 30 },
   string: { from: 24, to: 26 },
+  flute:  { from: 22, to: 29 },
+};
+
+// A flute is a straight run, head on the left at rot 0 (src/doodads/woodwind.js):
+// the head joins only the tile after it, the foot only the one before.
+const FLUTE_EDGES = {
+  head: ['right'],
+  hole: ['left', 'right'],
+  covered: ['left', 'right'],
+  foot: ['left'],
 };
 
 // Edges a sprite key's art must reach, in the sprite's own unrotated space.
@@ -52,6 +66,7 @@ export function connectorEdges(key) {
     return BRASS_EDGES[part] ?? null;
   }
   if (type === 'string') return ['left', 'right'];
+  if (type === 'flute') return FLUTE_EDGES[part] ?? null;
   return null;
 }
 

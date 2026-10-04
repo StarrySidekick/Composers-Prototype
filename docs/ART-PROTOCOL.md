@@ -49,11 +49,13 @@ Measured from the Unity art:
 |---|---|---|
 | brass tube | rows **20 to 30** | wall lines at 20-21 and 29-30, bore between |
 | string | rows **24 to 26** | one 2-3 px line through the middle |
+| flute | rows **22 to 29** | wall lines at 22-24 and 27-29: chosen, not measured (no Unity flute yet), and deliberately narrower than brass so a flute never reads as a horn |
 
 Which edges a piece crosses is set by the mechanics, not the art: `edges` in the
 brass `PARTS` table (`src/doodads/brass.js`). An unrotated straight crosses left
 and right; an elbow crosses left and bottom (a "┐"); a mouthpiece crosses only
-the right; a flare only the left.
+the right; a flare only the left. A flute head crosses only the right, a hole
+(open or covered) left and right, a foot only the left.
 
 `node test/art.mjs` checks every sprite against this, real and placeholder. It
 exists because measuring the art for this page found the mouthpiece drawn

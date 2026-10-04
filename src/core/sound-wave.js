@@ -73,7 +73,10 @@ export class SoundWave {
     const nx = this.x + this.dir.x;
     const ny = this.y + this.dir.y;
 
-    if (!ctx.room.inBounds(nx, ny)) { this.destroy(); return; }
+    // Off the edge. In a world, the edge tile is an open door and the wave carries
+    // on into the next room as a new wave there (Game.crossEdge); either way it is
+    // finished here.
+    if (!ctx.room.inBounds(nx, ny)) { ctx.crossEdge?.(this, nx, ny); this.destroy(); return; }
 
     this.x = nx; this.y = ny;
     this.state.tilesTraversed++;

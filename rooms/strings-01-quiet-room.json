@@ -3,29 +3,13 @@
   "name": "The Quiet Room",
   "wing": "strings",
   "hint": "Three string runs, three lengths, three pitches. Fire once and listen to the whole circuit.",
-  "maxWaves": 1,
   "music": {
     "root": 9,
     "mode": "aeolian",
-    "bpm": 84,
+    "bpm": 88,
     "timeSignature": 4,
     "mood": "sad"
   },
-  "layout": [
-    "#############",
-    "#.@.b..b..b.#",
-    "#...H..H..H.#",
-    "#...H..H..H.#",
-    "#...s..H..H.#",
-    "#......H..H.#",
-    "D......s..H.D",
-    "#.........H.#",
-    "#.........s.#",
-    "#...n.......#",
-    "#...........#",
-    "#...........#",
-    "#############"
-  ],
   "overrides": [
     {
       "x": 4,
@@ -42,6 +26,21 @@
       "open": true,
       "group": "entry"
     }
+  ],
+  "layout": [
+    "#############",
+    "#.@.b..b..b.#",
+    "#...H..H..H.#",
+    "#...H..H..H.#",
+    "#...s..H..H.#",
+    "#......H..H.#",
+    "D......s..H.D",
+    "#.........H.#",
+    "#.........s.#",
+    "#...n.......#",
+    "#...........#",
+    "#...........#",
+    "#############"
   ],
   "solution": [
     {

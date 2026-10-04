@@ -5,10 +5,15 @@ import { Game } from './game.js';
 import { bindInput } from './input.js';
 import { buildEditor } from './editor/index.js';
 import { World } from './core/world.js';
-import { KeyFlight } from './render/key-flight.js';
+import { KeyFlight, KEY_MODEL } from './render/key-flight.js';
+import { mountModel } from './vendor/key3d/model-view.js';
 import { fitStage } from './ui/layout.js';
 import { Hud } from './ui/hud.js';
 import { Controls } from './ui/controls.js';
+import { refreshMenu } from './ui/menu.js';
+import { Score } from './audio/score.js';
+import { Progress } from './core/progress.js';
+import { ITEMS } from './doodads/pickups.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -41,6 +46,11 @@ async function boot() {
 
   // Rooms joined by doors. Optional: without world.json every room stands alone.
   game.world = await World.load().catch(err => { console.warn('[world]', err); return null; });
+  if (game.world) {
+    // Every room the world builds gets what the player has done there replayed.
+    game.world.onBuild = (room) => game.applyProgress(room);
+    if (game.world.score) game.score = new Score(game.world.score);
+  }
   game.onRoomChange = (room) => {
     const entry = manifest.find(m => m.file.replace(/\.json$/, '') === room.id);
     if (entry) $('room-select').value = entry.file;
@@ -52,6 +62,8 @@ async function boot() {
   const startFile = manifest.find(m => m.file === `${game.world?.start}.json`)?.file ?? manifest[0].file;
   $('room-select').value = startFile;
   await loadRoomFile(startFile);
+  // The motif plays under the title, once there is sound.
+  game.unlockLayers('start');
 
   editor = buildEditor(game, renderer, assets, {
     layoutBox: $('layout'), legendBox: $('legend'), hintBox: $('legend-hint'),
@@ -73,7 +85,7 @@ async function boot() {
     dpad: $('dpad'), 'btn-a': $('btn-a'), 'btn-b': $('btn-b'), stage: $('stage'),
   }, {
     onAction: () => { unlockAudio(); dismissHint(); },
-    paused: () => !$('menu').hidden,
+    paused: () => !$('menu').hidden || !$('title').hidden,
     arranging: () => controls.arranging,
   });
 
@@ -84,8 +96,15 @@ async function boot() {
   $('menu-hint').addEventListener('click', () => { setMenu(false); showHint(game.room.hint, true); });
   $('arrange').addEventListener('click', () => { setMenu(false); controls.setArranging(true); });
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { e.preventDefault(); setMenu($('menu').hidden); }
+    if (e.key === 'Escape' && $('title').hidden) { e.preventDefault(); setMenu($('menu').hidden); }
   });
+  $('menu-title').addEventListener('click', () => { setMenu(false); showTitle(); });
+  $('music').addEventListener('click', (e) => {
+    if (!game.score) return;
+    game.score.muted = !game.score.muted;
+    e.currentTarget.classList.toggle('on', !game.score.muted);
+  });
+  bindTitle();
   for (const id of ['reset', 'toggle-editor', 'toggle-build']) {
     $(id).addEventListener('click', () => setMenu(false));
   }
@@ -143,7 +162,30 @@ async function boot() {
   const flight = new KeyFlight(document.querySelector('.stage-wrap'), { game, renderer });
   game.onDoorOpen = (door) => flight.play(door);
   window.CK.flight = flight;
-  game.onRoomComplete = () => showToast('★ Room resolved');
+  // The end of the world (the Coda's X), or the end of a room played on its own.
+  game.onRoomComplete = () => {
+    const s = game.score;
+    if (!game.world?.has(game.room.id) || !s) { showToast('★ Room resolved'); return; }
+    const have = s.layers.filter(l => game.progress.layers.has(l.id)).length;
+    showHint(`The end. The piece is ${have === s.layers.length ? 'whole' : 'nearly whole'}: ${have} of ${s.layers.length} layers of the score, playing together. Thank you for playing.`, true);
+  };
+
+  // The screen scrolls to the next room, Zelda style; Coda waits for it.
+  game.onBeforeRoomChange = (dir) => {
+    renderer.beginScroll(dir);
+    game.freeze = 0.32;
+  };
+  game.onAreaChange = (area) => showAreaCard(area);
+  game.onCollect = (item) => {
+    const it = ITEMS[item];
+    showHint(`You found ${it?.name ?? item}! ${it?.text ?? ''}`, true);
+    refreshHud();
+  };
+  game.onScoreLayer = (layer) => showToast(`♪ The score grows: ${layer.name}`);
+  game.onHurt = () => {
+    const w = $('stage-wrap');
+    w.classList.remove('hurt'); void w.offsetWidth; w.classList.add('hurt');
+  };
 
   setBuild(false);
   requestAnimationFrame(loop);
@@ -192,7 +234,109 @@ function dismissHint(force = false) {
 
 function setMenu(open) {
   $('menu').hidden = !open;
-  if (open) for (const d of [...game.held]) game.setHeld(d, false);
+  if (open) {
+    for (const d of [...game.held]) game.setHeld(d, false);
+    refreshMenu(game);
+  }
+}
+
+// ---- the title screen -------------------------------------------------------
+//
+// Continue (if this browser has a save), a new game, free play (any room, every
+// tool, nothing saved), or straight into the editor. The room plays on behind it.
+
+let titleKey = null;
+function showTitle() {
+  const saved = Progress.saved();
+  $('title-continue').disabled = !saved;
+  $('title-continue').textContent = saved ? `continue — ${roomName(saved.room)}` : 'continue';
+  $('title-free-box').hidden = true;
+  $('title').hidden = false;
+  for (const d of [...game.held]) game.setHeld(d, false);
+  if (!titleKey) titleKey = mountModel($('title-key'), { ...KEY_MODEL, spin: 36 }, { interactive: false, auto: true });
+}
+
+function hideTitle() {
+  $('title').hidden = true;
+  titleKey?.destroy?.();
+  titleKey = null;
+}
+
+function roomName(id) {
+  const json = game.world?.json[id];
+  return json?.name ?? id ?? '';
+}
+
+function bindTitle() {
+  $('title-room').innerHTML = manifest.map(r => `<option value="${r.file}">${r.name}</option>`).join('');
+  $('title-continue').addEventListener('click', async () => {
+    await unlockAudio();
+    const saved = Progress.saved();
+    if (!saved || !game.continueGame(saved)) return;
+    hideTitle(); afterJump();
+  });
+  $('title-new').addEventListener('click', async () => {
+    await unlockAudio();
+    Progress.erase();
+    game.newGame();
+    hideTitle(); afterJump();
+  });
+  $('title-free').addEventListener('click', () => {
+    $('title-room').value = $('room-select').value;
+    $('title-free-box').hidden = !$('title-free-box').hidden;
+  });
+  $('title-free-go').addEventListener('click', async () => {
+    await unlockAudio();
+    const file = $('title-room').value;
+    game.freePlay(await fetch(`rooms/${file}`).then(r => r.json()));
+    $('room-select').value = file;
+    hideTitle(); afterJump();
+  });
+  $('title-editor').addEventListener('click', async () => {
+    await unlockAudio();
+    game.saving = false;
+    game.progress = new Progress().grantAll();
+    hideTitle(); afterJump();
+    document.body.classList.add('editing');
+    setBuild(true);
+    requestAnimationFrame(() => fitStage(renderer, game));
+  });
+  window.addEventListener('keydown', (e) => {
+    if ($('title').hidden || e.target instanceof HTMLSelectElement) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      ($('title-continue').disabled ? $('title-new') : $('title-continue')).click();
+    }
+  });
+  showTitle();
+}
+
+// After the title (or a menu) put you somewhere: sync everything that shows the room.
+function afterJump() {
+  const room = game.room;
+  const entry = manifest.find(m => m.file.replace(/\.json$/, '') === room.id);
+  if (entry) $('room-select').value = entry.file;
+  editor?.syncFromRoom();
+  showHint(room.hint);
+  refreshHud();
+  fitStage(renderer, game);
+  const area = game.world?.area(room.id);
+  if (area) showAreaCard(area);
+}
+
+// An area's name and mood, the first moment you are in it.
+let areaTimer = null;
+function showAreaCard(area) {
+  const card = $('area-card');
+  $('area-name').textContent = area.name;
+  $('area-mood').textContent = `${area.mood} · ${game.room.music.label}`;
+  card.hidden = false;
+  card.classList.remove('fade');
+  clearTimeout(areaTimer);
+  areaTimer = setTimeout(() => {
+    card.classList.add('fade');
+    areaTimer = setTimeout(() => { card.hidden = true; }, 650);
+  }, 2200);
 }
 
 async function unlockAudio() {

@@ -51,14 +51,31 @@ export const DEFAULT_LEGEND = {
   // blocks Coda until the room overrides it — see the editor's character list.
   'i': { type: 'strumentino' },
 
+  // woodwind (src/doodads/woodwind.js). A flute is a straight run, head on the
+  // left at rot 0: Q then q holes then d. The reed's bell faces right at rot 0.
+  'Q': { type: 'flute', part: 'head', rot: 0 },
+  'q': { type: 'flute', part: 'hole', rot: 0 },
+  'd': { type: 'flute', part: 'foot', rot: 0 },
+  'r': { type: 'reed', rot: 0 },
+
+  // things to find (src/doodads/pickups.js)
+  'O': { type: 'pickup', item: 'overtone' },
+  '!': { type: 'pickup', item: 'burin' },
+
+  // the first enemy (src/doodads/enemy.js)
+  '&': { type: 'dissonant', rot: 0, path: 'line' },
+
   // puzzle
   '*': { type: 'lock' },
+  '%': { type: 'lock', sustain: 2 },     // a chord fork: rings 2 beats, then dark
+  '$': { type: 'scorelock', layers: 6 }, // opens once the score has 6 layers
   'n': { type: 'notelock' },
   'D': { type: 'door' },
   'X': { type: 'exit' },
   'x': { type: 'dissonance' },
   '<': { type: 'keyshift', delta: -1 },
   '>': { type: 'keyshift', delta: 1 },
+  '^': { type: 'keyshift', delta: 1, climb: true, rot: 0 },   // a stair: up raises, down lowers
 };
 
 export const EMPTY_CHAR = '.';
@@ -76,7 +93,13 @@ export class Room {
     this.legend = { ...DEFAULT_LEGEND, ...this.legendExtra };
     this.layout = [...(json.layout ?? [])];
     this.overrides = (json.overrides ?? []).map(o => ({ ...o }));
-    this.maxWaves = json.maxWaves ?? 1;
+    // A room may cap (or, in free play, set) how many of the Key's waves can sound
+    // at once. Null, the usual case in the world, means "whatever Coda has found":
+    // one, plus one per Overtone (src/core/progress.js).
+    this.maxWaves = json.maxWaves ?? null;
+    // Waves travelling in this room. Each room keeps its own, because a wave can go
+    // out through an open door and carry on next door while you are elsewhere.
+    this.waves = [];
     this.build();
   }
 
@@ -254,7 +277,7 @@ export class Room {
       name: this.name,
       wing: this.wing,
       hint: this.hint || undefined,
-      maxWaves: this.maxWaves,
+      maxWaves: this.maxWaves ?? undefined,
       music: this.music.toJSON(),
       legend: Object.keys(this.legendExtra).length ? this.legendExtra : undefined,
       overrides: this.overrides.length ? this.overrides.map(o => ({ ...o })) : undefined,

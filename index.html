@@ -26,6 +26,7 @@
 
     <div class="stage-wrap" id="stage-wrap">
       <canvas id="stage"></canvas>
+      <div id="area-card" class="area-card" hidden><small id="area-mood"></small><b id="area-name"></b></div>
       <div id="dialog" class="dialog" hidden><p id="room-hint"></p></div>
       <div id="toast" class="toast"></div>
     </div>
@@ -33,12 +34,14 @@
     <div class="hud hud-bottom" id="hud-bottom">
       <div class="hud-cell"><label>forks</label><span id="hud-locks" class="pips"></span></div>
       <div class="hud-cell hud-staff"><label>heard</label><canvas id="hud-staff" width="132" height="26"></canvas></div>
+      <div class="hud-cell"><label id="hud-bag-label">satchel</label><span id="hud-bag">—</span></div>
       <div class="hud-cell"><label>mood</label><span id="hud-mood">content</span></div>
     </div>
 
     <p class="keys-help">
       <b>WASD/arrows</b> walk · <b>Space</b> fire a sound wave (A) ·
-      <b>E</b> interact / strike (B) · <b>R</b> reset · <b>M</b> metronome · <b>Esc</b> menu
+      <b>E</b> interact / strike (B) · <b>Q</b> lift / place (L) · <b>Tab</b> turn what you carry (R) ·
+      <b>R</b> reset · <b>M</b> metronome · <b>Esc</b> menu
     </p>
   </section>
 
@@ -51,6 +54,13 @@
         <span class="arm down">▼</span><span class="arm left">◀</span>
         <span class="hub"></span>
       </div>
+    </div>
+    <!-- Shoulders, top corners like a Game Boy Advance: the satchel. -->
+    <div class="cluster" id="cluster-l" data-cluster="l">
+      <div class="shoulders"><button id="btn-l" class="pill" aria-label="L: lift or place">L</button></div>
+    </div>
+    <div class="cluster" id="cluster-r" data-cluster="r">
+      <div class="shoulders"><button id="btn-r" class="pill" aria-label="R: turn what you carry">R</button></div>
     </div>
     <div class="cluster" id="cluster-face" data-cluster="face">
       <div class="face">
@@ -67,21 +77,64 @@
     <button id="arrange-done" class="chip primary">done</button>
   </div>
 
-  <!-- Pause menu: everything that used to sit in the top toolbar. -->
+  <!-- Title screen. The room plays on behind it. -->
+  <div class="title-scrim" id="title">
+    <div class="title">
+      <canvas id="title-key" class="title-key"></canvas>
+      <h1>Composer's Key</h1>
+      <p class="title-sub">a prototype</p>
+      <div class="title-buttons">
+        <button id="title-continue" class="chip primary">continue</button>
+        <button id="title-new" class="chip">new game</button>
+        <button id="title-free" class="chip">free play</button>
+        <button id="title-editor" class="chip">editor</button>
+      </div>
+      <div class="title-free" id="title-free-box" hidden>
+        <label class="menu-row">room<select id="title-room"></select></label>
+        <button id="title-free-go" class="chip primary">play it</button>
+        <p class="muted">Every tool, three waves, nothing saved.</p>
+      </div>
+      <p class="title-help">A fire · B play / strike · L lift · R turn · ≡ menu</p>
+    </div>
+  </div>
+
+  <!-- Pause menu: the map, what you carry, the score, and the workshop. -->
   <div class="menu-scrim" id="menu" hidden>
     <div class="menu" role="dialog" aria-label="Menu">
-      <h2>Composer's Key <small>prototype</small></h2>
-      <label class="menu-row">room<select id="room-select" aria-label="Room"></select></label>
+      <h2>Paused <small id="menu-where"></small></h2>
       <div class="menu-grid">
         <button id="menu-resume" class="chip primary">resume</button>
         <button id="menu-hint" class="chip">show hint</button>
-        <button id="reset" class="chip" title="Reset room (R)">reset room</button>
-        <button id="arrange" class="chip">move controls</button>
-        <button id="samples" class="chip" title="Recorded instruments vs. synth voices">synth</button>
-        <button id="metronome" class="chip" title="Metronome (M)">metro</button>
-        <button id="mute" class="chip">mute</button>
-        <button id="toggle-editor" class="chip">editor</button>
-        <button id="toggle-build" class="chip" title="Paint on the canvas">build</button>
+      </div>
+      <section class="menu-sec">
+        <h3>Map</h3>
+        <canvas id="menu-map" class="menu-map" width="320" height="240"></canvas>
+      </section>
+      <section class="menu-sec">
+        <h3>Satchel <small id="menu-waves"></small></h3>
+        <div id="menu-items" class="menu-items"></div>
+        <div id="menu-satchel" class="menu-satchel"></div>
+      </section>
+      <section class="menu-sec">
+        <h3>Score <small id="menu-score-count"></small></h3>
+        <div id="menu-score" class="menu-score"></div>
+      </section>
+      <details class="menu-sec menu-workshop">
+        <summary>Workshop</summary>
+        <label class="menu-row">room<select id="room-select" aria-label="Room"></select></label>
+        <div class="menu-grid">
+          <button id="reset" class="chip" title="Reset room (R)">reset room</button>
+          <button id="arrange" class="chip">move controls</button>
+          <button id="samples" class="chip" title="Recorded instruments vs. synth voices">synth</button>
+          <button id="metronome" class="chip" title="Metronome (M)">metro</button>
+          <button id="music" class="chip on" title="The level's tune">music</button>
+          <button id="mute" class="chip">mute</button>
+          <button id="toggle-editor" class="chip">editor</button>
+          <button id="toggle-build" class="chip" title="Paint on the canvas">build</button>
+        </div>
+      </details>
+      <div class="menu-grid">
+        <button id="menu-title" class="chip">title screen</button>
       </div>
     </div>
   </div>
@@ -113,7 +166,7 @@
       <label>key<select id="ed-root"></select></label>
       <label>mode<select id="ed-mode"></select></label>
       <label>mood<select id="ed-mood"></select></label>
-      <label>max waves<input id="ed-waves" type="number" min="1" max="5" step="1"></label>
+      <label>max waves<input id="ed-waves" type="number" min="1" max="5" step="1" placeholder="found" title="Blank: as many as Coda has found (1 + Overtones)"></label>
       <label>size (square)<input id="ed-width" type="number" min="3" max="64" step="1"></label>
       <label hidden>height<input id="ed-height" type="number" min="3" max="64" step="1"></label>
     </div>

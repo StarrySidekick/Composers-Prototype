@@ -3,29 +3,13 @@
   "name": "Crossing",
   "wing": "brass",
   "hint": "One wave, two locks, and a circuit that has to get past itself. Press B on the slide and the mute to hear what they do to the horn.",
-  "maxWaves": 1,
   "music": {
-    "root": 4,
-    "mode": "lydian",
-    "bpm": 100,
+    "root": 0,
+    "mode": "ionian",
+    "bpm": 104,
     "timeSignature": 4,
-    "mood": "mysterious"
+    "mood": "content"
   },
-  "layout": [
-    "#############",
-    "#...........#",
-    "#.@.M-T-S--7#",
-    "#.....|....|#",
-    "#.....|....|#",
-    "#.*-u-+----J#",
-    "D.....|.....#",
-    "#.....*.....#",
-    "#...........#",
-    "#...........#",
-    "#...........#",
-    "#...........#",
-    "######D######"
-  ],
   "overrides": [
     {
       "x": 0,
@@ -33,6 +17,21 @@
       "open": true,
       "group": "entry"
     }
+  ],
+  "layout": [
+    "#############",
+    "#...........#",
+    "#.@.M-T-S--7#",
+    "#.....|....|#",
+    "#.....|....|#",
+    "#.*-u-+----J#",
+    "D.....|.....D",
+    "#.....*.....#",
+    "#...........#",
+    "#...........#",
+    "#...........#",
+    "#...........#",
+    "######D######"
   ],
   "solution": [
     {

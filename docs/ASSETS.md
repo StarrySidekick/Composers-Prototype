@@ -31,6 +31,11 @@ Every doodad has a **sprite key** — `Doodad.spriteKey`. The default is
 | `lock` / `lock.lit`, `notelock` / `notelock.lit` | unlit / lit |
 | `keyshift.up` / `keyshift.down` | stairs up / down |
 | `wall`, `peg`, `string`, `pianokey`, `mallet`, `exit`, `dissonance` | one each |
+| `flute.head`, `flute.hole` / `flute.covered`, `flute.foot` | the flute, and a hole open / covered |
+| `reed` | the reed (its breaths left are an overlay) |
+| `pickup.overtone`, `pickup.burin` | things to find |
+| `dissonant` | the walking enemy (never rotated) |
+| `scorelock` / `scorelock.lit` | the score gate (its `n/N` is an overlay along the bottom) |
 
 On every frame the renderer asks the store for the linked key (if the tile has a link
 rule) and then `d.spriteKey`. A hit is blitted; a miss falls through to `d.draw()`.

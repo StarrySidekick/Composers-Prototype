@@ -44,7 +44,9 @@ export class AudioEngine {
 
     this.muted = false;
     this._ksCache = new Map();
-    this.onNote = null; // (midi, family) => void — the note-lock listener hooks in here
+    // (midi, family, opts) => void — the note-lock listener hooks in here. `opts` is
+    // what play() was given, so the listener can tell which room a note was played in.
+    this.onNote = null;
   }
 
   async resume() {
@@ -129,7 +131,7 @@ export class AudioEngine {
     const amp = Math.max(0.02, Math.min(1, intensity));
 
     if (this._playSampled(family, midi, amp, t, modulation, kind)) {
-      if (this.onNote && notify) this.onNote(midi, family);
+      if (this.onNote && notify) this.onNote(midi, family, opts);
       return;
     }
 
@@ -144,7 +146,7 @@ export class AudioEngine {
       default:           this._brass(freq, amp, t, modulation); break;
     }
 
-    if (this.onNote && notify) this.onNote(midi, family);
+    if (this.onNote && notify) this.onNote(midi, family, opts);
   }
 
   // ---- voices -------------------------------------------------------------

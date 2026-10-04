@@ -1,4 +1,5 @@
 import { Doodad, defineDoodad } from '../core/doodad.js';
+import { DIR, rotate } from '../core/direction.js';
 import { PALETTE } from '../render/palette.js';
 
 class Wall extends Doodad {
@@ -29,6 +30,9 @@ class Door extends Doodad {
     super(spec, x, y);
     this.open = !!spec.open;
     this.group = spec.group ?? 'a';
+    // `latch`: once open, stays open, even if the locks that opened it go dark. For
+    // a door behind chord forks, which only ring for a few beats.
+    this.latch = !!spec.latch;
   }
   get solid() { return !this.open; }
   set solid(_) {}
@@ -43,7 +47,9 @@ class Door extends Doodad {
 
   setOpen(v, ctx) {
     if (this.open === v) return;
+    if (!v && this.latch) return;
     this.open = v;
+    ctx.onDoorChanged?.(this, v);
     if (v) {
       ctx.playDegree({ family: 'keys', degree: 4, octave: 5, intensity: 0.8 });
       ctx.toast(`A door opens.`);
@@ -69,6 +75,13 @@ class Door extends Doodad {
 defineDoodad('door', Door);
 
 // Stairs / raised rooms literally raise or lower the key (GDD §6.5).
+//
+// Two kinds. A plain `>` or `<` shifts the key every time you step on it. A STAIR
+// (`^`, spec `climb: true`) is a real step: walking up it, in the direction `rot`
+// points (0 = up the screen), raises the room a semitone; walking back down it
+// lowers it again; crossing it sideways does nothing. So a dais three steps up is
+// three semitones up for as long as you stand on it, which is what lets a lock
+// that wants a phrase in another key be a puzzle about where you stand.
 class KeyShift extends Doodad {
   constructor(spec, x, y) {
     super(spec, x, y);
@@ -76,12 +89,21 @@ class KeyShift extends Doodad {
     this.blocksWave = false;
     this.walkable = true;
     this.delta = spec.delta ?? 1;
+    this.climb = !!spec.climb;
   }
   get spriteKey() { return this.delta > 0 ? 'keyshift.up' : 'keyshift.down'; }
+  get upDir() { return rotate(DIR.up, this.rot); }
   onWaveEntered(wave, ctx) { wave.pass(); }
-  onPlayerEnter(ctx) {
-    ctx.room.music.shiftKey(this.delta);
-    ctx.toast(`Key ${this.delta > 0 ? 'raised' : 'lowered'} — now ${ctx.room.music.label}`);
+  onPlayerEnter(ctx, dir) {
+    let delta = this.delta;
+    if (this.climb) {
+      if (!dir) return;
+      const along = dir.x * this.upDir.x + dir.y * this.upDir.y;
+      if (!along) return;                 // across the step, not up or down it
+      delta *= along;
+    }
+    ctx.room.music.shiftKey(delta);
+    ctx.toast(`Key ${delta > 0 ? 'raised' : 'lowered'} — now ${ctx.room.music.label}`);
     ctx.playDegree({ family: 'keys', degree: 0, octave: 5, intensity: 0.5 });
   }
   draw(c, s, ctx) {

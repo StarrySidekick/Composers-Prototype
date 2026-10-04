@@ -12,14 +12,20 @@ const $ = (id) => document.getElementById(id);
 function defaults(orient) {
   const W = innerWidth, H = innerHeight;
   if (orient === 'wide') {
-    return { pad: { x: 0.03, y: 0.5 - 75 / H, s: 1 }, face: { x: 1 - (190 / W) - 0.03, y: 0.5 - 50 / H, s: 1 } };
+    return {
+      pad: { x: 0.03, y: 0.5 - 75 / H, s: 1 }, face: { x: 1 - (190 / W) - 0.03, y: 0.5 - 50 / H, s: 1 },
+      l: { x: 0.03 + 30 / W, y: 0.5 - 140 / H, s: 1 }, r: { x: 1 - (120 / W) - 0.03, y: 0.5 - 115 / H, s: 1 },
+    };
   }
-  return { pad: { x: 12 / W, y: 1 - 166 / H, s: 1 }, face: { x: 1 - 188 / W, y: 1 - 128 / H, s: 1 } };
+  return {
+    pad: { x: 12 / W, y: 1 - 166 / H, s: 1 }, face: { x: 1 - 188 / W, y: 1 - 128 / H, s: 1 },
+    l: { x: 40 / W, y: 1 - 214 / H, s: 1 }, r: { x: 1 - 112 / W, y: 1 - 214 / H, s: 1 },
+  };
 }
 
 export class Controls {
   constructor() {
-    this.els = { pad: $('cluster-pad'), face: $('cluster-face') };
+    this.els = { pad: $('cluster-pad'), face: $('cluster-face'), l: $('cluster-l'), r: $('cluster-r') };
     this.arranging = false;
     this.selected = 'pad';
     try { this.saved = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { this.saved = {}; }
@@ -37,7 +43,11 @@ export class Controls {
   get orient() { return innerWidth > innerHeight ? 'wide' : 'tall'; }
   place() {
     if (!this.saved[this.orient]) this.saved[this.orient] = defaults(this.orient);
-    return this.saved[this.orient];
+    // A layout saved before a cluster existed (the shoulders came later) gets its
+    // default spot for the new one, and keeps where you put the rest.
+    const p = this.saved[this.orient], d = defaults(this.orient);
+    for (const k of Object.keys(this.els)) p[k] ??= d[k];
+    return p;
   }
   save() { try { localStorage.setItem(KEY, JSON.stringify(this.saved)); } catch {} }
 
