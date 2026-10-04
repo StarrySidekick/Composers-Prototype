@@ -77,9 +77,24 @@ Ordered by how much new system each needs. My recommendation is in bold.
 **Recommendation: 1 then 2.** Both deepen what already exists (waves and pitch) and
 each is under a day. 3 is the most interesting design but wants 1 first.
 
-## A boss: the Unresolved Chord
+## A boss: the Unresolved Chord (built 2026-10-04)
 
-One boss sketch, built entirely from parts that exist or are listed above.
+**Built** in `src/doodads/boss.js`, in its own room west of the Coda
+(`rooms/discord-03-chord.json`), after Timothy asked for one. What shipped differs
+from the sketch below in two places, both found by building it:
+
+- **Phase 2 is the swarm** (resolve four seeking dissonants), not a key change; the
+  stairs already had their exam in the Stair.
+- **Phase 3 is a chord, not three forks.** Three forks with long horns would not fit
+  round a 3 x 3 boss. Instead it listens for **three different notes within one
+  beat**. Three notes sounding at once means three waves alive at once, which is
+  exactly what the Overtones give, and since the three horns are 3, 5 and 7 tiles
+  long, the attacks must be staggered (longest first) for the bells to land
+  together. `test/mechanics.mjs` proves two waves cannot do it in any order or
+  spacing; it first found that the Key's own shot (which sounds the tonic) could be
+  the third note, so the chord now ignores it.
+
+The original sketch, for the record:
 
 **The idea.** A large multi-tile figure in an arena, made of a chord that will not
 resolve: three dissonant voices stacked. Each phase it **plays a call** (a short

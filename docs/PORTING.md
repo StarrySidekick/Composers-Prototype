@@ -195,6 +195,30 @@ room's scale (or by authoring per-mode stems).
 **The dissonant (`src/doodads/enemy.js`).** See
 [SCOPE-ENEMIES-AND-BOSS.md](SCOPE-ENEMIES-AND-BOSS.md).
 
+## Written here 2026-10-04
+
+**Every tubing structure is a horn.** A mouthpiece in, a bell at every open end
+(`hornProblems`). The bell changed: it now **sounds and lets the wave out** of its
+mouth (`PlayAndPass`) instead of swallowing it; a wave flying into the mouth from
+outside is still played and absorbed. This differs from `BrassTube.cs`: port the
+new rule, or every horn that feeds a fork stops working.
+
+**Blown waves are Coda's.** A wave set off by B (mouthpiece, flute head, a reed's
+first breath) counts against the wave allowance.
+
+**The metronome owns the tune.** `progress.metronome` gates the score; stopped, the
+score's position holds and resumes on the next beat. In FMOD: pause the music
+event's timeline, not its volume.
+
+**Dialogue sings.** One word per sixteenth on the room clock, each a chord tone of
+the score's current bar (`Score.chordAt`), resolving to the root at a full stop.
+
+**The boss** (`src/doodads/boss.js`): a 3 x 3 figure, three phases (echo a called
+phrase, resolve a swarm, answer with a three-note chord within one beat). The
+chord ignores the Key's own shot (`key: true`). See SCOPE-ENEMIES-AND-BOSS.md.
+
+**Floor tint by mode** (`MODE_FLOOR`): a near-black per mode under white line-work.
+
 ## Mirror drums: new here, port this
 
 Since 2026-10-01 the bass drum, tom and snare are **mirrors**, not face tables: the

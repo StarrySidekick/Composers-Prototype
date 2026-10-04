@@ -382,6 +382,51 @@ const r = await page.evaluate(async () => {
     out.stairs = { up: (up - k0 + 12) % 12, across: (across - up + 12) % 12, down: (room.music.root - k0 + 12) % 12 };
   }
 
+  // ---- the boss: each phase only gives way to its real answer ------------------------
+  {
+    const BOSS = 'discord-03-chord';
+    let room = fresh(BOSS, { waves: 3 });
+    const boss = () => room.list.find(d => d.typeName === 'boss');
+    const b0 = boss();
+    // Waves do not hurt it.
+    at(9, 6, 'left'); g.fire(); run(16);
+    const hurt = b0.phase;
+    // The wrong phrase (do mi sol, the call backwards) does nothing...
+    for (const x of [4, 6, 8]) { at(x, 3, 'up'); g.move('up'); run(2); }
+    const wrong = b0.phase;
+    run(40);
+    // ...the call (sol mi do) resolves the first voice and releases the swarm.
+    for (const x of [8, 6, 4]) { at(x, 3, 'up'); g.move('up'); run(2); }
+    run(8);
+    const swarm = room.list.filter(d => d.typeName === 'dissonant').length;
+    out.boss = { hurt, wrong, echo: b0.phase, swarm, mood2: room.music.mood };
+    // Phase three, the chord, with N waves in the air: fire into the three horns
+    // in an order, a sixteenth or two apart, as fast as the allowance lets.
+    const chord = (waves, order, gap = 2) => {
+      room = fresh(BOSS, { waves });
+      const b = boss();
+      b.phase = 3; b.spawned = true;
+      at(6, 10, order[0]);
+      let next = 0;
+      for (let i = 0; i < 160 && b.phase === 3; i++) {
+        if (next < order.length && i % gap === 0) { g.setFacing(order[next]); const n = g.keyWaves; g.fire(); if (g.keyWaves > n) next++; }
+        run(1);
+      }
+      return b.phase > 3;
+    };
+    const orders = [['right', 'up', 'left'], ['right', 'left', 'up'], ['up', 'right', 'left'], ['up', 'left', 'right'], ['left', 'up', 'right'], ['left', 'right', 'up']];
+    out.boss.chordThree = chord(3, ['right', 'up', 'left']);
+    out.boss.chordTwo = orders.filter(o => chord(2, o, 1) || chord(2, o, 2)).map(o => o.join('-'));
+    // Won: the figure is gone, an exit stands there, the room is content, the
+    // tune's last layer is earned, and a rebuilt room remembers.
+    chord(3, ['right', 'up', 'left']);
+    const won = { exit: room.doodadAt(6, 6)?.typeName, parts: room.list.filter(d => d.typeName === 'bosspart' || d.typeName === 'boss').length, mood: room.music.mood, finale: g.progress.layers.has('finale') };
+    world.forgetAll();
+    const again = world.room(BOSS);
+    won.rebuilt = { exit: again.doodadAt(6, 6)?.typeName, boss: again.list.some(d => d.typeName === 'boss') };
+    out.boss.won = won;
+  }
+
   // ---- the metronome: no tune until it runs; stopping it pauses the tune in place ----
   {
     const room = fresh('atrium-00-metronome');
@@ -516,6 +561,13 @@ ok('one wave at a time to start', r.allowance.one === 1, s(r.allowance));
 ok('an Overtone makes it two', r.allowance.afterOvertone === 2, s(r.allowance));
 ok('a room can cap it', r.allowance.capped === 2, s(r.allowance));
 
+ok('the boss cannot be hurt by a wave', r.boss.hurt === 1, s(r.boss));
+ok('the boss ignores the wrong phrase', r.boss.wrong === 1, s(r.boss));
+ok('the echo (sol mi do) resolves its first voice and releases four dissonants', r.boss.echo === 2 && r.boss.swarm === 4 && r.boss.mood2 === 'sad', s(r.boss));
+ok('the chord, longest horn first, three waves: the last voice resolves', r.boss.chordThree, s(r.boss));
+ok('the chord cannot be played with two waves, in any order or spacing', r.boss.chordTwo.length === 0, r.boss.chordTwo.join(', '));
+ok('won: gone, an exit where it stood, content, the last layer earned', r.boss.won.exit === 'exit' && r.boss.won.parts === 0 && r.boss.won.mood === 'content' && r.boss.won.finale, s(r.boss.won));
+ok('and a rebuilt room remembers', r.boss.won.rebuilt.exit === 'exit' && !r.boss.won.rebuilt.boss, s(r.boss.won.rebuilt));
 ok('the tune is silent until the metronome starts', r.metronome.silent === 0, s(r.metronome));
 ok('B on the metronome starts it, and the tune with it, on a beat', r.metronome.on && r.metronome.playedOn > 0 && r.metronome.firstOnBeat, s(r.metronome));
 ok('stopping it pauses the tune where it is', r.metronome.pausedNotes === 0 && r.metronome.held, s(r.metronome));

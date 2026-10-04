@@ -16,5 +16,6 @@
   {"file": "tower-03-stair.json", "name": "Tower 03 — The Stair"},
   {"file": "discord-01-hall.json", "name": "Discord 01 — The Hall"},
   {"file": "discord-02-coda.json", "name": "Discord 02 — The Coda"},
+  {"file": "discord-03-chord.json", "name": "Discord 03 — The Unresolved Chord"},
   {"file": "sandbox.json", "name": "Sandbox"}
 ]

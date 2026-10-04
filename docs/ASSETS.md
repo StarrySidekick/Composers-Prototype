@@ -36,6 +36,8 @@ Every doodad has a **sprite key** — `Doodad.spriteKey`. The default is
 | `pickup.overtone`, `pickup.burin` | things to find |
 | `dissonant` | the walking enemy (never rotated) |
 | `scorelock` / `scorelock.lit` | the score gate (its `n/N` is an overlay along the bottom) |
+| `metronome`, `metronome.left` / `metronome.right` | stopped, and its arm swung each beat while running |
+| `boss.3`, `boss.2`, `boss.1` | the boss, by voices still sour; **153 x 153** (it stands on 3 x 3, `SPAN`) |
 
 On every frame the renderer asks the store for the linked key (if the tile has a link
 rule) and then `d.spriteKey`. A hit is blitted; a miss falls through to `d.draw()`.

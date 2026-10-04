@@ -62,7 +62,7 @@ export class Game {
       for (const r of this.liveRooms()) {
         for (const d of r.list) {
           if (typeof d.hearNote !== 'function') continue;
-          if (r === room || d.listen === 'world') d.hearNote(midi, this.ctxFor(r));
+          if (r === room || d.listen === 'world') d.hearNote(midi, this.ctxFor(r), opts);
         }
       }
     };
@@ -392,9 +392,12 @@ export class Game {
     // Quantised: the shot sounds on the next sixteenth, which is exactly when the
     // wave reaches its first tile. Up to one sixteenth of delay, in exchange for
     // every shot being in time.
+    // `key: true`: the Key's own voice, not an instrument's. A note lock still
+    // hears it (it always has), but the boss's chord does not: a chord is three
+    // instruments, and the shot that sends a wave is not one of them.
     this.audio.play({
       family: 'woodwind', midi: st.pitch, intensity: 0.35,
-      when: this.nextGridTime(1), room: this.room,
+      when: this.nextGridTime(1), room: this.room, key: true,
     });
   }
 

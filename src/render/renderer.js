@@ -126,6 +126,17 @@ export class Renderer {
     const c = this.c;
     if (!sprite) { d.draw(c, s, ctx); return; }
     c.imageSmoothingEnabled = false;
+    // A piece bigger than a tile (the boss, span 3) is drawn centred on its own
+    // tile, covering its neighbours, which are its body and draw nothing.
+    if (d.span > 1) {
+      const off = ((d.span - 1) / 2) * s;
+      c.translate(-off, -off);
+      this._blit(sprite, s * d.span, 0);
+      c.translate(off, off);
+      c.imageSmoothingEnabled = true;
+      d.overlay(c, s, ctx);
+      return;
+    }
     this._blit(sprite, s, autoRot(d, room));
     for (const rot of innerCorners(d, room)) {
       const corner = this.assets.resolve([`${d.spriteKey}.inner`]);

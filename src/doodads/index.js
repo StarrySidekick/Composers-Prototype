@@ -10,3 +10,4 @@ import './woodwind.js';
 import './pickups.js';
 import './enemy.js';
 import './metronome.js';
+import './boss.js';

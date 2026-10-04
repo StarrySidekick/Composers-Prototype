@@ -94,6 +94,8 @@ export const GROUPS = [
       { char: 'O', label: 'overtone', hint: 'pickup: one more wave at once' },
       { char: '!', label: 'burin', hint: 'pickup: L lifts drums and reeds into the satchel' },
       { char: '&', label: 'dissonant', hint: 'a sour note that walks on the beat; a wave resolves it, touching it shoves Coda' },
+      { char: 'W', label: 'boss', hint: 'the Unresolved Chord, three phases; surround it with eight U' },
+      { char: 'U', label: 'boss body', hint: 'the rest of the boss: solid, swallows waves, drawn by the boss' },
     ],
   },
 ];
@@ -146,6 +148,8 @@ export const PROPS = {
   metronome: [
     { key: 'group', type: 'text', hint: 'doors that open when it first starts (latch them)' },
   ],
+  boss: [],
+  bosspart: [],
   scorelock: [
     { key: 'group', type: 'text' },
     { key: 'layers', type: 'int', min: 1, max: 12, hint: 'score layers needed' },

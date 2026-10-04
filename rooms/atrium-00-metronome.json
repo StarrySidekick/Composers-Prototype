@@ -2,7 +2,7 @@
   "id": "atrium-00-metronome",
   "name": "The Metronome",
   "wing": "keys",
-  "hint": "Silence. The whole dungeon keeps time with this metronome. Face it and press B: it starts ticking, and the tune begins. Press B again any time and the tune waits where it is.",
+  "hint": "Silence. The whole dungeon keeps time with this metronome. Face it and press B: it starts ticking, and the tune begins. Press B again any time and the tune waits where it is. The string is there to play along.",
   "music": {
     "root": 0,
     "mode": "ionian",
@@ -28,7 +28,7 @@
     "#...........#",
     "#.....@.....#",
     "#...........#",
-    "#...........#",
+    "#..o======o.#",
     "#...........#",
     "#############"
   ],

@@ -97,6 +97,30 @@ const results = await page.evaluate(async () => {
       g.stepWaves(ev);
     }
   };
+  // "resolve": what a player does against dissonants. Stand at the step's spot and,
+  // each sixteenth, if a wave is free, fire at any dissonant in a clear straight
+  // line; until none are left (after giving the boss a beat to release them).
+  const resolveAll = (limit = 600) => {
+    for (let i = 0; i < limit; i++) {
+      const ds = g.room.list.filter(d => d.typeName === 'dissonant');
+      if (!ds.length && i > 8) return true;
+      if (g.keyWaves < g.waveAllowance) {
+        for (const d of ds) {
+          const dx = Math.sign(d.x - g.player.x), dy = Math.sign(d.y - g.player.y);
+          if ((dx && dy) || (!dx && !dy)) continue;
+          let x = g.player.x + dx, y = g.player.y + dy, clear = true;
+          while (x !== d.x || y !== d.y) { const t = g.room.doodadAt(x, y); if (t && t.blocksWave) { clear = false; break; } x += dx; y += dy; }
+          if (!clear) continue;
+          g.setFacing(dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up');
+          g.fire();
+          break;
+        }
+      }
+      run(1);
+    }
+    return false;
+  };
+
   // This room's exits: doors its own locks open and keep open. Not entry doors;
   // not a shortcut whose locks are in another room (it opens from there, paired
   // with its partner); and not a door a ringing chord fork only holds open for a
@@ -152,6 +176,7 @@ const results = await page.evaluate(async () => {
         else if (step.do === 'lift' || step.do === 'place') {
           if (!g.shoulderL()) r.problems.push(`step ${i + 1}: could not ${step.do} at ${x},${y} facing ${g.player.facing}`);
         } else if (step.do === 'turn') g.shoulderR();
+        else if (step.do === 'resolve') { if (!resolveAll()) r.problems.push(`step ${i + 1}: dissonants still standing`); }
         run(step.wait != null && step.times > 1 ? 1 : 2);
       }
       run(step.wait ?? 64);
@@ -162,7 +187,8 @@ const results = await page.evaluate(async () => {
     const exits = exitsOf(home);
     r.exits = exits.length;
     const shut = exits.filter(d => !d.open);
-    if (!exits.length) r.problems.push('no exit door to open');
+    // A room may end at an exit (X) instead of a door: the boss leaves one.
+    if (!exits.length && !home.list.some(d => d.typeName === 'exit')) r.problems.push('no exit door to open');
     if (shut.length) r.problems.push(`still shut after the solution: ${shut.map(d => `${d.x},${d.y}`).join(' ')}`);
     // And then can the player get out? Walk to the exit door, or to an X.
     const goal = home.list.find(d => d.typeName === 'exit') ?? exits[0];
