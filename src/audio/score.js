@@ -32,6 +32,13 @@ export class Score {
     this.steps = this.bars * 16;
     this.volume = json.volume ?? 0.3;
     this.muted = false;
+    // The chord under each bar, as scale degrees (I vi IV V). The text box sings
+    // its words from these, so dialogue is in the same harmony as the tune.
+    this.chords = json.chords ?? [0, 5, 3, 4];
+    // Where the tune is, in sixteenths. It only moves while it plays: the
+    // metronome (src/doodads/metronome.js) stops it and it waits there, and it
+    // always starts again on a beat.
+    this.reset();
     this.layers = (json.layers ?? []).map(l => {
       const byStep = new Map();
       for (const n of l.notes ?? []) {
@@ -46,11 +53,30 @@ export class Score {
 
   layer(id) { return this.layers.find(l => l.id === id) ?? null; }
 
+  reset() { this.pos = 0; this.waiting = true; this.lastIndex = null; }
+
+  // Is it playing? Only with the metronome going (progress.metronome), or under
+  // the title screen (game.attract), and the pause menu's music switch on.
+  playing(game) { return !this.muted && !!(game.progress?.metronome || game.attract) && !!game.room; }
+
+  // The chord root (a scale degree) sounding at clock sixteenth `index`.
+  chordAt(index) {
+    const at = this.lastIndex == null || this.waiting ? index : this.pos + (index - this.lastIndex - 1);
+    const bar = Math.floor((((at % this.steps) + this.steps) % this.steps) / 16);
+    return this.chords[bar % this.chords.length] ?? 0;
+  }
+
   // One clock event. Called from Game.update with the event's exact time, so the
   // tune is on the same sixteenth grid as every wave.
   tick(ev, game) {
-    if (this.muted || !game.room) return;
-    const step = ((ev.index % this.steps) + this.steps) % this.steps;
+    if (!this.playing(game)) { this.waiting = true; return; }
+    if (this.waiting) {
+      if (!ev.isBeat) return;          // start, or carry on, on a beat
+      this.waiting = false;
+    }
+    this.lastIndex = ev.index;
+    const step = this.pos % this.steps;
+    this.pos++;
     const m = game.room.music;
     for (const layer of this.layers) {
       if (!game.progress.layers.has(layer.id)) continue;

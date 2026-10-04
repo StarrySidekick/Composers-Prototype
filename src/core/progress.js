@@ -41,6 +41,7 @@ export class Progress {
     this.room = null;          // where to continue from
     this.at = null;            // and where in it: { x, y, facing }
     this.free = false;         // free play: every tool, no saving
+    this.metronome = false;    // the level's tune plays only while it runs
     return this;
   }
 
@@ -48,6 +49,7 @@ export class Progress {
   grantAll() {
     this.waves = 3;
     this.items.add('burin');
+    this.metronome = true;
     this.free = true;
     return this;
   }
@@ -132,7 +134,7 @@ export class Progress {
     return {
       waves: this.waves, items: [...this.items], satchel: this.satchel, selected: this.selected,
       taken: [...this.taken], placed: this.placed, opened: [...this.opened],
-      layers: [...this.layers], visited: [...this.visited], room: this.room, at: this.at,
+      layers: [...this.layers], visited: [...this.visited], room: this.room, at: this.at, metronome: this.metronome,
     };
   }
 
@@ -148,6 +150,7 @@ export class Progress {
     this.visited = new Set(j.visited ?? []);
     this.room = j.room ?? null;
     this.at = j.at ?? null;
+    this.metronome = !!j.metronome;
     return this;
   }
 

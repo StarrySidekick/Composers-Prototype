@@ -2,7 +2,7 @@
   "id": "brass-02-crossroads",
   "name": "Crossroads",
   "wing": "brass",
-  "hint": "One wave, two locks. The tee divides the wave and adds an output \u2014 that's the whole solution.",
+  "hint": "Fire into the mouthpiece. The tee divides the wave: one half out of the bell below, one half round the elbows and out of the far bell. One shot, two forks.",
   "music": {
     "root": 0,
     "mode": "ionian",
@@ -16,15 +16,20 @@
       "y": 6,
       "open": true,
       "group": "entry"
+    },
+    {
+      "x": 6,
+      "y": 3,
+      "rot": 90
     }
   ],
   "layout": [
     "######D######",
     "#...........#",
-    "#.@..-T--7..#",
-    "#.....|..|..#",
+    "#.@..MT--7..#",
+    "#.....Y..|..#",
     "#.....*..|..#",
-    "#........L-*#",
+    "#........LY*#",
     "D...........D",
     "#...........#",
     "#...........#",

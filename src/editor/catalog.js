@@ -86,6 +86,7 @@ export const GROUPS = [
       { char: '%', label: 'chord fork', hint: 'rings for a few beats after a hit; a group of them opens only while all ring' },
       { char: 'n', label: 'note lock', hint: 'wants a phrase — press B to hear it. Set key to want it in another key' },
       { char: '$', label: 'score gate', hint: 'opens once the level\'s tune has this many layers' },
+      { char: 'N', label: 'metronome', hint: 'B starts the level\'s tune (and opens its group), B again pauses it' },
     ],
   },
   {
@@ -141,6 +142,9 @@ export const PROPS = {
     { key: 'key', type: 'enum', values: ['', ...NOTE_NAMES], hint: 'wants the phrase in this key; the stairs move the room to it. Blank = the room\'s key' },
     { key: 'listen', type: 'enum', values: ['room', 'world'], hint: 'world: hears notes from every room, for a phrase across rooms' },
     { key: 'patience', type: 'int', min: 0, max: 32, hint: 'beats of silence before a half-played phrase is forgotten (0 = never)' },
+  ],
+  metronome: [
+    { key: 'group', type: 'text', hint: 'doors that open when it first starts (latch them)' },
   ],
   scorelock: [
     { key: 'group', type: 'text' },

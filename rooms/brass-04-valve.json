@@ -21,16 +21,26 @@
       "x": 8,
       "y": 4,
       "rot": 180
+    },
+    {
+      "x": 8,
+      "y": 3,
+      "rot": 270
+    },
+    {
+      "x": 8,
+      "y": 5,
+      "rot": 90
     }
   ],
   "layout": [
     "######D######",
     "#...........#",
-    "#...........#",
     "#.......*...#",
+    "#.......Y...#",
     "#.@.M---V...#",
-    "#.......*...#",
-    "#...........D",
+    "#.......Y...#",
+    "#.......*...D",
     "#...........#",
     "#...........#",
     "#...........#",
@@ -56,7 +66,7 @@
       ],
       "face": "right",
       "do": "interact",
-      "why": "blow the mouthpiece: the lower fork"
+      "why": "blow the mouthpiece: down through the valve, out of the lower bell, into the lower fork"
     },
     {
       "at": [
@@ -74,7 +84,7 @@
       ],
       "face": "right",
       "do": "interact",
-      "why": "blow again: the upper fork"
+      "why": "blow again: up, out of the upper bell, into the upper fork"
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "_": "Where each room sits on the world grid. Walking off a room's edge (through a door in its outer wall) enters the neighbour in that direction. Coordinates are screen space: +x right, +y DOWN, so [0,1] is south of [0,0]. Unity 2D is +y up; flip y when porting. Areas share a key, mode and tempo; the score grows a layer per solved room; the route is the order test/route.mjs finishes the world in. See docs/WORLD.md.",
-  "start": "brass-01-first-breath",
+  "start": "atrium-00-metronome",
   "areas": {
     "atrium": {
       "name": "The Atrium",
@@ -40,6 +40,14 @@
     }
   },
   "rooms": {
+    "atrium-00-metronome": {
+      "file": "atrium-00-metronome.json",
+      "at": [
+        -1,
+        0
+      ],
+      "area": "atrium"
+    },
     "brass-01-first-breath": {
       "file": "brass-01-first-breath.json",
       "at": [
@@ -844,9 +852,16 @@
           ]
         ]
       }
+    ],
+    "chords": [
+      0,
+      5,
+      3,
+      4
     ]
   },
   "route": [
+    "atrium-00-metronome",
     "brass-01-first-breath",
     "brass-02-crossroads",
     "woodwind-01-flute",

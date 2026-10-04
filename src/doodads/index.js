@@ -9,3 +9,4 @@ import './strumentino.js';
 import './woodwind.js';
 import './pickups.js';
 import './enemy.js';
+import './metronome.js';

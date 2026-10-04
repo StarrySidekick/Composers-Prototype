@@ -72,6 +72,10 @@ for (const entry of manifest) {
 
     const room = g.room, music = room.music;
     out.size = [room.width, room.height];
+    // Every tubing structure is a horn: a mouthpiece to send a wave in, a bell at
+    // every open end (Timothy, 2026-10-04). See hornProblems in brass.js.
+    const { hornProblems } = await import('./src/doodads/brass.js');
+    out.horns = hornProblems(room);
     out.scale = { root: music.root, mode: music.mode };
 
     /* Every pitch this room's scale can name, across every octave anything
@@ -140,6 +144,7 @@ for (const entry of manifest) {
   ok(`${tag} plays only notes in its own scale (${r.scale.mode})`, r.offScale.length === 0,
      r.offScale.length ? `${r.offScale.slice(0, 5).join(', ')}` : '');
   ok(`${tag} plays no NaN pitch`, r.nonFinite === 0, r.nonFinite ? `${r.nonFinite}` : '');
+  ok(`${tag} has no loose horn (a mouthpiece in, a bell at every end)`, r.horns.length === 0, r.horns.join('; '));
   console.log(`       ${r.size[0]}x${r.size[1]} · ${r.shots} shots · ${r.notes} notes · longest circuit ${r.maxTravel}`);
 }
 

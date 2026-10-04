@@ -31,6 +31,7 @@ const VARIANTS = {
   'drum.snare':  [{ rot: 0 }, { rot: 45 }],
   'flute.hole':  [{ covered: false }, { covered: true }],
   'scorelock':   [{}, { lit: true }],
+  'metronome':   [{}, { lit: true, swing: 0 }, { lit: true, swing: 1 }],
 };
 
 // Every sprite slot the game can ask for: { key, spec, state }.

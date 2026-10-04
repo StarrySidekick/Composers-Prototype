@@ -69,6 +69,7 @@ export const DEFAULT_LEGEND = {
   '*': { type: 'lock' },
   '%': { type: 'lock', sustain: 2 },     // a chord fork: rings 2 beats, then dark
   '$': { type: 'scorelock', layers: 6 }, // opens once the score has 6 layers
+  'N': { type: 'metronome' },            // starts and stops the level's tune
   'n': { type: 'notelock' },
   'D': { type: 'door' },
   'X': { type: 'exit' },

@@ -1,0 +1,47 @@
+{
+  "id": "atrium-00-metronome",
+  "name": "The Metronome",
+  "wing": "keys",
+  "hint": "Silence. The whole dungeon keeps time with this metronome. Face it and press B: it starts ticking, and the tune begins. Press B again any time and the tune waits where it is.",
+  "music": {
+    "root": 0,
+    "mode": "ionian",
+    "bpm": 104,
+    "timeSignature": 4,
+    "mood": "content"
+  },
+  "overrides": [
+    {
+      "x": 12,
+      "y": 6,
+      "latch": true
+    }
+  ],
+  "layout": [
+    "#############",
+    "#...........#",
+    "#...........#",
+    "#...........#",
+    "#...........#",
+    "#.....N.....#",
+    "#...........D",
+    "#...........#",
+    "#.....@.....#",
+    "#...........#",
+    "#...........#",
+    "#...........#",
+    "#############"
+  ],
+  "solution": [
+    {
+      "at": [
+        6,
+        6
+      ],
+      "face": "up",
+      "do": "interact",
+      "wait": 8,
+      "why": "start the metronome: it ticks, the motif begins on the next beat, and the east door latches open"
+    }
+  ]
+}

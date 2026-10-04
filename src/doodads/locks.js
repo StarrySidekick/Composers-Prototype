@@ -7,7 +7,7 @@ import { Doodad, defineDoodad } from '../core/doodad.js';
 import { MusicalState, NOTE_NAMES } from '../core/music.js';
 import { PALETTE } from '../render/palette.js';
 
-function checkGroup(group, ctx) {
+export function checkGroup(group, ctx) {
   if (!group) return;
   const members = ctx.room.ofGroup(group);
   const locks = members.filter(d => d.isLock);

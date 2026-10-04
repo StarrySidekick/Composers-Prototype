@@ -33,7 +33,7 @@ await page.goto(BASE, { waitUntil: 'networkidle' });
 await page.waitForFunction(() => window.CK && window.CK.assets, null, { timeout: 20000 });
 
 const report = await page.evaluate(async () => {
-  const { connectorEdges, connectorSpan, TILE } = await import('./src/art/protocol.js');
+  const { connectorEdges, connectorSpan, TILE, spanOf } = await import('./src/art/protocol.js');
   const { placeholderKeys } = await import('./src/art/placeholders.js');
   const store = window.CK.assets;
   const out = { checked: 0, fails: [], placeholders: 0 };
@@ -77,7 +77,8 @@ const report = await page.evaluate(async () => {
     const s = store.draft(key);
     if (!s) { out.fails.push(`${key}: placeholder failed to draw`); continue; }
     out.placeholders++;
-    if (s.sw !== TILE || s.sh !== TILE) out.fails.push(`${key}: placeholder is ${s.sw}x${s.sh}, not ${TILE}`);
+    const size = TILE * spanOf(key);   // the boss is 3 x 3 tiles
+    if (s.sw !== size || s.sh !== size) out.fails.push(`${key}: placeholder is ${s.sw}x${s.sh}, not ${size}`);
     const d = s.image.getContext('2d').getImageData(0, 0, s.sw, s.sh).data;
     for (let i = 3; i < d.length; i += 4) {
       if (d[i] !== 0 && d[i] !== 255) { out.fails.push(`${key}: placeholder has soft alpha (${d[i]})`); break; }

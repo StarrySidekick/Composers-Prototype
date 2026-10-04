@@ -158,6 +158,8 @@ export class Game {
   newGame() {
     this.saving = true;
     this.progress = new Progress();
+    this.score?.reset();
+    this.attract = false;
     this.world?.forgetAll();
     this.unlockLayers('start');
     this.areaId = null;
@@ -172,6 +174,8 @@ export class Game {
   continueGame(saved) {
     this.saving = true;
     this.progress = saved;
+    this.score?.reset();
+    this.attract = false;
     this.world?.forgetAll();
     this.areaId = null;
     const room = this.world?.room(saved.room) ?? this.world?.room(this.world.start);
@@ -186,6 +190,8 @@ export class Game {
   freePlay(json) {
     this.saving = false;
     this.progress = new Progress().grantAll();
+    this.score?.reset();
+    this.attract = false;
     this.world?.forgetAll();
     this.areaId = null;
     return this.loadRoom(json);
@@ -322,6 +328,7 @@ export class Game {
     const m = mirror(next, wave.x, wave.y, dir);
     const w = this.spawnWave(m.x, m.y, wave.dir, wave.state, next);
     w.age = wave.age;
+    w.mine = wave.mine;                       // still Coda's breath, next door
     w.skipIndex = this.clock.index;           // it has had its step for this sixteenth
     const d = next.doodadAt(m.x, m.y);
     if (d) d.receiveWave(w, this.ctxFor(next));
@@ -363,11 +370,12 @@ export class Game {
   // an Overtone for each found.
   get waveAllowance() { return this.room?.maxWaves ?? this.progress.waves; }
 
-  // The Key's own waves, in every room. Waves an instrument makes (a horn blown
-  // with B, a mallet, a reed breathing) are the room's, not yours, and do not count.
+  // The Key's own waves, in every room, and any Coda breathed into an instrument
+  // with B. Waves an instrument makes by itself (a mallet, a reed's later breaths,
+  // a horn played by a wave) are the room's, not yours, and do not count.
   get keyWaves() {
     let n = 0;
-    for (const r of this.liveRooms()) for (const w of r.waves) if (w.alive && w.state.source === WaveSource.ComposersKey) n++;
+    for (const r of this.liveRooms()) for (const w of r.waves) if (w.alive && (w.mine || w.state.source === WaveSource.ComposersKey)) n++;
     return n;
   }
 
@@ -394,17 +402,26 @@ export class Game {
   // then the melee strike — Asta.StrikeAt spawns a wave on the target tile tagged
   // WaveSource.MeleeStrike, offers it to the instrument and destroys it. The wave
   // never travels; instruments opt in by handling that source.
+  //
+  // A wave Coda sets off with B (blowing a mouthpiece or a flute, waking a reed) is
+  // his breath, so it counts against the wave allowance like a shot from the Key:
+  // otherwise three mouthpieces would get round needing three Overtones.
   interact() {
-    const tx = this.player.x + this.player.dir.x;
-    const ty = this.player.y + this.player.dir.y;
+    this.acting = true;
+    try {
+      const tx = this.player.x + this.player.dir.x;
+      const ty = this.player.y + this.player.dir.y;
 
-    const d = this.room.doodadAt(tx, ty);
-    if (d && d.onPlayerInteract(this.ctx)) return;
-    if (d && this.strikeAt(d, this.player.dir)) return;
+      const d = this.room.doodadAt(tx, ty);
+      if (d && d.onPlayerInteract(this.ctx)) return;
+      if (d && this.strikeAt(d, this.player.dir)) return;
 
-    const under = this.room.doodadAt(this.player.x, this.player.y);
-    if (under && under.onPlayerInteract(this.ctx)) return;
-    if (under) this.strikeAt(under, this.player.dir);
+      const under = this.room.doodadAt(this.player.x, this.player.y);
+      if (under && under.onPlayerInteract(this.ctx)) return;
+      if (under) this.strikeAt(under, this.player.dir);
+    } finally {
+      this.acting = false;
+    }
   }
 
   // Asta.StrikeAt. Returns whether the instrument took the strike.
@@ -418,7 +435,14 @@ export class Game {
   }
 
   spawnWave(x, y, dir, state = SoundWaveState.default, room = this.room) {
+    // Breathed by Coda (see interact): his, and held to his allowance.
+    const mine = this.acting && room === this.room;
+    if (mine && this.keyWaves >= this.waveAllowance) {
+      this.toast(this.waveAllowance === 1 ? 'One wave at a time. Find an Overtone to sound more.' : `Wave limit (${this.waveAllowance}): wait for one to resolve.`);
+      return null;
+    }
     const w = new SoundWave(x, y, dir, state);
+    w.mine = mine;
     w.bornAt = this.clock.ctx.currentTime;   // for drawing only; see render/motion.js
     room.waves.push(w);
     return w;
@@ -488,6 +512,20 @@ export class Game {
     this.toast(`Set down the ${held.name}.`);
     this.save();
     return true;
+  }
+
+  // What L and R would do right now, for the buttons to say so (the way Zelda's
+  // action button reads "Lift" when there is something to lift). Null is nothing.
+  shoulderHint() {
+    const p = this.progress;
+    if (!this.room || !p.has('burin')) return { l: null, r: null };
+    const { x, y } = this.front;
+    const d = this.room.doodadAt(x, y);
+    const r = this.room;
+    let l = null;
+    if (d?.portable) l = 'lift';
+    else if (!d && p.held && x > 0 && y > 0 && x < r.width - 1 && y < r.height - 1) l = 'set';
+    return { l, r: p.held ? 'turn' : null };
   }
 
   // R shoulder: turn the instrument in your hand, so it goes down facing a new way.

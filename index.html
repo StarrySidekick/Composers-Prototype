@@ -26,8 +26,6 @@
 
     <div class="stage-wrap" id="stage-wrap">
       <canvas id="stage"></canvas>
-      <div id="area-card" class="area-card" hidden><small id="area-mood"></small><b id="area-name"></b></div>
-      <div id="dialog" class="dialog" hidden><p id="room-hint"></p></div>
       <div id="toast" class="toast"></div>
     </div>
 
@@ -36,6 +34,16 @@
       <div class="hud-cell hud-staff"><label>heard</label><canvas id="hud-staff" width="132" height="26"></canvas></div>
       <div class="hud-cell"><label id="hud-bag-label">satchel</label><span id="hud-bag">—</span></div>
       <div class="hud-cell"><label>mood</label><span id="hud-mood">content</span></div>
+    </div>
+
+    <!-- The text box: under the play area, never over it. Typed out in time with
+         the music; stays until tapped (src/ui/dialog.js). -->
+    <div class="dialog-slot" id="dialog-slot">
+      <div id="dialog" class="dialog" hidden role="status" aria-live="polite">
+        <div id="dialog-head" class="dialog-head" hidden></div>
+        <p id="room-hint"></p>
+        <span class="dialog-more" aria-hidden="true">▾</span>
+      </div>
     </div>
 
     <p class="keys-help">

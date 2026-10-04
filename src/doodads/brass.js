@@ -50,10 +50,13 @@ const PARTS = {
     faces: { top: B, bottom: B, left: B, right: P },
     edges: ['right'],
   },
-  // The bell. Sounds the horn and swallows the wave. Only its throat (left) is
-  // tubing — the mouth is open air, so it terminates the run.
+  // The bell. Sounds the horn and lets the wave out of its mouth into the room
+  // (2026-10-04: every horn now runs mouthpiece to bell, so the bell is where the
+  // horn's sound comes OUT; it used to swallow the wave). A wave flying into the
+  // mouth from outside still sets the horn ringing and is swallowed. Only its
+  // throat (left) is tubing: the mouth is open air, so it ends the run.
   flare: {
-    faces: { top: B, bottom: B, left: FaceAction.PlayAndAbsorb, right: FaceAction.PlayAndAbsorb },
+    faces: { top: B, bottom: B, left: FaceAction.PlayAndAbsorb, right: FaceAction.PlayAndPass },
     edges: ['left'],
   },
   // Compress it to change the direction of the flow of sound.
@@ -355,3 +358,65 @@ class BrassTube extends Doodad {
 defineDoodad('brass', BrassTube);
 
 function clampExtend(v) { return Math.max(0, Math.min(3, Math.round(Number(v) || 0))); }
+
+// ---- the horn rule ---------------------------------------------------------
+//
+// Timothy, 2026-10-04: "mouthpieces should be where one can send waves, on every
+// tubing structure. There should never be a loose tube with no mouthpiece, or
+// loose tubing without ending in a flare." So every tubing structure is a horn:
+// it has a mouthpiece (where Coda sends a wave in) and every open end of it is a
+// bell. Returns what breaks that, as sentences; [] is a good room.
+//
+// A STRUCTURE is everything joined: tubes whose facing edges are both open, plus
+// valves and crosses, which join whatever tubing meets them on any side (a valve
+// turns, so any side can be open; a cross is a bridge with four arms). That is
+// looser than traceHorn on purpose: a cross carries two horns over each other and
+// adds length to neither, but it is still one piece of plumbing to check.
+const HUBS = ['valve', 'cross'];
+
+export function hornProblems(room) {
+  const tubes = room.list.filter(d => d.typeName === 'brass');
+  const at = (x, y) => { const d = room.doodadAt(x, y); return d?.typeName === 'brass' ? d : null; };
+  const hub = (d) => HUBS.includes(d.part);
+  const SIDES = { top: [0, -1], right: [1, 0], bottom: [0, 1], left: [-1, 0] };
+  // Does d reach out toward `side`?
+  const arm = (d, side) => {
+    if (!hub(d)) return d.hasEdge(side);
+    const [dx, dy] = SIDES[side];
+    const n = at(d.x + dx, d.y + dy);
+    return !!n && (hub(n) || n.hasEdge(OPPOSITE[side]));
+  };
+  const joined = (d, side) => {
+    const [dx, dy] = SIDES[side];
+    const n = at(d.x + dx, d.y + dy);
+    return n && arm(d, side) && arm(n, OPPOSITE[side]) ? n : null;
+  };
+  const out = [];
+  for (const d of tubes) {
+    if (hub(d)) continue;
+    for (const side of d.worldEdges) {
+      if (!joined(d, side)) out.push(`loose end: the ${d.part} at ${d.x},${d.y} is open to the ${side} and nothing is joined there`);
+    }
+  }
+  const seen = new Set();
+  for (const d of tubes) {
+    if (seen.has(d)) continue;
+    const parts = [];
+    const stack = [d];
+    while (stack.length) {
+      const c = stack.pop();
+      if (seen.has(c)) continue;
+      seen.add(c); parts.push(c);
+      for (const side of Object.keys(SIDES)) { const n = joined(c, side); if (n && !seen.has(n)) stack.push(n); }
+    }
+    const where = `${d.x},${d.y}`;
+    const mouths = parts.filter(p => p.part === 'mouthpiece');
+    if (!mouths.length) out.push(`no mouthpiece: the tubing at ${where} has nowhere to send a wave in`);
+    if (!parts.some(p => p.part === 'flare')) out.push(`no bell: the tubing at ${where} never ends in a flare`);
+    for (const m of mouths) {
+      const free = Object.values(SIDES).some(([dx, dy]) => room.inBounds(m.x + dx, m.y + dy) && room.isWalkable(m.x + dx, m.y + dy));
+      if (!free) out.push(`the mouthpiece at ${m.x},${m.y} has no floor beside it to blow it from`);
+    }
+  }
+  return out;
+}

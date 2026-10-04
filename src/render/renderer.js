@@ -3,7 +3,7 @@
 // own schematic draw(). The floor keeps faint staves (GDD §10), because the endgame
 // sheet-music system depends on the player having seen them the whole time.
 
-import { PALETTE } from './palette.js';
+import { PALETTE, MODE_FLOOR } from './palette.js';
 import { DIR } from '../core/direction.js';
 import { linkKey, innerCorners, autoRot } from '../art/links.js';
 import { wavePosition } from './motion.js';
@@ -148,9 +148,21 @@ export class Renderer {
     c.restore();
   }
 
+  // The floor takes its mode's tint (MODE_FLOOR), easing over about a second
+  // when the mode changes, so walking into a new area, or a boss changing key,
+  // is seen as well as heard.
+  floorColour(room) {
+    const want = MODE_FLOOR[room.music.mode] ?? [0, 0, 0];
+    const now = performance.now();
+    const k = this.floorAt ? Math.min(1, (now - this.floorAt) / 250) : 1;
+    this.floorAt = now;
+    this.floorRGB = this.floorRGB ? this.floorRGB.map((v, i) => v + (want[i] - v) * k) : [...want];
+    return `rgb(${this.floorRGB.map(Math.round).join(',')})`;
+  }
+
   _floor(room, s, p) {
     const c = this.c;
-    c.fillStyle = p.parchment;
+    c.fillStyle = PALETTE.theme === 'color' ? p.parchment : this.floorColour(room);
     c.fillRect(0, 0, room.width * s, room.height * s);
 
     // staff lines — the floor is paper

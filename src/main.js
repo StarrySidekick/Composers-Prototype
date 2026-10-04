@@ -14,6 +14,7 @@ import { refreshMenu } from './ui/menu.js';
 import { Score } from './audio/score.js';
 import { Progress } from './core/progress.js';
 import { ITEMS } from './doodads/pickups.js';
+import { Dialog } from './ui/dialog.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -30,6 +31,7 @@ let editor = null;
 let building = false;
 const hud = new Hud(game);
 let controls = null;
+const dialog = new Dialog(game, { box: $('dialog'), head: $('dialog-head'), text: $('room-hint') });
 
 async function boot() {
   // Sprites are optional: an empty (or absent) assets/manifest.json just means every
@@ -54,7 +56,7 @@ async function boot() {
   game.onRoomChange = (room) => {
     const entry = manifest.find(m => m.file.replace(/\.json$/, '') === room.id);
     if (entry) $('room-select').value = entry.file;
-    showHint(room.hint);
+    roomText(room);
     refreshHud();
     editor?.syncFromRoom();
   };
@@ -62,8 +64,11 @@ async function boot() {
   const startFile = manifest.find(m => m.file === `${game.world?.start}.json`)?.file ?? manifest[0].file;
   $('room-select').value = startFile;
   await loadRoomFile(startFile);
-  // The motif plays under the title, once there is sound.
+  // The motif plays under the title, once there is sound. `attract` lets the tune
+  // play without the metronome running, so the metronome room loaded behind the
+  // title does not start (and open its door) on its own; a new game clears it.
   game.unlockLayers('start');
+  game.attract = true;
 
   editor = buildEditor(game, renderer, assets, {
     layoutBox: $('layout'), legendBox: $('legend'), hintBox: $('legend-hint'),
@@ -75,7 +80,7 @@ async function boot() {
     copyBtn: $('ed-copy'), downloadBtn: $('ed-download'),
   }, {
     onReload: refreshHud,
-    onHint: (h) => { $('room-hint').textContent = h; },
+    onHint: (h) => dialog.show(h, roomHead(game.room)),
     toast: showToast,
   });
   editor.syncFromRoom();
@@ -84,7 +89,7 @@ async function boot() {
   bindInput(game, {
     dpad: $('dpad'), 'btn-a': $('btn-a'), 'btn-b': $('btn-b'), stage: $('stage'),
   }, {
-    onAction: () => { unlockAudio(); dismissHint(); },
+    onAction: () => { unlockAudio(); },
     paused: () => !$('menu').hidden || !$('title').hidden,
     arranging: () => controls.arranging,
   });
@@ -93,7 +98,7 @@ async function boot() {
   $('menu-btn').addEventListener('click', () => setMenu(true));
   $('menu-resume').addEventListener('click', () => setMenu(false));
   $('menu').addEventListener('click', (e) => { if (e.target === $('menu')) setMenu(false); });
-  $('menu-hint').addEventListener('click', () => { setMenu(false); showHint(game.room.hint, true); });
+  $('menu-hint').addEventListener('click', () => { setMenu(false); dialog.show(game.room.hint, roomHead(game.room)); });
   $('arrange').addEventListener('click', () => { setMenu(false); controls.setArranging(true); });
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && $('title').hidden) { e.preventDefault(); setMenu($('menu').hidden); }
@@ -167,7 +172,7 @@ async function boot() {
     const s = game.score;
     if (!game.world?.has(game.room.id) || !s) { showToast('★ Room resolved'); return; }
     const have = s.layers.filter(l => game.progress.layers.has(l.id)).length;
-    showHint(`The end. The piece is ${have === s.layers.length ? 'whole' : 'nearly whole'}: ${have} of ${s.layers.length} layers of the score, playing together. Thank you for playing.`, true);
+    dialog.show(`The end. The piece is ${have === s.layers.length ? 'whole' : 'nearly whole'}: ${have} of ${s.layers.length} layers of the score, playing together. Thank you for playing.`, 'The Coda');
   };
 
   // The screen scrolls to the next room, Zelda style; Coda waits for it.
@@ -175,10 +180,11 @@ async function boot() {
     renderer.beginScroll(dir);
     game.freeze = 0.32;
   };
-  game.onAreaChange = (area) => showAreaCard(area);
+  // A new area: its name and mood head the room's text when it is shown next.
+  game.onAreaChange = (area) => { newArea = area; };
   game.onCollect = (item) => {
     const it = ITEMS[item];
-    showHint(`You found ${it?.name ?? item}! ${it?.text ?? ''}`, true);
+    dialog.show(`You found ${it?.name ?? item}! ${it?.text ?? ''}`, 'Found');
     refreshHud();
   };
   game.onScoreLayer = (layer) => showToast(`♪ The score grows: ${layer.name}`);
@@ -208,29 +214,21 @@ function setBuild(on) {
 async function loadRoomFile(file) {
   const json = await fetch(`rooms/${file}`).then(r => r.json());
   game.loadRoom(json);
-  showHint(game.room.hint);
+  roomText(game.room);
   refreshHud();
 }
 
-// The room's hint, in a text box over the stage. It steps aside once you start
-// playing (or after a while), and the menu can bring it back.
-let hintTimer = null, hintShownAt = 0;
-function showHint(text, sticky = false) {
-  const box = $('dialog');
-  $('room-hint').textContent = text ?? '';
-  box.hidden = !text;
-  box.classList.remove('fade');
-  hintShownAt = performance.now();
-  clearTimeout(hintTimer);
-  if (text) hintTimer = setTimeout(() => dismissHint(true), sticky ? 12000 : 9000);
+// The room's text in the box under the stage (src/ui/dialog.js): a head line
+// with the room's name, and the area's name and mood the first time you are in
+// it; then the hint, typed out in time. It stays until tapped away.
+let newArea = null;
+function roomHead(room) {
+  if (!room) return '';
+  const area = newArea;
+  newArea = null;
+  return area ? `${area.name} · ${area.mood} · ${room.music.label}  —  ${room.name}` : room.name;
 }
-function dismissHint(force = false) {
-  const box = $('dialog');
-  if (box.hidden || box.classList.contains('fade')) return;
-  if (!force && performance.now() - hintShownAt < 1500) return;   // let it be read
-  box.classList.add('fade');
-  setTimeout(() => { if (box.classList.contains('fade')) box.hidden = true; }, 400);
-}
+function roomText(room) { dialog.show(room?.hint ?? '', roomHead(room)); }
 
 function setMenu(open) {
   $('menu').hidden = !open;
@@ -317,26 +315,10 @@ function afterJump() {
   const entry = manifest.find(m => m.file.replace(/\.json$/, '') === room.id);
   if (entry) $('room-select').value = entry.file;
   editor?.syncFromRoom();
-  showHint(room.hint);
+  newArea = game.world?.area(room.id) ?? null;
+  roomText(room);
   refreshHud();
   fitStage(renderer, game);
-  const area = game.world?.area(room.id);
-  if (area) showAreaCard(area);
-}
-
-// An area's name and mood, the first moment you are in it.
-let areaTimer = null;
-function showAreaCard(area) {
-  const card = $('area-card');
-  $('area-name').textContent = area.name;
-  $('area-mood').textContent = `${area.mood} · ${game.room.music.label}`;
-  card.hidden = false;
-  card.classList.remove('fade');
-  clearTimeout(areaTimer);
-  areaTimer = setTimeout(() => {
-    card.classList.add('fade');
-    areaTimer = setTimeout(() => { card.hidden = true; }, 650);
-  }, 2200);
 }
 
 async function unlockAudio() {
@@ -359,6 +341,7 @@ function loop() {
   game.update();
   renderer.draw(game);
   hud.frame();
+  dialog.frame();
   requestAnimationFrame(loop);
 }
 
