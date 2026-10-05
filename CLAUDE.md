@@ -195,8 +195,8 @@ untouched, the renderer composes the linked key. Don't move it into the doodads.
 ## Testing
 
 **There is a runner now: `node test/rooms.mjs`** — serve the repo root on :8080
-first. (There are eight now: `rooms world walk timing art solve route
-mechanics`, each `node test/<name>.mjs`.) `rooms.mjs` plays every room in the manifest and checks the two things that break
+first. (There are nine now: `rooms world walk timing art solve route
+mechanics controls`, each `node test/<name>.mjs`.) `rooms.mjs` plays every room in the manifest and checks the two things that break
 silently in a port like this: a legend character claimed twice (an object
 literal just lets the later one win), and a doodad playing a pitch that never
 came through the room's scale.
@@ -290,6 +290,17 @@ button's labels. Its first run found the Stand solvable with a drum and three
 quick shots; the room was rebuilt. Its boss check found the Key's own shot
 standing in as a chord's third note; the chord now ignores it. Proved by injection: let the chord forks ring
 eight beats and it fails naming every two-wave order that now works.
+
+### And the buttons a thumb presses
+
+`node test/controls.mjs` is a phone: 390 x 844, real touch events (Chrome's
+`Input.dispatchTouchEvent`) at the middle of each on-screen button, checking
+nothing covers it and that pressing it does its job (A fires, B plays, L lifts
+and sets down, R turns, the D-pad walks and stops). Every other test calls the
+game directly, which is how the L and R shoulders shipped unwired on 2026-10-04:
+they lit up (the HUD reads the game) and did nothing, and Q on a keyboard worked.
+**A new on-screen control must be passed to `bindInput` in `main.js` and added
+here.** Proved by injection: restore the old wiring and it fails at L and R.
 
 ### And a report, for when you are making rooms rather than fixing them
 
