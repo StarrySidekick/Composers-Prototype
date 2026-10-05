@@ -8,8 +8,8 @@ It doubles as the seed for a smaller, self-contained, mobile-friendly music game
 of these prototypes turns out to want its own life.
 
 ## Run it
-Nine test scripts live in `test/` (`rooms world walk timing art solve route
-mechanics controls`): serve the root, then `node test/<name>.mjs`. `route.mjs` plays the
+Ten test scripts live in `test/` (`rooms world walk timing art solve route
+mechanics controls snes`): serve the root, then `node test/<name>.mjs`. `route.mjs` plays the
 whole dungeon from the start; `mechanics.mjs` checks every gate holds. See
 CLAUDE.md for what each does and does not prove.
 
@@ -139,6 +139,8 @@ Faithful to the GDD and to the Unity architecture, deliberately:
   breathing.
 - **A first enemy**, the dissonant, resolved by any wave. Enemies and a boss are scoped in
   [docs/SCOPE-ENEMIES-AND-BOSS.md](docs/SCOPE-ENEMIES-AND-BOSS.md).
+- **An SNES sound.** Pause menu, Workshop, the sound chip: live, synth, or an emulated SNES
+  sound chip with a room echo or a cave echo. See [docs/SNES-SOUND.md](docs/SNES-SOUND.md).
 
 Not modelled yet: the four area instruments, fabric-bending, sheet-music scooping, a
 boss. Those come when there's something to test.
@@ -149,12 +151,13 @@ boss. Those come when there's something to test.
 index.html          shell + virtual Game Boy
 src/core/           beat clock, musical state, sound wave, room, doodad base, directions
 src/doodads/        brass, woodwind, strings, percussion, keys, locks, structure, pickups, enemy
-src/audio/          Web Audio synths — the FMOD stand-in — and the level's growing score
+src/audio/          Web Audio synths — the FMOD stand-in — the level's growing score,
+                    and snes/, an emulated SNES sound chip (docs/SNES-SOUND.md)
 src/ui/             status bars, title and pause menus, movable controls
 src/render/         canvas renderer, wing palettes, sprite store, placeholder baker
 src/editor/         the room editor — catalog, canvas painting, panel
 rooms/*.json        the rooms, plus manifest.json and world.json (the dungeon)
-test/*.mjs          the eight checks
+test/*.mjs          the checks (see CLAUDE.md)
 assets/             sprites, if there are any — optional
 docs/PORTING.md     how each piece maps back to the Unity project
 docs/ASSETS.md      the sprite pipeline, both directions

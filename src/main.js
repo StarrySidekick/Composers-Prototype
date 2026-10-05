@@ -28,6 +28,7 @@ window.CK = { game, audio, renderer, assets };
 
 let manifest = [];
 let editor = null;
+const SOUND_KEY = 'ck-sound-v1';   // the pause menu's sound choice, per device
 let building = false;
 const hud = new Hud(game);
 let controls = null;
@@ -41,6 +42,10 @@ async function boot() {
   // Recorded cello/horn/drum from the Unity project. Optional and non-blocking:
   // a failed load just leaves the synth voices in charge.
   const samples = audio.loadSamples().catch(err => console.warn('[samples]', err));
+  // The sound chosen last time on this device (the SNES chip needs no loading).
+  let saved = null;
+  try { saved = localStorage.getItem(SOUND_KEY); } catch {}
+  if (saved && saved !== 'live') setSound(saved);
 
   manifest = await fetch('rooms/manifest.json').then(r => r.json());
   $('room-select').innerHTML = manifest
@@ -120,10 +125,11 @@ async function boot() {
     editor.syncFromRoom();
   });
 
-  $('samples').addEventListener('click', (e) => {
-    audio.useSamples = !audio.useSamples;
-    e.currentTarget.textContent = audio.useSamples ? 'live' : 'synth';
-    e.currentTarget.classList.toggle('on', audio.useSamples);
+  // The sound switch: recorded, synth, or the SNES chip with either echo. Skips
+  // 'live' when the recordings did not load. Remembered on this device.
+  $('samples').addEventListener('click', () => {
+    const all = AudioEngine.SOUNDS.filter(s => s !== 'live' || audio.sampler.ready);
+    setSound(all[(all.indexOf(audio.sound) + 1) % all.length], true);
   });
 
   $('reset').addEventListener('click', () => { game.reload(); editor.syncFromRoom(); });
@@ -198,9 +204,14 @@ async function boot() {
   requestAnimationFrame(loop);
 
   await samples;
-  $('samples').textContent = audio.sampler.ready ? 'live' : 'synth';
-  $('samples').classList.toggle('on', audio.sampler.ready);
-  $('samples').disabled = !audio.sampler.ready;
+  if (audio.sound === 'live') setSound(audio.sampler.ready ? 'live' : 'synth');
+}
+
+function setSound(name, remember = false) {
+  name = audio.setSound(name);
+  $('samples').textContent = name;
+  $('samples').classList.toggle('on', name !== 'synth');
+  if (remember) try { localStorage.setItem(SOUND_KEY, name); } catch {}
 }
 
 function setBuild(on) {
