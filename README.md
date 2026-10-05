@@ -8,8 +8,8 @@ It doubles as the seed for a smaller, self-contained, mobile-friendly music game
 of these prototypes turns out to want its own life.
 
 ## Run it
-Eight test scripts live in `test/` (`rooms world walk timing art solve route
-mechanics`): serve the root, then `node test/<name>.mjs`. `route.mjs` plays the
+Nine test scripts live in `test/` (`rooms world walk timing art solve route
+mechanics controls`): serve the root, then `node test/<name>.mjs`. `route.mjs` plays the
 whole dungeon from the start; `mechanics.mjs` checks every gate holds. See
 CLAUDE.md for what each does and does not prove.
 

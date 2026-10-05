@@ -87,7 +87,8 @@ async function boot() {
 
   controls = new Controls();
   bindInput(game, {
-    dpad: $('dpad'), 'btn-a': $('btn-a'), 'btn-b': $('btn-b'), stage: $('stage'),
+    dpad: $('dpad'), 'btn-a': $('btn-a'), 'btn-b': $('btn-b'),
+    'btn-l': $('btn-l'), 'btn-r': $('btn-r'), stage: $('stage'),
   }, {
     onAction: () => { unlockAudio(); },
     paused: () => !$('menu').hidden || !$('title').hidden,
