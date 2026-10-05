@@ -120,6 +120,15 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   different notes within a beat and ignores the Key's own shot (`key: true` on the
   fire sound). Solutions fight its swarm with the `resolve` verb.
 - **More legend characters (2026-10-04):** `N` metronome, `W` boss, `U` boss body.
+- **The SNES sound is an emulation, never a game's samples** (`src/audio/snes/`,
+  `docs/SNES-SOUND.md`). Its instruments are made in `rom.js` from harmonics and
+  seeded noise, BRR-encoded, and only heard through the chip's interpolation,
+  envelope and echo, all from the fullsnes reference. Ripped soundfonts are
+  Nintendo's: they never go in this public repo. Every note still goes through
+  `AudioEngine.play`, so `onNote`, `heard` and `when` mean the same in every sound
+  setting. A new family needs a row in `PATCHES` (or it plays the horn) and a line in
+  the pitch list in `test/snes.mjs`. A looped sample must be a whole number of cycles
+  and a multiple of 16 samples.
 - **Editor edits mutate the live room; they never reload it.** `Room.setTileChar` /
   `setOverride` rebuild one tile. Reloading would reset every lock and door mid-build.
 
@@ -195,8 +204,8 @@ untouched, the renderer composes the linked key. Don't move it into the doodads.
 ## Testing
 
 **There is a runner now: `node test/rooms.mjs`** — serve the repo root on :8080
-first. (There are nine now: `rooms world walk timing art solve route
-mechanics controls`, each `node test/<name>.mjs`.) `rooms.mjs` plays every room in the manifest and checks the two things that break
+first. (There are ten now: `rooms world walk timing art solve route
+mechanics controls snes`, each `node test/<name>.mjs`.) `rooms.mjs` plays every room in the manifest and checks the two things that break
 silently in a port like this: a legend character claimed twice (an object
 literal just lets the later one win), and a doodad playing a pitch that never
 came through the room's scale.
@@ -301,6 +310,20 @@ game directly, which is how the L and R shoulders shipped unwired on 2026-10-04:
 they lit up (the HUD reads the game) and did nothing, and Q on a keyboard worked.
 **A new on-screen control must be passed to `bindInput` in `main.js` and added
 here.** Proved by injection: restore the old wiring and it fails at L and R.
+
+### And the SNES chip
+
+`node test/snes.mjs` holds the SNES sound to its hardware reference and to pitch,
+because an emulation goes wrong without a sound: the BRR decoder against
+hand-worked fullsnes numbers (overflow included), the Gauss table's sums and its
+orientation (interpolating a ramp must give a ramp), the envelope's times, the
+noise generator's full 32767-state period, the echo's exact delay and decay, the
+ROM's BRR quality and its fit in 64 KB, **every instrument within 10 cents of its
+note** (measured on the steady tone, after the attack), and in the game: every family
+through the chip, locks still hearing it, eight voices, and the menu switch. Proved
+by injection: pitch register an octave low, Gauss weights swapped, sixteen voices,
+a filter constant changed; each fails naming it. `node tools/sound-demo.mjs out`
+renders the tune through each setting to WAV, for ears.
 
 ### And a report, for when you are making rooms rather than fixing them
 

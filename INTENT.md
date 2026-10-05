@@ -201,6 +201,26 @@ Timothy played the dungeon and asked for eight things. What was done:
   room of the world: the tune is silent until it runs.
 - **Tint the background by mode.** Done: a near-black floor per mode.
 
+## 2026-10-05: the SNES sound
+
+Timothy asked: *"what's your ability to get sound fonts from retro games and use them
+here, i specifically want the link to the past and super metroid sound font"*. The
+soundfonts that circulate are Nintendo's samples ripped from the games, and this repo
+is public, so they cannot go in it. Offered instead: an SNES-style engine with our own
+instruments, a bring-your-own-soundfont loader kept on his device, or both. He chose
+*"snes style sound engine to start"*.
+
+Done: an emulated SNES sound chip (`src/audio/snes/`, `docs/SNES-SOUND.md`) as two
+settings of the pause menu's sound switch, **snes room** (A Link to the Past in
+spirit) and **snes cave** (Super Metroid in spirit). Our own instruments, made from
+harmonics and BRR-encoded; the chip's interpolation, envelope, noise and echo from
+the hardware reference; eight voices.
+
+Needs his ears: every instrument and both echoes were tuned by measurement, not by
+listening (the numbers are in `rom.js` and `ECHO`). "To start" suggests the
+bring-your-own-soundfont loader may come next; it would keep a file he supplies in
+his browser only, never in the repo.
+
 ## Something that needs Timothy
 
 **The GDD should come into this repo.** It currently lives at

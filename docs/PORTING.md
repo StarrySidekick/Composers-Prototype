@@ -219,6 +219,15 @@ chord ignores the Key's own shot (`key: true`). See SCOPE-ENEMIES-AND-BOSS.md.
 
 **Floor tint by mode** (`MODE_FLOOR`): a near-black per mode under white line-work.
 
+## Written here 2026-10-05: the SNES sound
+
+`src/audio/snes/` is an emulated SNES sound chip (BRR samples, Gaussian
+interpolation, the ADSR, the noise generator, the echo), a sound setting beside
+live and synth. Nothing in the game logic knows about it: it sits behind
+`AudioEngine.play`, as FMOD would. If Unity wants it, `docs/SNES-SOUND.md` has two
+routes: port `dsp.js` and `brr.js` to C# in `OnAudioFilterRead` (exact), or export
+the decoded samples and the echo's impulse response into FMOD (close).
+
 ## Mirror drums: new here, port this
 
 Since 2026-10-01 the bass drum, tom and snare are **mirrors**, not face tables: the
@@ -283,7 +292,8 @@ per sample. The prototype renders this into an `AudioBuffer`; Unity does it in
 ## What deliberately differs
 
 - **Audio.** Web Audio synths stand in for FMOD. Timbre is throwaway; pitch, timing and
-  which-instrument-fired-when are the parts worth trusting.
+  which-instrument-fired-when are the parts worth trusting. The SNES setting is the
+  exception: its timbre is the point (see above).
 - **Rooms.** ASCII + legend instead of Unity Tilemaps. This is the whole speed advantage
   and should *not* be ported — export the room's shape, rebuild it as a scene.
 - **Event channels.** The prototype calls methods directly instead of routing through

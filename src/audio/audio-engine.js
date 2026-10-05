@@ -6,6 +6,7 @@
 
 import { midiToFreq } from '../core/music.js';
 import { Sampler } from './sampler.js';
+import { SnesSound } from './snes/index.js';
 
 export class AudioEngine {
   constructor() {
@@ -42,6 +43,11 @@ export class AudioEngine {
     this.sampler = new Sampler(this.ctx);
     this.useSamples = true;
 
+    // Or every note through an emulated SNES sound chip (src/audio/snes/), made
+    // the first time it is chosen. See setSound and docs/SNES-SOUND.md.
+    this.snes = null;
+    this.sound = 'live';
+
     this.muted = false;
     this._ksCache = new Map();
     // (midi, family, opts) => void — the note-lock listener hooks in here. `opts` is
@@ -57,6 +63,24 @@ export class AudioEngine {
 
   // Family -> sample bank. Woodwind has no recorded set yet, so it stays synth.
   static SAMPLE_BANK = { brass: 'horn', strings: 'cello' };
+
+  // The pause menu's sound switch. 'live' is the recorded instruments (synth where
+  // there are none), 'synth' the synth voices only, and the two SNES settings the
+  // same chip with its two echoes.
+  static SOUNDS = ['live', 'synth', 'snes room', 'snes cave'];
+
+  setSound(name) {
+    if (!AudioEngine.SOUNDS.includes(name)) name = 'live';
+    this.sound = name;
+    this.useSamples = name === 'live';
+    if (name.startsWith('snes')) {
+      this.snes ??= new SnesSound(this.ctx, this.master);
+      this.snes.setEcho(name.slice(5));
+    }
+    return name;
+  }
+
+  get snesOn() { return !!this.snes && this.sound.startsWith('snes'); }
 
   async loadSamples() {
     await this.sampler.load();
@@ -129,6 +153,11 @@ export class AudioEngine {
     const t = Math.max(when || this.now, this.now);
     const freq = midiToFreq(midi);
     const amp = Math.max(0.02, Math.min(1, intensity));
+
+    if (this.snesOn && this.snes.play({ family, midi, amp, t, kind, modulation })) {
+      if (this.onNote && notify) this.onNote(midi, family, opts);
+      return;
+    }
 
     if (this._playSampled(family, midi, amp, t, modulation, kind)) {
       if (this.onNote && notify) this.onNote(midi, family, opts);
@@ -390,6 +419,7 @@ export class AudioEngine {
   // Metronome tick — the BeatClock made audible while you author a room.
   click(t, accent = false) {
     if (this.muted) return;
+    if (this.snesOn) { this.snes.click(t, accent); return; }
     if (this.useSamples && this.sampler.ready &&
         this.sampler.playOneShot('click', {
           gain: accent ? 0.5 : 0.28, when: t, rate: accent ? 1.25 : 1,
