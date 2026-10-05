@@ -221,6 +221,49 @@ listening (the numbers are in `rom.js` and `ECHO`). "To start" suggests the
 bring-your-own-soundfont loader may come next; it would keep a file he supplies in
 his browser only, never in the repo.
 
+## 2026-10-05: Conductor's Key becomes the overworld (NOT STARTED: needs his laptop)
+
+Timothy, in his words: *"i have game i was working on called conducter's key, and
+the repo might exist i think is actually within a visual studio code session or my
+laptop, but i was coding it on an esp32 p4 dev kit. i want to see if we can take the
+gameplay of that game and make it what its like to navigate the overworld of
+composer's key. the dungeons are like the game is now, more room to room and focus
+puzzles where you don't move like snake."*
+
+So the game gets **two modes of moving**:
+
+- **The overworld plays like Conductor's Key.** From his words it moves like Snake:
+  you keep going and steer, presumably on the beat. Read the code to find out what
+  it really does before designing anything.
+- **Dungeons stay as they are now**: room to room, Coda walking freely, focused
+  puzzles. The world in `rooms/world.json` becomes one dungeon among several.
+- A dungeon entrance on the overworld switches mode; leaving switches back. The
+  save (`src/core/progress.js`), Overtones, satchel and the growing score carry
+  across both.
+
+**Where the code is:** not on GitHub. On 2026-10-05 none of his repos, cloud
+sessions or Google Drive had it. It is a local folder on his laptop, written for a
+Waveshare ESP32-P4 dev kit, so it is C/C++ (Arduino core or ESP-IDF, probably
+LVGL for the screen) with a `platformio.ini` or `CMakeLists.txt` at its top.
+
+**For the session that has his laptop:**
+
+1. Find the Conductor's Key folder. Ask him where it is if it is not obvious; do not
+   guess between projects (Magitiles, also ESP32-P4, is a different one).
+2. Push it to a new **private** GitHub repo (he agreed to this), e.g.
+   `StarrySidekick/conductors-key`, so cloud sessions can read it too.
+3. Read it for the **rules**, not to copy the C: what the player controls, how
+   movement and the beat relate, what is on the grid, how you win or lose, what
+   the music does. Write them down in `docs/OVERWORLD.md` in this repo, with the
+   file and function each rule came from.
+4. Propose in that doc how they become the overworld here, and what changes or
+   stays (touch-first controls, the sixteenth grid, the save). Ask him before
+   building: it is a big change in how the game feels.
+
+Every constraint in CLAUDE.md still holds for the port: no build step, touch-first
+(the snake has to steer from the on-screen pad), every sound on a sixteenth and
+through a scale degree.
+
 ## Something that needs Timothy
 
 **The GDD should come into this repo.** It currently lives at
@@ -230,6 +273,11 @@ told to defer to. Dropping a copy in (`docs/` is the natural home) makes the
 canon actually reachable.
 
 ## Worth knowing
+
+**Open bug, found 2026-10-05, not fixed (he has not said):** with the pause menu's
+**mute** on, note locks hear nothing, so no note-lock room can be solved muted.
+`AudioEngine.play` returns on `muted` before it calls `onNote`. The fix is to call
+`onNote` (for heard notes) before returning.
 
 Placeholder assets are fine. **Timothy will be drawing more art over time.** Do
 not hand-polish art here; invest in the pipeline that carries his art in and stands
