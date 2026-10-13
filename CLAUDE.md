@@ -131,6 +131,29 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   and a multiple of 16 samples.
 - **Editor edits mutate the live room; they never reload it.** `Room.setTileChar` /
   `setOverride` rebuild one tile. Reloading would reset every lock and door mid-build.
+- **The whole game lives in `story/`, as placeholders (2026-10-13).** Read
+  `docs/MARBLE.md` first. `story/outline.json` (cast, worlds, acts) and
+  `story/acts/*.json` (scenes, triggers) are the marble: every scene the finished
+  game has, with a `status` (idea, placeholder, rough, playable, final) and
+  `minutes`. `src/story/director.js` plays them; a scene that is not a room takes the
+  stage (`director.stageScene`) and `game.update` does not run. **Never edit a castle
+  room for the story**: the castle is `rooms/world.json` played whole, and the story
+  wraps it with `triggers` (enter, area, cross, solved, complete) in the act files.
+  The Wood (`rooms/wood.json`) is new and uses story tiles instead.
+- **Input goes through `director.router()`**, not the Game: on a stage scene the
+  buttons go to the scene. A new on-screen control still goes to `bindInput`.
+- **`game.world` can change now.** The page still boots into the castle (the tests
+  rely on `CK.game.world` being `rooms/world.json`), but the story switches worlds
+  (`director.useWorld`), each with its own live rooms and score. Free play and the
+  editor switch back to the castle (`director.home`).
+- **Every note a scene plays is `heard: false` and through the scene's scale** (cues,
+  rhythm hits, item fanfares). `test/story.mjs` checks both on a full playthrough.
+- **Chart bars are exactly sixteen characters.** A short bar shifts every note after
+  it; the story test counts them.
+- **More legend characters (2026-10-13):** `?` story moment, `C` character, `A` tree,
+  `~` water (`src/doodads/story.js`).
+- **Developer mode is per device** (`ck-dev-v1`): the pause menu's last button, the
+  `` ` `` key, or `?dev`. Off, nothing of it shows.
 
 ## Assets
 
@@ -158,6 +181,12 @@ measured pitches live in `src/audio/sampler.js`. All of it is optional — delet
 Every slot without real art gets a **sketch placeholder** (`src/art/placeholders.js`,
 drawn with the seeded pen in `src/art/pen.js`). A new doodad should get one the same
 day it gets a class, so art never blocks a mechanic.
+
+**Scene drawings are code sketches too** (`src/story/sketch.js`): the cutscenes,
+title cards, bosses, portraits and items of the story layer, full-stage, after his
+concept art and his Coda. `node tools/sketch-sheet.mjs out.png [prefix]` renders them
+all. They stand in for his drawings the way tile placeholders do; there is no
+real-art path for them yet (docs/MARBLE.md, "Carving").
 
 **Walls are quiet**: a border only where they meet floor, curls in outside corners,
 one `wall.inner` stamp for inside corners. Doors rotate to fit their wall
@@ -204,8 +233,8 @@ untouched, the renderer composes the linked key. Don't move it into the doodads.
 ## Testing
 
 **There is a runner now: `node test/rooms.mjs`** — serve the repo root on :8080
-first. (There are ten now: `rooms world walk timing art solve route
-mechanics controls snes`, each `node test/<name>.mjs`.) `rooms.mjs` plays every room in the manifest and checks the two things that break
+first. (There are eleven now: `rooms world walk timing art solve route
+mechanics controls snes story`, each `node test/<name>.mjs`.) `rooms.mjs` plays every room in the manifest and checks the two things that break
 silently in a port like this: a legend character claimed twice (an object
 literal just lets the later one win), and a doodad playing a pitch that never
 came through the room's scale.
@@ -324,6 +353,21 @@ through the chip, locks still hearing it, eight voices, and the menu switch. Pro
 by injection: pitch register an octave low, Gauss weights swapped, sixteen voices,
 a filter constant changed; each fails naming it. `node tools/sound-demo.mjs out`
 renders the tune through each setting to WAV, for ears.
+
+### And the whole game, start to credits
+
+`node test/story.mjs` checks the marble (`story/`, `docs/MARBLE.md`): every link,
+kind, speaker, chart bar, world, place, trigger, story tile and character resolves;
+**new game reaches every scene in reading order and comes back to the title**,
+each scene finishing on its own under autoplay, every note in its scene's key and
+unheard; the Wood walked tile by tile (the workshop, the fork across the brook, the
+pipe up and back down reversed, Da Capo, the gate); the castle's triggers fired
+through a real doorway, a real door opening and a room's exit; saving and
+continuing mid-story; and a 390 x 844 phone driving the chapter list, cutscenes,
+skip, developer mode, the Marble and a pipe by touch. Proved by injection: a
+15-sixteenth bar, a misspelled trigger room, a link to a missing scene and audible
+cue notes each fail by name. It uses this browser's storage for the save check
+(a fresh Playwright profile, so nothing outside the run is touched).
 
 ### And a report, for when you are making rooms rather than fixing them
 

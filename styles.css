@@ -418,3 +418,116 @@ body.arranging .cluster * { pointer-events: none; }
 .stage-wrap.hurt #stage { animation: flinch .3s; }
 @keyframes flinch { 0%, 100% { transform: none; } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 .chip:disabled { opacity: .35; cursor: default; border-color: var(--line); }
+
+/* ---- the story layer (src/story/, docs/MARBLE.md) ---- */
+.title-buttons .chip.wide { grid-column: 1 / -1; }
+.title-workshop { width: 100%; display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.title-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.menu-tubes { display: flex; flex-wrap: wrap; gap: 6px; }
+.menu-tubes .chip { font-size: 12px; }
+
+/* Developer mode: a strip over the top; the play column moves down to make room. */
+.dev-bar {
+  position: fixed; left: 0; right: 0; top: 0; z-index: 45;
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  padding: calc(env(safe-area-inset-top) + 3px) 6px 3px;
+  background: #000; border-bottom: 1px dashed var(--ink);
+  font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.dev-bar b { letter-spacing: .14em; padding: 0 4px; }
+.dev-where { flex: 1 1 120px; min-width: 0; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dev-btn {
+  background: #000; color: var(--ink); border: 1px solid var(--line); border-radius: 4px;
+  font: inherit; padding: 3px 7px; cursor: pointer; min-width: 28px;
+}
+.dev-btn.on, .dev-more .chip.on { background: var(--ink); color: #000; }
+.dev-more {
+  flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0 2px;
+}
+.dev-more .chip { font: inherit; padding: 5px 8px; }
+.dev-flags { flex: 1 1 100%; max-height: 30vh; overflow: auto; margin: 0; color: var(--dim); font-size: 10px; white-space: pre-wrap; }
+body.dev .play { padding-top: calc(env(safe-area-inset-top) + 32px); }
+
+/* The Marble: every scene as a block, as wide as its minutes, drawn by how carved it is. */
+.marble-scrim {
+  position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.86);
+  display: flex; align-items: flex-start; justify-content: center; padding: 12px; overflow-y: auto;
+}
+.marble {
+  width: min(960px, 100%); background: #000; color: var(--ink);
+  border: 2px solid var(--ink); border-radius: 8px;
+  box-shadow: inset 0 0 0 2px #000, inset 0 0 0 3px var(--dim);
+  padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.marble-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.marble-head h2 {
+  margin: 0; font: 400 22px/1.1 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  letter-spacing: .16em; text-transform: uppercase;
+}
+.marble-sub { margin: 0; color: var(--dim); font-size: 12px; }
+.mt-bar { position: relative; height: 16px; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+.mt-band { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--ink); border-right: 1px dashed var(--ink); background: repeating-linear-gradient(90deg, transparent 0 6px, #1a1a1a 6px 7px); }
+.mt-fill { position: absolute; top: 3px; bottom: 3px; }
+.mt-fill.built { left: 0; background: var(--ink); }
+.mt-fill.rough { background: repeating-linear-gradient(135deg, var(--ink) 0 2px, transparent 2px 5px); }
+.mt-fill.rest { border: 1px dashed #5a5a5a; }
+.mt-mark { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--hot); }
+.mt-scale { position: relative; height: 14px; font-size: 10px; color: var(--dim); }
+.mt-scale span { position: absolute; transform: translateX(-50%); }
+.mt-scale span:first-child { transform: none; left: 0; }
+.marble-legend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 11px; }
+.marble-legend .blk { flex: 0 0 auto; min-height: 0; padding: 2px 8px; cursor: default; }
+.legend-kinds { color: var(--dim); margin-left: 6px; }
+.m-act h3 {
+  margin: 4px 0 6px; display: flex; gap: 8px; align-items: baseline;
+  font: 400 15px "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; letter-spacing: .1em; text-transform: uppercase;
+}
+.m-act h3 small { font-size: 12px; letter-spacing: .04em; text-transform: none; color: var(--dim); font-style: italic; }
+.m-min { margin-left: auto; font: 11px ui-monospace, Menlo, monospace; color: var(--dim); }
+.m-brief { margin: -2px 0 6px; font-size: 11px; color: var(--dim); }
+.m-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.blk {
+  flex: 0 1 60px; min-width: 30px; min-height: 42px; text-align: left;
+  display: flex; flex-direction: column; gap: 1px; padding: 4px 6px;
+  background: #000; color: var(--ink); border: 1px solid var(--ink); border-radius: 4px;
+  font: 11px/1.2 ui-monospace, Menlo, monospace; cursor: pointer; overflow: hidden;
+}
+.blk i { font-style: normal; color: var(--dim); }
+.blk span { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.blk em { font-style: normal; color: var(--dim); font-size: 10px; margin-top: auto; }
+.blk.on { outline: 2px solid var(--hot); outline-offset: 2px; }
+.blk.here::after { content: '◂ here'; font-size: 9px; color: var(--hot); }
+.blk.st-idea { border-style: dashed; border-color: #5a5a5a; color: #8a8a8a; }
+.blk.st-placeholder { border-color: #8a8a8a; }
+.blk.st-rough { background: repeating-linear-gradient(135deg, #000 0 5px, #1d1d1d 5px 7px); }
+.blk.st-playable { border-width: 2px; }
+.blk.st-final { background: var(--ink); color: #000; }
+.blk.st-final i, .blk.st-final em { color: #333; }
+.blk.st-unseen { border-style: dashed; border-color: #333; color: #555; cursor: default; }
+.blk:disabled { opacity: 1; }
+.marble-detail {
+  position: sticky; bottom: 0; background: #000; border: 1px solid var(--ink); border-radius: 6px; padding: 10px 12px;
+  font-size: 12px; display: flex; flex-direction: column; gap: 6px;
+}
+.marble-detail h3 { margin: 0; font: 400 18px "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+.marble-detail p { margin: 0; }
+.md-meta { color: var(--dim); }
+.md-meta code, .md-small code { color: var(--ink); }
+.md-notes { margin: 0; padding-left: 18px; color: #bdbdbd; }
+.md-small { color: var(--dim); font-size: 11px; }
+.md-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.md-actions .chip { font: inherit; padding: 8px 12px; }
+.st-word.st-idea { color: #8a8a8a; }
+.marble-problems { color: #bdbdbd; font-size: 11px; }
+.marble-problems h3 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+.marble-problems ul { margin: 0; padding-left: 18px; }
+.marble.player .blk { min-height: 36px; }
+
+/* Long names shrink before anything else in the status bars. */
+.hud-top .hud-cell:not(.hud-room), .hud-bottom .hud-cell:not(.hud-staff) { flex-shrink: 0; }
+.hud-room { flex: 1 1 0; min-width: 0; }
+.hud-staff { flex: 1 1 0; min-width: 44px; }
+.hud-staff canvas { width: min(132px, 100%); height: auto; aspect-ratio: 132 / 26; }
+.marble-detail { max-height: 44vh; overflow-y: auto; }
+.m-act h3 { flex-wrap: wrap; row-gap: 2px; }

@@ -17,5 +17,10 @@
   {"file": "discord-01-hall.json", "name": "Discord 01 — The Hall"},
   {"file": "discord-02-coda.json", "name": "Discord 02 — The Coda"},
   {"file": "discord-03-chord.json", "name": "Discord 03 — The Unresolved Chord"},
+  {"file": "wood-01-crash.json", "name": "Wood 01 — The Crash Site"},
+  {"file": "wood-02-glade.json", "name": "Wood 02 — The Glade"},
+  {"file": "wood-03-workshop.json", "name": "Wood 03 — The Burnt Workshop"},
+  {"file": "wood-04-brook.json", "name": "Wood 04 — The Brook"},
+  {"file": "wood-05-gate.json", "name": "Wood 05 — The Cliff Gate"},
   {"file": "sandbox.json", "name": "Sandbox"}
 ]

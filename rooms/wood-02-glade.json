@@ -1,0 +1,60 @@
+{
+  "id": "wood-glade",
+  "name": "The Glade",
+  "wing": "keys",
+  "hint": "A glade full of things to play, and nothing to solve. Try everything: the horn (B on its mouthpiece), the drums, the string, the fork. The sign is about a way of crossing the Wood that does not exist yet.",
+  "music": {
+    "root": 5,
+    "mode": "lydian",
+    "bpm": 92,
+    "timeSignature": 4,
+    "mood": "mysterious"
+  },
+  "overrides": [
+    {
+      "x": 6,
+      "y": 0,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 12,
+      "y": 6,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "scene": "conductor",
+      "look": "sign"
+    },
+    {
+      "x": 3,
+      "y": 9,
+      "group": "glade",
+      "latching": true
+    }
+  ],
+  "layout": [
+    "######D######",
+    "#...........#",
+    "#.M--Y...A..#",
+    "#...........#",
+    "#..o===o..h.#",
+    "#...........#",
+    "D.....@.....D",
+    "#.?.........#",
+    "#......b..t.#",
+    "#..*........#",
+    "#.A....A..A.#",
+    "#AA.......AA#",
+    "#############"
+  ]
+}

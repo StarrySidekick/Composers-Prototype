@@ -1,0 +1,309 @@
+{
+  "id": "heart",
+  "name": "The Heart",
+  "subtitle": "The water organ",
+  "music": {
+    "root": 0,
+    "mood": "content",
+    "bpm": 96
+  },
+  "brief": "The very centre: the water organ that runs the aqueducts and every system in the castle. Played, it starts the water moving, and the castle with it. The way in is the Discord (the Hall, the Coda, the Unresolved Chord), today's stand-in for the approach, with the Unresolved Chord as its gatekeeper. Then the finale, the ending, and the bow.",
+  "triggers": [
+    {
+      "on": "cross",
+      "from": "tower-03-stair",
+      "to": "discord-01-hall",
+      "play": "tube-spillway"
+    },
+    {
+      "on": "area",
+      "area": "discord",
+      "play": "heart-card"
+    },
+    {
+      "on": "complete",
+      "room": "discord-03-chord",
+      "play": "heart-organ"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "tube-spillway",
+      "kind": "rhythm",
+      "title": "The Spillway",
+      "status": "rough",
+      "minutes": 1.5,
+      "orient": "vertical",
+      "family": "keys",
+      "cue": "organ",
+      "then": "return",
+      "say": "An aqueduct channel, dry for years, down from the Tower toward the Heart. You know this tune.",
+      "brief": "The last pipe, the first time you walk from the Stair down into the Hall: the castle's own motif, twice.",
+      "chart": {
+        "layer": {
+          "score": "castle",
+          "id": "motif"
+        },
+        "repeat": 2
+      },
+      "ends": [
+        {
+          "world": "castle",
+          "room": "tower-03-stair",
+          "at": [
+            6,
+            11
+          ],
+          "label": "the Tower"
+        },
+        {
+          "world": "castle",
+          "room": "discord-01-hall",
+          "at": [
+            6,
+            1
+          ],
+          "label": "the Heart"
+        }
+      ]
+    },
+    {
+      "id": "heart-card",
+      "kind": "card",
+      "title": "The Heart",
+      "name": "The Heart",
+      "family": "the Water Organ",
+      "theme": "Everything, together",
+      "status": "rough",
+      "minutes": 0.3,
+      "emblem": "organ",
+      "cue": "organ",
+      "then": "return",
+      "say": "(a voice like water through a pipe) Come in. Everything ends up here eventually. That is how water works.",
+      "who": "organist"
+    },
+    {
+      "id": "heart-rooms",
+      "kind": "world",
+      "title": "The approach: the Discord",
+      "status": "playable",
+      "minutes": 15,
+      "world": "castle",
+      "room": "discord-01-hall",
+      "at": [
+        6,
+        1
+      ],
+      "with": {
+        "waves": 3,
+        "items": [
+          "burin"
+        ],
+        "metronome": true,
+        "layers": [
+          "motif",
+          "bass",
+          "pulse",
+          "horns",
+          "flute",
+          "reed",
+          "chords",
+          "answer",
+          "descant"
+        ],
+        "flags": [
+          "ramparts",
+          "core",
+          "tower",
+          "basement"
+        ]
+      },
+      "standInRooms": [
+        "discord-01-hall",
+        "discord-02-coda",
+        "discord-03-chord"
+      ],
+      "brief": "The Hall (dissonants, and a gate that wants nine layers of the score), the Coda (a phrase across two rooms), and the Unresolved Chord, the only real boss so far: echo its call, resolve its swarm, answer it with a three-note chord. Built and playable; its exit leads to the organ.",
+      "notes": [
+        "In the finished game the Heart should open only when all four wings are done (their flags are ramparts, core, tower, basement). Today the score gate is what holds it shut."
+      ]
+    },
+    {
+      "id": "heart-organ",
+      "kind": "boss",
+      "title": "The Hydraulis",
+      "name": "The Hydraulis",
+      "status": "rough",
+      "minutes": 8,
+      "draw": "boss.organ",
+      "family": "keys",
+      "music": {
+        "root": 0,
+        "mood": "content",
+        "bpm": 96
+      },
+      "resolvedMood": "content",
+      "resolvedCue": "organ",
+      "intro": "The water organ. The Greeks called it the hydraulis: water held the air steady, so its pipes never wavered. It has been still a long time. Play it, and bring in everything you found.",
+      "resolve": "Water moves. In every pipe in the castle, all at once, something starts to sing.",
+      "brief": "The finale: not a fight, a performance. The water organ played a section at a time, each phase a layer of the castle's own tune in a wing's instrument (wind, brass, strings, drums), then all of it together. Everything learned, played at once.",
+      "notes": [
+        "The hydraulis is real: Ctesibius of Alexandria built one in the 3rd century BC, using water pressure to keep the air supply steady.",
+        "Each phase's notes are a layer of the castle score in rooms/world.json, so the finale is literally the tune the dungeon grew."
+      ],
+      "phases": [
+        {
+          "say": "The wind first: the Ramparts.",
+          "family": "woodwind",
+          "cue": "organ",
+          "chart": {
+            "layer": {
+              "score": "castle",
+              "id": "reed"
+            }
+          }
+        },
+        {
+          "say": "Then the brass, from the Core.",
+          "family": "brass",
+          "chart": {
+            "layer": {
+              "score": "castle",
+              "id": "horns"
+            },
+            "repeat": 2
+          }
+        },
+        {
+          "say": "The strings, down from the Tower.",
+          "family": "strings",
+          "chart": {
+            "layer": {
+              "score": "castle",
+              "id": "chords"
+            },
+            "every": 2
+          }
+        },
+        {
+          "say": "The drums, up from the Basement.",
+          "family": "timpani",
+          "chart": {
+            "layer": {
+              "score": "castle",
+              "id": "bass"
+            },
+            "repeat": 2
+          }
+        },
+        {
+          "say": "And now all of it. Tutti.",
+          "family": "keys",
+          "bpm": 104,
+          "chart": {
+            "layer": {
+              "score": "castle",
+              "id": "motif"
+            },
+            "repeat": 2
+          }
+        }
+      ],
+      "then": "ending"
+    },
+    {
+      "id": "ending",
+      "kind": "cutscene",
+      "title": "The castle hums",
+      "status": "rough",
+      "minutes": 2.5,
+      "flags": [
+        "finished"
+      ],
+      "cue": "organ",
+      "brief": "The aqueducts fill and spill off the cliff in white threads. The castle still has holes; it hums anyway. Da Capo asks what comes after the end of a piece.",
+      "shots": [
+        {
+          "draw": "heart",
+          "say": "The organ breathes in. The aqueducts fill. Water runs along the arches and off the edge of the cliff in long white threads.",
+          "who": "narrator"
+        },
+        {
+          "draw": "ending",
+          "cam": {
+            "from": [
+              0.5,
+              0.5,
+              1.4
+            ],
+            "to": [
+              0.5,
+              0.5,
+              1
+            ]
+          },
+          "say": "The castle still has holes in it. It probably always will. It hums anyway.",
+          "who": "narrator"
+        },
+        {
+          "draw": "castle-gate",
+          "say": "Well. That is the piece. Do you know what comes after the end of a piece?",
+          "who": "dacapo"
+        },
+        {
+          "draw": "hall",
+          "cue": "hush",
+          "say": "The part where you bow.",
+          "who": "dacapo"
+        }
+      ]
+    },
+    {
+      "id": "credits",
+      "kind": "credits",
+      "title": "The bow",
+      "status": "rough",
+      "minutes": 4,
+      "bars": 8,
+      "encore": "encore-card",
+      "encoreSay": "The audience will not stop clapping. They want one more.",
+      "brief": "Coda conducts the whole tune, every layer the castle gave it, in a concert hall. A cut-off, a breath of silence, a deep conductor's bow, applause, then the names. The audience will not stop clapping: A for the encore.",
+      "notes": [
+        "The conducting is a 4/4 beat pattern (down, left, right, up) on the real clock."
+      ],
+      "lines": [
+        "# Composer's Key",
+        "- a prototype, carved out of marble",
+        "",
+        "# A game by",
+        "Timothy",
+        "- StarrySidekick",
+        "",
+        "# Design, art and music",
+        "Timothy",
+        "- every hand-drawn line is his; the sketches you saw were placeholders drawn in code",
+        "",
+        "# Starring",
+        "Coda",
+        "- a coda is the end of a piece: the part that brings it home",
+        "",
+        "Fermata · Da Capo · Staccato · Tutti",
+        "Lento · Pianissimo · the Organist",
+        "- placeholder names, every one",
+        "",
+        "# The struggles",
+        "The Squall, the chaos of life",
+        "The Adjudicator, judgment",
+        "The Slack, apathy",
+        "The Echo, fear of the past",
+        "",
+        "# Made with",
+        "- plain JavaScript, a canvas, and the Web Audio clock",
+        "- an emulated SNES sound chip, with instruments of its own",
+        "",
+        "# Thank you for playing",
+        "- about four hours of game, and most of it still marble"
+      ]
+    }
+  ]
+}

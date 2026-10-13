@@ -21,6 +21,11 @@ export class Dialog {
     this.text = text;
     this.words = [];     // { text, due, at, shown, sounded, tone }
     this.typing = false;
+    // Set by the story layer (src/story/director.js): a scene that is not a room
+    // sings its words in its own key (`music()` returns a MusicalState), and wants
+    // to know when its line has been tapped away (`onDismiss`).
+    this.music = null;
+    this.onDismiss = null;
     box.addEventListener('pointerdown', (e) => { e.preventDefault(); this.tap(); });
   }
 
@@ -82,6 +87,7 @@ export class Dialog {
   dismiss() {
     this.finish();
     this.box.hidden = true;
+    this.onDismiss?.();
   }
 
   // The tone a word sings: a scale degree, from the chord the tune is on.
@@ -119,8 +125,9 @@ export class Dialog {
         // A word whose sixteenth has already passed (a slow frame) sounds on the
         // next one rather than late and off the grid.
         w.at = clock.timeOf(Math.max(w.due, clock.index + 1));
-        if (room) g.audio.play({
-          family: 'voice', midi: room.music.getNote(this.tone(w), 5),
+        const music = this.music?.() ?? room?.music;
+        if (music) g.audio.play({
+          family: 'voice', midi: music.getNote(this.tone(w), 5),
           intensity: 0.22, when: w.at, heard: false, room,
         });
       }

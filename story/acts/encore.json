@@ -1,0 +1,144 @@
+{
+  "id": "encore",
+  "name": "Encore",
+  "subtitle": "The secret",
+  "music": {
+    "root": 0,
+    "mood": "unhinged",
+    "bpm": 112
+  },
+  "brief": "After the credits the audience will not stop clapping. The secret boss: a grand piano, which is secretly a percussion instrument (its felt hammers strike its strings). In the finished game it might be found in the Basement instead, through Keys 01.",
+  "scenes": [
+    {
+      "id": "encore-card",
+      "kind": "card",
+      "title": "Encore",
+      "name": "Encore",
+      "family": "the Grand Piano",
+      "theme": "A piano is secretly a drum",
+      "status": "rough",
+      "minutes": 0.3,
+      "emblem": "keys",
+      "cue": "tense",
+      "say": "Did you know a piano is a percussion instrument? Felt hammers hit the strings. It has been pretending to be something gentler this whole time.",
+      "who": "game"
+    },
+    {
+      "id": "encore-boss",
+      "kind": "boss",
+      "title": "The Grand",
+      "name": "The Grand",
+      "status": "rough",
+      "minutes": 6,
+      "draw": "boss.grand",
+      "family": "keys",
+      "music": {
+        "mood": "unhinged",
+        "bpm": 112
+      },
+      "resolvedMood": "content",
+      "resolvedBpm": 100,
+      "resolvedCue": "musicbox",
+      "intro": "You thought it was over. It is never over. There is always the encore.",
+      "resolve": "Bravo. Really. Now go home; they are stacking the chairs.",
+      "brief": "The secret boss on six lanes: the D-pad, A and B. Faster than anything before it, then the castle's finale layer to close.",
+      "notes": [
+        "Locrian (unhinged) resolving to ionian.",
+        "Six lanes is a lot for a phone. Worth testing early."
+      ],
+      "phases": [
+        {
+          "say": "Eighty-eight keys. You have six buttons. Good luck.",
+          "chart": {
+            "lanes": [
+              "left",
+              "down",
+              "up",
+              "right",
+              "a",
+              "b"
+            ],
+            "repeat": 2,
+            "bars": [
+              "L...D...U...R...",
+              "A...B...A...B...",
+              "L.D.U.R.A.B.....",
+              "B...A...R...L..."
+            ]
+          }
+        },
+        {
+          "say": "Hammers. Felt hammers. Harder than they look.",
+          "bpm": 124,
+          "chart": {
+            "lanes": [
+              "left",
+              "down",
+              "up",
+              "right",
+              "a",
+              "b"
+            ],
+            "bars": [
+              "L.D.U.R.A.B.....",
+              "L.A.D.B.U.A.R.B.",
+              "A.A.B.B.L.L.R.R.",
+              "L.D.U.R.A.B.A.B."
+            ]
+          }
+        },
+        {
+          "say": "...one more time, from the top.",
+          "bpm": 112,
+          "chart": {
+            "lanes": [
+              "left",
+              "down",
+              "up",
+              "right",
+              "a",
+              "b"
+            ],
+            "layer": {
+              "score": "castle",
+              "id": "finale"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "encore-bow",
+      "kind": "cutscene",
+      "title": "A second bow",
+      "status": "rough",
+      "minutes": 0.5,
+      "cue": "applause",
+      "then": "title",
+      "brief": "For the people who stayed.",
+      "shots": [
+        {
+          "draw": "hall",
+          "layers": [
+            {
+              "draw": "coda",
+              "o": {
+                "pose": "bow",
+                "amount": 1
+              },
+              "box": [
+                0.39,
+                0.46,
+                0.22,
+                0.3
+              ]
+            }
+          ],
+          "beats": 8,
+          "say": "A second bow, for the people who stayed.",
+          "who": "game"
+        }
+      ]
+    }
+  ]
+}

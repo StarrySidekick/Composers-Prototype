@@ -1,0 +1,124 @@
+{
+  "_": "The whole game, start to credits, as scenes: the marble it is carved out of. Every moment the finished game will have is here, in order, built or not. Acts are in story/acts/. A scene's status says how carved it is (idea, placeholder, rough, playable, final); its minutes are a guess at how long it will take to play. src/story/outline.js reads this; docs/MARBLE.md explains it.",
+  "title": "Composer's Key",
+  "target": {
+    "minutes": [
+      180,
+      300
+    ],
+    "price": "about $15",
+    "platforms": "Steam first; Switch and the like later",
+    "pitch": "A hand-drawn musical puzzle adventure about making things, and everything that gets in the way. Swirly, vine-ridden, ornate, Victorian; intuitive, introspective, honest. Puzzles should make you feel smart and leave room to express yourself."
+  },
+  "first": "fall",
+  "worlds": {
+    "wood": {
+      "file": "wood.json",
+      "name": "The Wood"
+    },
+    "castle": {
+      "file": "world.json",
+      "name": "The Castle"
+    }
+  },
+  "cast": {
+    "game": {
+      "name": "the game",
+      "role": "The game itself. It knows it is a game, and it knows it is unfinished, and says so on every slate. Undertale's self-awareness, kept gentle."
+    },
+    "coda": {
+      "name": "Coda",
+      "role": "You. A coda is the tail of a piece of music: the passage that brings it home."
+    },
+    "fermata": {
+      "name": "Fermata",
+      "role": "An owl in the Wood who holds every word a little too long. A fermata is the mark (an arc with a dot under it) that tells a player to hold a note longer than written. Placeholder name.",
+      "lines": [
+        "Ohhhh. Hellooo. You fell out of the sky. Everybody does, the first tiiime.",
+        "That thing in your hand is a Key. Press A and it siiings. Sing at things. They usually sing back.",
+        {
+          "text": "You found your workshop. I am sorry about the roooof.",
+          "if": "workshop"
+        },
+        {
+          "text": "There is an old pipe by the brook. Pipes go up, if you play them riiight.",
+          "unless": "workshop"
+        },
+        "The castle is up the cliff. It used to hum. Now it mostly creeeaks.",
+        "Hoooold on. That is all I have. I am a placeholder owl."
+      ]
+    },
+    "dacapo": {
+      "name": "Da Capo",
+      "role": "The castle's old caretaker, at the gate. Da capo means 'from the head': go back to the beginning and play it again. Knows you have been here before, possibly many times. Placeholder name.",
+      "lines": [
+        "Another one. From the top, then.",
+        "Four wings, each broken its own way. Wind on the walls, brass in the bones, strings up the tower, drums underneath. And in the middle, the water organ that keeps the rest alive. It stopped.",
+        "Every wing has something living in it that does not want to be played. You will know them. You have probably met them before.",
+        {
+          "text": "From the top? Of course. That is what I am for.",
+          "if": "finished"
+        },
+        "Go on in. Start the metronome. Nothing in there keeps time until somebody does."
+      ]
+    },
+    "staccato": {
+      "name": "Staccato",
+      "role": "A jittery little bird on the Ramparts who speaks in short detached bursts (staccato: each note short and separate). Lives in the chaos and hates it. Placeholder."
+    },
+    "tutti": {
+      "name": "Tutti",
+      "role": "A brass automaton in the Core who insists everyone play together or not at all (tutti: everyone). The judgment wing's rule-keeper. Placeholder."
+    },
+    "lento": {
+      "name": "Lento",
+      "role": "A slow, drooping ghost with a cello, in the Tower (lento: slowly). Kind, tired, means to practise. Placeholder."
+    },
+    "pianissimo": {
+      "name": "Pianissimo",
+      "role": "A tiny moth in the Basement who only ever whispers (pianissimo: very softly). Afraid of waking what lives there. Placeholder."
+    },
+    "organist": {
+      "name": "the Organist",
+      "role": "A figure made of water, at the heart of the castle, who tends the water organ. Placeholder."
+    }
+  },
+  "acts": [
+    {
+      "id": "prologue",
+      "file": "acts/prologue.json"
+    },
+    {
+      "id": "wood",
+      "file": "acts/wood.json"
+    },
+    {
+      "id": "castle",
+      "file": "acts/castle.json"
+    },
+    {
+      "id": "ramparts",
+      "file": "acts/ramparts.json"
+    },
+    {
+      "id": "core",
+      "file": "acts/core.json"
+    },
+    {
+      "id": "tower",
+      "file": "acts/tower.json"
+    },
+    {
+      "id": "basement",
+      "file": "acts/basement.json"
+    },
+    {
+      "id": "heart",
+      "file": "acts/heart.json"
+    },
+    {
+      "id": "encore",
+      "file": "acts/encore.json"
+    }
+  ]
+}

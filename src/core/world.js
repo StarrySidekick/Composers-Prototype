@@ -19,6 +19,7 @@ const STEP = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 export class World {
   constructor(json, roomJson) {
     this.start = json.start;
+    this.name = json.name ?? null;
     this.cells = new Map();   // "x,y" -> id
     this.at = new Map();      // id -> [x, y]
     this.json = roomJson;     // id -> parsed room file
@@ -48,15 +49,19 @@ export class World {
 
   // Fetch world.json and every room in it up front, so walking between rooms is
   // instant and never waits on the network mid-step.
-  static async load(base = 'rooms/') {
-    const res = await fetch(`${base}world.json`);
+  // `file` picks which world: the castle (world.json, the default) or another one
+  // the story walks through (wood.json). See docs/MARBLE.md.
+  static async load(base = 'rooms/', file = 'world.json') {
+    const res = await fetch(`${base}${file}`);
     if (!res.ok) return null;
     const json = await res.json();
     const roomJson = {};
     await Promise.all(Object.entries(json.rooms).map(async ([id, r]) => {
       roomJson[id] = await fetch(`${base}${r.file}`).then(x => x.json());
     }));
-    return new World(json, roomJson);
+    const world = new World(json, roomJson);
+    world.file = file;
+    return world;
   }
 
   has(id) { return this.at.has(id); }

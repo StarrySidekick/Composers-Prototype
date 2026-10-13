@@ -1,0 +1,50 @@
+{
+  "id": "wood-gate",
+  "name": "The Cliff Gate",
+  "wing": "keys",
+  "hint": "The castle gate, at the top of the cliff. The pipe in the corner takes you back down to the brook, any time.",
+  "music": {
+    "root": 5,
+    "mode": "lydian",
+    "bpm": 92,
+    "timeSignature": 4,
+    "mood": "mysterious"
+  },
+  "overrides": [
+    {
+      "x": 6,
+      "y": 1,
+      "scene": "castle-approach",
+      "look": "gate",
+      "again": "castle"
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "who": "dacapo",
+      "degree": 0
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "scene": "tube-brook",
+      "look": "tube",
+      "reverse": true
+    }
+  ],
+  "layout": [
+    "#############",
+    "#AA..#?#..AA#",
+    "#A...#.#...A#",
+    "#....#.#....#",
+    "#...........#",
+    "#..C........#",
+    "#...........#",
+    "#.....@.....#",
+    "#...........#",
+    "#..o=====o..#",
+    "#...........#",
+    "#A.?......AA#",
+    "#############"
+  ]
+}

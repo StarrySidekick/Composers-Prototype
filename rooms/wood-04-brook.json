@@ -1,0 +1,54 @@
+{
+  "id": "wood-brook",
+  "name": "The Brook",
+  "wing": "keys",
+  "hint": "Sound carries over water, even where you cannot. The old pipe is shut behind a door, and something on the far bank opens it.",
+  "music": {
+    "root": 5,
+    "mode": "lydian",
+    "bpm": 92,
+    "timeSignature": 4,
+    "mood": "mysterious"
+  },
+  "overrides": [
+    {
+      "x": 0,
+      "y": 6,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "scene": "tube-brook",
+      "look": "tube"
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "group": "pipe",
+      "latch": true
+    },
+    {
+      "x": 10,
+      "y": 2,
+      "group": "pipe",
+      "latching": true
+    }
+  ],
+  "layout": [
+    "#############",
+    "#..#....~..A#",
+    "#.?D....~.*.#",
+    "####....~...#",
+    "#.......~...#",
+    "#.A.....~...#",
+    "D.....@.~...#",
+    "#.......~.A.#",
+    "#..o===o~...#",
+    "#.......~...#",
+    "#.......~...#",
+    "#A....A.~..A#",
+    "#############"
+  ]
+}

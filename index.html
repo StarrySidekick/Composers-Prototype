@@ -30,7 +30,7 @@
     </div>
 
     <div class="hud hud-bottom" id="hud-bottom">
-      <div class="hud-cell"><label>forks</label><span id="hud-locks" class="pips"></span></div>
+      <div class="hud-cell"><label id="hud-locks-label">forks</label><span id="hud-locks" class="pips"></span></div>
       <div class="hud-cell hud-staff"><label>heard</label><canvas id="hud-staff" width="132" height="26"></canvas></div>
       <div class="hud-cell"><label id="hud-bag-label">satchel</label><span id="hud-bag">—</span></div>
       <div class="hud-cell"><label>mood</label><span id="hud-mood">content</span></div>
@@ -90,12 +90,20 @@
     <div class="title">
       <canvas id="title-key" class="title-key"></canvas>
       <h1>Composer's Key</h1>
-      <p class="title-sub">a prototype</p>
+      <p class="title-sub" id="title-sub">a prototype</p>
       <div class="title-buttons">
         <button id="title-continue" class="chip primary">continue</button>
         <button id="title-new" class="chip">new game</button>
-        <button id="title-free" class="chip">free play</button>
-        <button id="title-editor" class="chip">editor</button>
+        <button id="title-chapters" class="chip wide">chapters</button>
+      </div>
+      <!-- The workshop: the customisable game. In the story you find it in the
+           Wood; this prototype leaves its door open from the title. -->
+      <div class="title-workshop">
+        <span class="title-label" id="title-workshop-label">workshop</span>
+        <div class="title-buttons">
+          <button id="title-free" class="chip">free play</button>
+          <button id="title-editor" class="chip">editor</button>
+        </div>
       </div>
       <div class="title-free" id="title-free-box" hidden>
         <label class="menu-row">room<select id="title-room"></select></label>
@@ -113,6 +121,8 @@
       <div class="menu-grid">
         <button id="menu-resume" class="chip primary">resume</button>
         <button id="menu-hint" class="chip">show hint</button>
+        <button id="menu-chapters" class="chip">chapters</button>
+        <button id="menu-story-next" class="chip" hidden>continue the story ▸</button>
       </div>
       <section class="menu-sec">
         <h3>Map</h3>
@@ -127,7 +137,11 @@
         <h3>Score <small id="menu-score-count"></small></h3>
         <div id="menu-score" class="menu-score"></div>
       </section>
-      <details class="menu-sec menu-workshop">
+      <section class="menu-sec" id="menu-tubes-sec" hidden>
+        <h3>Pipes <small>ridden ones run both ways</small></h3>
+        <div id="menu-tubes" class="menu-tubes"></div>
+      </section>
+      <details class="menu-sec menu-workshop" id="menu-workshop">
         <summary>Workshop</summary>
         <label class="menu-row">room<select id="room-select" aria-label="Room"></select></label>
         <div class="menu-grid">
@@ -143,7 +157,47 @@
       </details>
       <div class="menu-grid">
         <button id="menu-title" class="chip">title screen</button>
+        <button id="menu-dev" class="chip" title="See the game with its workings showing: scene ids, the Marble, skips, cheats">developer mode</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Developer mode: a strip of tools over the top of the screen (src/story/dev.js). -->
+  <div class="dev-bar" id="dev-bar" hidden>
+    <b>DEV</b>
+    <span id="dev-where" class="dev-where">—</span>
+    <button id="dev-back" class="dev-btn" title="Previous scene">◀</button>
+    <button id="dev-restart" class="dev-btn" title="Restart this scene">⟲</button>
+    <button id="dev-skip" class="dev-btn" title="Skip to the next scene">▶</button>
+    <button id="dev-auto" class="dev-btn" title="Scenes play themselves">auto</button>
+    <button id="dev-marble" class="dev-btn" title="The Marble: the whole game">☰</button>
+    <button id="dev-more" class="dev-btn" title="Cheats and switches">⋯</button>
+    <div class="dev-more" id="dev-more-box" hidden>
+      <button id="dev-grant" class="chip">grant everything</button>
+      <button id="dev-solve" class="chip">open every door here</button>
+      <button id="dev-hurt" class="chip">no shoves</button>
+      <button id="dev-fast" class="chip">tempo × 2</button>
+      <button id="dev-editor" class="chip">editor</button>
+      <button id="dev-flags" class="chip">story flags</button>
+      <button id="dev-off" class="chip">player mode</button>
+      <pre id="dev-flags-box" class="dev-flags" hidden></pre>
+    </div>
+  </div>
+
+  <!-- The Marble: the whole game as a row of blocks per act, every scene in order,
+       carved or not (src/story/marble.js). In player mode, the chapters you have seen. -->
+  <div class="marble-scrim" id="marble" hidden>
+    <div class="marble" role="dialog" aria-label="The Marble">
+      <header class="marble-head">
+        <h2 id="marble-title">The Marble</h2>
+        <button id="marble-close" class="chip" aria-label="Close">✕</button>
+      </header>
+      <p class="marble-sub" id="marble-sub"></p>
+      <div class="marble-target" id="marble-target"></div>
+      <div class="marble-legend" id="marble-legend"></div>
+      <div class="marble-acts" id="marble-acts"></div>
+      <div class="marble-detail" id="marble-detail" hidden></div>
+      <div class="marble-problems" id="marble-problems"></div>
     </div>
   </div>
 

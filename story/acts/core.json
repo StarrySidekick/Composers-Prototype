@@ -1,0 +1,233 @@
+{
+  "id": "core",
+  "name": "The Core",
+  "subtitle": "Brass · judgment",
+  "music": {
+    "root": 2,
+    "mood": "reflective",
+    "bpm": 100
+  },
+  "brief": "The castle's bones: the brass pipework that carries everything, and you, from wing to wing. Horns are built from parts (a mouthpiece in, a bell at every open end, valves and slides between). The struggle: judgment, and the judgment you put on yourself. Stand-ins: Brass 01 to 05 (the Atrium and the Cloister).",
+  "triggers": [
+    {
+      "on": "enter",
+      "room": "brass-01-first-breath",
+      "play": "core-card"
+    },
+    {
+      "on": "cross",
+      "from": "keys-01-keyboard-floor",
+      "to": "brass-04-valve",
+      "play": "tube-pneumatic"
+    },
+    {
+      "on": "solved",
+      "room": "brass-05-slide",
+      "play": "core-instrument"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "core-card",
+      "kind": "card",
+      "title": "The Core",
+      "name": "The Core",
+      "family": "Brass",
+      "theme": "Judgment, and the judgment you put on yourself",
+      "status": "rough",
+      "minutes": 0.3,
+      "emblem": "brass",
+      "cue": "march",
+      "then": "return",
+      "say": "ALL TOGETHER, OR NOT AT ALL. That is the rule. Who made the rule? I made the rule.",
+      "who": "tutti"
+    },
+    {
+      "id": "core-rooms",
+      "kind": "world",
+      "title": "The Core: the rooms",
+      "status": "rough",
+      "minutes": 35,
+      "world": "castle",
+      "room": "brass-01-first-breath",
+      "at": [
+        2,
+        2
+      ],
+      "with": {
+        "metronome": true
+      },
+      "standInRooms": [
+        "brass-01-first-breath",
+        "brass-02-crossroads",
+        "brass-03-crossing",
+        "brass-04-valve",
+        "brass-05-slide"
+      ],
+      "brief": "About thirty-five minutes of horn puzzles. Stand-in rooms are real, playable rooms from the prototype dungeon; the wing's other ~20 minutes are uncarved.",
+      "notes": [
+        "Suggested shape for every wing, Nintendo's four steps per mechanic (kishotenketsu): introduce it where it is safe, develop it, twist it, then a room that uses all of it at once.",
+        "This is the wing whose mechanics are furthest along: mouthpieces, bells, tees, valves, slides, mutes."
+      ]
+    },
+    {
+      "id": "tube-pneumatic",
+      "kind": "rhythm",
+      "title": "The Pneumatic Line",
+      "status": "rough",
+      "minutes": 1.5,
+      "orient": "horizontal",
+      "family": "brass",
+      "cue": "march",
+      "then": "return",
+      "say": "A brass line from the Undercroft up into the Cloister. Four lanes, sideways.",
+      "brief": "Sideways run on all four lanes, the first time you walk from Keys 01 into Brass 04.",
+      "chart": {
+        "chords": [
+          0,
+          3,
+          4,
+          0
+        ],
+        "bars": [
+          "L...L...D...D...",
+          "U...U...R.......",
+          "L.L.D.D.U.U.R...",
+          "R...U...D...L...",
+          "L.D.U.R.L.D.U.R.",
+          "R.U.D.L.R.U.D.L.",
+          "L.L.D.D.U.U.R.R.",
+          "L...D...U...R---"
+        ]
+      },
+      "ends": [
+        {
+          "world": "castle",
+          "room": "keys-01-keyboard-floor",
+          "at": [
+            6,
+            11
+          ],
+          "label": "the Undercroft"
+        },
+        {
+          "world": "castle",
+          "room": "brass-04-valve",
+          "at": [
+            6,
+            1
+          ],
+          "label": "the Cloister"
+        }
+      ]
+    },
+    {
+      "id": "core-instrument",
+      "kind": "item",
+      "title": "The Patchwork Horn",
+      "name": "the Patchwork Horn",
+      "status": "placeholder",
+      "minutes": 0.5,
+      "draw": "item.horn",
+      "item": "horn",
+      "say": "You found the Patchwork Horn! A horn you can add to: clip on a tube, a valve, a bell, and lock it into the castle's own pipework to finish the horns the castle left half-built.",
+      "brief": "Timothy's own scoped instrument: 'a brass horn that you can attach other brass components to, in order to solve puzzles and lock into various structures.' Not built. The horn rules (src/doodads/brass.js) already trace a horn through joined parts, so a carried horn that joins the room's tubes is the natural next mechanic.",
+      "notes": [
+        "The satchel (L to lift, R to turn) already carries drums and reeds; carrying horn parts is the same verb."
+      ]
+    },
+    {
+      "id": "core-boss",
+      "kind": "boss",
+      "title": "The Adjudicator",
+      "name": "The Adjudicator",
+      "status": "rough",
+      "minutes": 6,
+      "draw": "boss.adjudicator",
+      "family": "brass",
+      "music": {
+        "mood": "tense",
+        "bpm": 100
+      },
+      "resolvedMood": "content",
+      "resolvedCue": "march",
+      "intro": "Order. ORDER. You are about to play. I am about to tell you how it went.",
+      "resolve": "That was not what was written. It was... good? I do not have a word for good. I only had words for wrong.",
+      "brief": "Judgment as a judge. The hit window narrows and every note gets a verdict (acceptable, sloppy, wrong). In the last phase any lane counts on any note, and the note you choose is the one that sounds: there is nothing left to judge. The game's first rule (no wrong notes) turned into the fight.",
+      "notes": [
+        "Phrygian (tense) resolving to ionian.",
+        "Could the judge's comments be the player's own earlier mistakes, replayed?"
+      ],
+      "phases": [
+        {
+          "say": "Begin. I will be listening for mistakes. That is all I listen for.",
+          "mod": "judge",
+          "chart": {
+            "chords": [
+              0,
+              3,
+              4,
+              0
+            ],
+            "bars": [
+              "L...L...D...D...",
+              "U...U...R.......",
+              "L...D...U...R...",
+              "R...U...D...L..."
+            ]
+          }
+        },
+        {
+          "say": "Tighter. Every one on the line. The audience is watching. The audience is me.",
+          "mod": "judge",
+          "bpm": 108,
+          "chart": {
+            "bars": [
+              "L.D.U.R.R.U.D.L.",
+              "L...D.D.U...R.R.",
+              "L.D.U.R.L.D.U.R.",
+              "U.U.U.U.D...D..."
+            ]
+          }
+        },
+        {
+          "say": "...play what you like, then. See if I care.",
+          "mod": "free",
+          "bpm": 100,
+          "chart": {
+            "layer": {
+              "score": "castle",
+              "id": "horns"
+            },
+            "repeat": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "core-after",
+      "kind": "cutscene",
+      "title": "After the Adjudicator",
+      "status": "rough",
+      "minutes": 1,
+      "flags": [
+        "core"
+      ],
+      "then": "return",
+      "cue": "march",
+      "brief": "A valve that has not turned in years turns. The pipes start to carry again. Tutti relaxes a rule.",
+      "shots": [
+        {
+          "draw": "core",
+          "say": "Somewhere in the walls, a valve turns that has not turned in years. The pipes start to carry again.",
+          "who": "narrator"
+        },
+        {
+          "draw": "core",
+          "say": "You may play in the pipes. Any time. In any order. I have decided that is allowed now.",
+          "who": "tutti"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,252 @@
+{
+  "id": "basement",
+  "name": "The Basement",
+  "subtitle": "Percussion · fear of the past",
+  "music": {
+    "root": 9,
+    "mood": "sad",
+    "bpm": 88
+  },
+  "brief": "Underneath everything: vaults, drums, the dark. A drum is a mirror here (a wave bounces off the head like light; the shell swallows it). The struggle: trauma, and the fear that keeps coming back up from the past. Stand-ins: Percussion 01 and Keys 01 (the Undercroft) and Percussion 02 (the Cloister). The secret piano lives down here too, because a piano is secretly a percussion instrument.",
+  "triggers": [
+    {
+      "on": "cross",
+      "from": "brass-03-crossing",
+      "to": "percussion-01-the-kit",
+      "play": "tube-descent"
+    },
+    {
+      "on": "area",
+      "area": "undercroft",
+      "play": "basement-card"
+    },
+    {
+      "on": "solved",
+      "room": "keys-01-keyboard-floor",
+      "play": "basement-instrument"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "tube-descent",
+      "kind": "rhythm",
+      "title": "The Descent",
+      "status": "rough",
+      "minutes": 1.5,
+      "orient": "vertical",
+      "family": "timpani",
+      "cue": "heartbeat",
+      "then": "return",
+      "say": "Down a drainpipe into the vaults. The notes run right to left, downhill.",
+      "brief": "Upright run that falls (left-hand lanes more and more), the first time you walk from Brass 03 down into Percussion 01.",
+      "chart": {
+        "chords": [
+          0,
+          5,
+          3,
+          4
+        ],
+        "bars": [
+          "R...U...D...L...",
+          "U...D...L...D...",
+          "R.U.D.L.U.D.L.D.",
+          "L...L...L...D...",
+          "R.U.R.U.D.L.D.L.",
+          "U.D.U.D.L.D.L.D.",
+          "R...U...D...L...",
+          "L.D.L.D.L-------"
+        ]
+      },
+      "ends": [
+        {
+          "world": "castle",
+          "room": "brass-03-crossing",
+          "at": [
+            6,
+            11
+          ],
+          "label": "the Atrium"
+        },
+        {
+          "world": "castle",
+          "room": "percussion-01-the-kit",
+          "at": [
+            6,
+            1
+          ],
+          "label": "the Basement"
+        }
+      ]
+    },
+    {
+      "id": "basement-card",
+      "kind": "card",
+      "title": "The Basement",
+      "name": "The Basement",
+      "family": "Percussion",
+      "theme": "Fear, and the past that keeps coming back",
+      "status": "rough",
+      "minutes": 0.3,
+      "emblem": "percussion",
+      "cue": "heartbeat",
+      "then": "return",
+      "say": "(whispering) ...do not wake it. It hears everything. It remembers everything you ever played wrong.",
+      "who": "pianissimo"
+    },
+    {
+      "id": "basement-rooms",
+      "kind": "world",
+      "title": "The Basement: the rooms",
+      "status": "rough",
+      "minutes": 35,
+      "world": "castle",
+      "room": "percussion-01-the-kit",
+      "at": [
+        2,
+        2
+      ],
+      "with": {
+        "metronome": true
+      },
+      "standInRooms": [
+        "percussion-01-the-kit",
+        "keys-01-keyboard-floor",
+        "percussion-02-left-right"
+      ],
+      "brief": "About thirty-five minutes of drum puzzles in the dark. Stand-in rooms are real, playable rooms from the prototype dungeon; the wing's other ~27 minutes are uncarved.",
+      "notes": [
+        "Suggested shape for every wing, Nintendo's four steps per mechanic (kishotenketsu): introduce it where it is safe, develop it, twist it, then a room that uses all of it at once.",
+        "Fear as a room mechanic: rooms lit only around Coda and his waves, so you learn a room by sound before you can see it."
+      ]
+    },
+    {
+      "id": "basement-instrument",
+      "kind": "item",
+      "title": "The Heartbeat Drum",
+      "name": "the Heartbeat Drum",
+      "status": "idea",
+      "minutes": 0.5,
+      "draw": "item.drum",
+      "emblem": "percussion",
+      "item": "drum",
+      "say": "Down in the dark you would find the Basement's instrument. A guess: a hand drum that sets a pulse you choose, and the things in the dark can only move on your beat.",
+      "brief": "A guess at the Basement's instrument: fear answered with steadiness."
+    },
+    {
+      "id": "basement-boss",
+      "kind": "boss",
+      "title": "The Echo",
+      "name": "The Echo",
+      "status": "rough",
+      "minutes": 6,
+      "draw": "boss.echo",
+      "family": "timpani",
+      "music": {
+        "mood": "tense",
+        "bpm": 88
+      },
+      "resolvedMood": "content",
+      "resolvedCue": "heartbeat",
+      "intro": "I am what you remember. Every time it went wrong. I keep all of it. I play it back.",
+      "resolve": "It is still there. All of it. It just... is not in charge any more.",
+      "brief": "Trauma as an echo in the dark. Notes stay hidden until they are almost on you. The second phase is the first one again, exactly (the past repeating), and the third is the same chart with the lights up: you know it now. Facing the same thing a third time is what beats it.",
+      "notes": [
+        "Phrygian on A resolving to A major."
+      ],
+      "phases": [
+        {
+          "say": "In the dark you only see it when it is already here.",
+          "mod": "dark",
+          "cue": "heartbeat",
+          "chart": {
+            "chords": [
+              0,
+              1,
+              0,
+              4
+            ],
+            "bars": [
+              "L.......D.......",
+              "U...R...........",
+              "L.D.....U.R.....",
+              "L...D...U...R...",
+              "R.......L.......",
+              "U.D.U.D.........",
+              "L...R...L...R...",
+              "D...U...D...L---"
+            ]
+          }
+        },
+        {
+          "say": "Again. The same as last time. It is always the same as last time.",
+          "mod": "dark",
+          "chart": {
+            "chords": [
+              0,
+              1,
+              0,
+              4
+            ],
+            "bars": [
+              "L.......D.......",
+              "U...R...........",
+              "L.D.....U.R.....",
+              "L...D...U...R...",
+              "R.......L.......",
+              "U.D.U.D.........",
+              "L...R...L...R...",
+              "D...U...D...L---"
+            ]
+          }
+        },
+        {
+          "say": "...you knew it was coming. You were not surprised. How?",
+          "cue": "hush",
+          "chart": {
+            "chords": [
+              0,
+              1,
+              0,
+              4
+            ],
+            "bars": [
+              "L.......D.......",
+              "U...R...........",
+              "L.D.....U.R.....",
+              "L...D...U...R...",
+              "R.......L.......",
+              "U.D.U.D.........",
+              "L...R...L...R...",
+              "D...U...D...L---"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "basement-after",
+      "kind": "cutscene",
+      "title": "After the Echo",
+      "status": "rough",
+      "minutes": 1,
+      "flags": [
+        "basement"
+      ],
+      "then": "return",
+      "cue": "heartbeat",
+      "brief": "The eyes in the dark close, one by one. The drums are just drums.",
+      "shots": [
+        {
+          "draw": "basement",
+          "say": "The eyes in the dark close, one by one. The drums are just drums.",
+          "who": "narrator"
+        },
+        {
+          "draw": "basement",
+          "say": "(still whispering, but smiling) ...it was only ever a drum.",
+          "who": "pianissimo"
+        }
+      ]
+    }
+  ]
+}

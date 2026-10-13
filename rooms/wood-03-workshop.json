@@ -1,0 +1,44 @@
+{
+  "id": "wood-workshop",
+  "name": "The Burnt Workshop",
+  "wing": "keys",
+  "hint": "Somebody's workshop, burnt out. The roof is gone. The workbench is still standing.",
+  "music": {
+    "root": 5,
+    "mode": "lydian",
+    "bpm": 92,
+    "timeSignature": 4,
+    "mood": "mysterious"
+  },
+  "overrides": [
+    {
+      "x": 6,
+      "y": 12,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "scene": "workshop-found",
+      "look": "workshop",
+      "once": true,
+      "after": "Ashes, mostly. And your workbench, split down the middle."
+    }
+  ],
+  "layout": [
+    "#############",
+    "#AA.......AA#",
+    "#A.#.##.##.A#",
+    "#..#.....#..#",
+    "#..#..?..#..#",
+    "#.....p.....#",
+    "#..#.....#..#",
+    "#..##.#.##..#",
+    "#...........#",
+    "#.o====o....#",
+    "#A.........A#",
+    "#AA...@...AA#",
+    "######D######"
+  ]
+}

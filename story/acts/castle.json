@@ -1,0 +1,48 @@
+{
+  "id": "castle",
+  "name": "Act II: The Castle",
+  "subtitle": "Four wings and a heart",
+  "music": {
+    "root": 0,
+    "mood": "content",
+    "bpm": 104
+  },
+  "brief": "The castle hangs off the cliff. Its rooms today are the prototype dungeon (rooms/world.json, eighteen rooms), played whole and unchanged. Around it, the story's frame, all of it from triggers in these act files: a title card entering each wing, a pipe ride the first time you cross between some wings, and when a wing's last stand-in room is solved, its instrument, its boss and what the boss leaves behind. The four wings below say which rooms stand in for them.",
+  "scenes": [
+    {
+      "id": "castle-card",
+      "kind": "card",
+      "title": "The Castle",
+      "name": "The Castle",
+      "family": "a ruin that still hums",
+      "theme": "Making something, and everything that gets in the way",
+      "status": "rough",
+      "minutes": 0.2,
+      "emblem": "organ",
+      "cue": "gate"
+    },
+    {
+      "id": "castle",
+      "kind": "world",
+      "title": "The Atrium: the castle's hub",
+      "status": "playable",
+      "minutes": 8,
+      "world": "castle",
+      "room": "atrium-00-metronome",
+      "at": [
+        6,
+        8
+      ],
+      "brief": "The front rooms where the wings meet: the Metronome (nothing plays in time until it runs) and Brass 01 to 03. The whole prototype dungeon is walkable from here.",
+      "standInRooms": [
+        "atrium-00-metronome",
+        "brass-01-first-breath",
+        "brass-02-crossroads",
+        "brass-03-crossing"
+      ],
+      "notes": [
+        "The real hub might be a Mega Man stage select you walk around in: four doors, the Heart sealed in the middle until they are done."
+      ]
+    }
+  ]
+}

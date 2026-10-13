@@ -1,0 +1,244 @@
+{
+  "_": "The Wood: where Coda lands (story act I, story/acts/wood.json). Open, experimental, no boss: a glade of instruments to try, the burnt workshop, a brook with the first fork, and the cliff gate, reached only by the pipe. Same rules as rooms/world.json (13 x 13, doors on the centre lines, paired across edges). Its tune plays without the metronome ('always'). See docs/MARBLE.md.",
+  "name": "The Wood",
+  "start": "wood-crash",
+  "areas": {
+    "wood": {
+      "name": "The Wood",
+      "mood": "mysterious",
+      "root": 5,
+      "bpm": 92
+    }
+  },
+  "rooms": {
+    "wood-crash": {
+      "file": "wood-01-crash.json",
+      "at": [
+        -1,
+        0
+      ],
+      "area": "wood"
+    },
+    "wood-glade": {
+      "file": "wood-02-glade.json",
+      "at": [
+        0,
+        0
+      ],
+      "area": "wood"
+    },
+    "wood-workshop": {
+      "file": "wood-03-workshop.json",
+      "at": [
+        0,
+        -1
+      ],
+      "area": "wood"
+    },
+    "wood-brook": {
+      "file": "wood-04-brook.json",
+      "at": [
+        1,
+        0
+      ],
+      "area": "wood"
+    },
+    "wood-gate": {
+      "file": "wood-05-gate.json",
+      "at": [
+        2,
+        0
+      ],
+      "area": "wood"
+    }
+  },
+  "score": {
+    "always": true,
+    "bars": 4,
+    "volume": 0.26,
+    "chords": [
+      0,
+      1,
+      0,
+      4
+    ],
+    "layers": [
+      {
+        "id": "wood-motif",
+        "name": "the overture",
+        "by": "start",
+        "family": "keys",
+        "octave": 5,
+        "notes": [
+          [
+            0,
+            0
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            8,
+            7
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            12,
+            4
+          ],
+          [
+            16,
+            1
+          ],
+          [
+            20,
+            3
+          ],
+          [
+            24,
+            5
+          ],
+          [
+            28,
+            3
+          ],
+          [
+            32,
+            4
+          ],
+          [
+            36,
+            2
+          ],
+          [
+            40,
+            0
+          ],
+          [
+            44,
+            2
+          ],
+          [
+            48,
+            4
+          ],
+          [
+            52,
+            6
+          ],
+          [
+            56,
+            3
+          ],
+          [
+            60,
+            1
+          ]
+        ]
+      },
+      {
+        "id": "wood-low",
+        "name": "a low wind",
+        "by": "start",
+        "family": "strings",
+        "octave": 3,
+        "notes": [
+          [
+            0,
+            0
+          ],
+          [
+            16,
+            1
+          ],
+          [
+            32,
+            0
+          ],
+          [
+            48,
+            4
+          ]
+        ]
+      },
+      {
+        "id": "wood-brook",
+        "name": "the brook",
+        "by": "wood-brook",
+        "family": "woodwind",
+        "octave": 5,
+        "gain": 0.7,
+        "notes": [
+          [
+            2,
+            7
+          ],
+          [
+            6,
+            9
+          ],
+          [
+            10,
+            7
+          ],
+          [
+            14,
+            11
+          ],
+          [
+            18,
+            8
+          ],
+          [
+            22,
+            10
+          ],
+          [
+            26,
+            8
+          ],
+          [
+            30,
+            12
+          ],
+          [
+            34,
+            7
+          ],
+          [
+            38,
+            9
+          ],
+          [
+            42,
+            11
+          ],
+          [
+            46,
+            9
+          ],
+          [
+            50,
+            8
+          ],
+          [
+            54,
+            10
+          ],
+          [
+            58,
+            11
+          ],
+          [
+            62,
+            12
+          ]
+        ]
+      }
+    ]
+  }
+}

@@ -79,6 +79,12 @@ export const DEFAULT_LEGEND = {
   '<': { type: 'keyshift', delta: -1 },
   '>': { type: 'keyshift', delta: 1 },
   '^': { type: 'keyshift', delta: 1, climb: true, rot: 0 },   // a stair: up raises, down lowers
+
+  // the story's pieces (src/doodads/story.js, docs/MARBLE.md)
+  '?': { type: 'stage', look: 'mark' },  // a story moment: plays a scene from story/
+  'C': { type: 'npc', who: 'fermata' },  // a character; B talks (lines in story/outline.json)
+  'A': { type: 'tree' },                 // a curl tree, for the Wood
+  '~': { type: 'water' },                // Coda cannot cross it; sound can
 };
 
 export const EMPTY_CHAR = '.';

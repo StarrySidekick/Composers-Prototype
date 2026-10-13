@@ -15,6 +15,9 @@ import { Score } from './audio/score.js';
 import { Progress } from './core/progress.js';
 import { ITEMS } from './doodads/pickups.js';
 import { Dialog } from './ui/dialog.js';
+import { Director } from './story/director.js';
+import { Marble } from './story/marble.js';
+import { Dev } from './story/dev.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -33,6 +36,11 @@ let building = false;
 const hud = new Hud(game);
 let controls = null;
 const dialog = new Dialog(game, { box: $('dialog'), head: $('dialog-head'), text: $('room-hint') });
+// The story layer (src/story/, docs/MARBLE.md): the whole game around the rooms.
+const director = new Director({ game, audio, renderer, dialog });
+window.CK.director = director;
+let marble = null;
+let dev = null;
 
 async function boot() {
   // Sprites are optional: an empty (or absent) assets/manifest.json just means every
@@ -64,7 +72,17 @@ async function boot() {
     roomText(room);
     refreshHud();
     editor?.syncFromRoom();
+    director.roomEntered(room, true);
   };
+  await director.init();
+  director.ui = {
+    showTitle: () => showTitle(), hideTitle: () => hideTitle(), toast: (m) => showToast(m),
+    afterJump: () => afterJump(), refresh: () => { refreshHud(); syncStoryMenu(); },
+  };
+  game.onStage = (d) => director.onStage(d);
+  game.onTalk = (npc) => director.onTalk(npc);
+  game.onRoomSolved = (room) => director.onRoomSolved(room);
+  hud.scene = () => director.hud();
 
   const startFile = manifest.find(m => m.file === `${game.world?.start}.json`)?.file ?? manifest[0].file;
   $('room-select').value = startFile;
@@ -91,12 +109,12 @@ async function boot() {
   editor.syncFromRoom();
 
   controls = new Controls();
-  bindInput(game, {
+  bindInput(director.router(), {
     dpad: $('dpad'), 'btn-a': $('btn-a'), 'btn-b': $('btn-b'),
     'btn-l': $('btn-l'), 'btn-r': $('btn-r'), stage: $('stage'),
   }, {
     onAction: () => { unlockAudio(); },
-    paused: () => !$('menu').hidden || !$('title').hidden,
+    paused: () => !$('menu').hidden || !$('title').hidden || !$('marble').hidden,
     arranging: () => controls.arranging,
   });
 
@@ -109,7 +127,18 @@ async function boot() {
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && $('title').hidden) { e.preventDefault(); setMenu($('menu').hidden); }
   });
-  $('menu-title').addEventListener('click', () => { setMenu(false); showTitle(); });
+  $('menu-title').addEventListener('click', () => { setMenu(false); if (director.active) director.toTitle(); else showTitle(); });
+  $('menu-chapters').addEventListener('click', () => { setMenu(false); marble.open(); });
+  $('menu-dev').addEventListener('click', () => director.setDev(!director.dev));
+  $('menu-story-next').addEventListener('click', () => { setMenu(false); director.skip(); });
+  marble = new Marble(director, {
+    onPlay: async (id, opts) => { await unlockAudio(); setMenu(false); await director.jump(id, opts); afterJump(); },
+  });
+  dev = new Dev(director, game, {
+    marble,
+    openEditor: () => { document.body.classList.add('editing'); setBuild(true); requestAnimationFrame(() => fitStage(renderer, game)); },
+    refresh: refreshHud,
+  });
   $('music').addEventListener('click', (e) => {
     if (!game.score) return;
     game.score.muted = !game.score.muted;
@@ -176,6 +205,7 @@ async function boot() {
   window.CK.flight = flight;
   // The end of the world (the Coda's X), or the end of a room played on its own.
   game.onRoomComplete = () => {
+    if (director.onRoomComplete()) return;   // the story takes it from here
     const s = game.score;
     if (!game.world?.has(game.room.id) || !s) { showToast('★ Room resolved'); return; }
     const have = s.layers.filter(l => game.progress.layers.has(l.id)).length;
@@ -247,6 +277,7 @@ function setMenu(open) {
   if (open) {
     for (const d of [...game.held]) game.setHeld(d, false);
     refreshMenu(game);
+    syncStoryMenu();
   }
 }
 
@@ -259,7 +290,14 @@ let titleKey = null;
 function showTitle() {
   const saved = Progress.saved();
   $('title-continue').disabled = !saved;
-  $('title-continue').textContent = saved ? `continue — ${roomName(saved.room)}` : 'continue';
+  // Where the save is: the scene it stopped in, or the room.
+  const sc = saved?.story?.scene && director.outline?.scene(saved.story.scene);
+  const where = sc && sc.kind !== 'world' && sc.kind !== 'title' ? sc.title : roomName(saved?.room);
+  $('title-continue').textContent = saved ? `continue — ${where}` : 'continue';
+  // The game knows when you have been here before (Undertale did).
+  $('title-sub').textContent = !saved ? 'a prototype'
+    : saved.story?.flags?.includes('finished') ? 'you finished it. it is still a prototype.'
+    : 'you came back.';
   $('title-free-box').hidden = true;
   $('title').hidden = false;
   for (const d of [...game.held]) game.setHeld(d, false);
@@ -279,18 +317,18 @@ function roomName(id) {
 
 function bindTitle() {
   $('title-room').innerHTML = manifest.map(r => `<option value="${r.file}">${r.name}</option>`).join('');
+  // Continue and new game play the story (src/story/director.js).
   $('title-continue').addEventListener('click', async () => {
     await unlockAudio();
-    const saved = Progress.saved();
-    if (!saved || !game.continueGame(saved)) return;
-    hideTitle(); afterJump();
+    if (!(await director.continueGame())) return;
+    afterJump();
   });
   $('title-new').addEventListener('click', async () => {
     await unlockAudio();
-    Progress.erase();
-    game.newGame();
-    hideTitle(); afterJump();
+    await director.newGame();
+    afterJump();
   });
+  $('title-chapters').addEventListener('click', async () => { await unlockAudio(); marble.open(); });
   $('title-free').addEventListener('click', () => {
     $('title-room').value = $('room-select').value;
     $('title-free-box').hidden = !$('title-free-box').hidden;
@@ -298,12 +336,16 @@ function bindTitle() {
   $('title-free-go').addEventListener('click', async () => {
     await unlockAudio();
     const file = $('title-room').value;
+    director.stop();
+    director.useWorld(director.home);
     game.freePlay(await fetch(`rooms/${file}`).then(r => r.json()));
     $('room-select').value = file;
     hideTitle(); afterJump();
   });
   $('title-editor').addEventListener('click', async () => {
     await unlockAudio();
+    director.stop();
+    director.useWorld(director.home);
     game.saving = false;
     game.progress = new Progress().grantAll();
     hideTitle(); afterJump();
@@ -350,11 +392,48 @@ function showToast(msg) {
 }
 
 function loop() {
-  game.update();
-  renderer.draw(game);
+  // A scene on the stage (a cutscene, a tube run) runs instead of the room; in a
+  // world the room runs as it always has and the Director only listens.
+  // The Marble pauses everything; the pause menu pauses a scene on the stage (a
+  // pipe or a boss would otherwise play on without you). Not polling the clock is
+  // the whole pause: on resume BeatClock drops the backlog and carries on.
+  const paused = !$('marble').hidden || (!!director.stageScene && !$('menu').hidden);
+  const staged = !paused && director.update();
+  if (!staged && !paused && !director.stageScene) game.update();
+  if (!director.stageScene) renderer.draw(game);
+  director.draw();
   hud.frame();
   dialog.frame();
+  dev?.frame();
   requestAnimationFrame(loop);
+}
+
+// The pause menu's story parts: chapters, pipes ridden (fast travel), the
+// workshop (once found, or in developer mode), and a way on from stand-in rooms.
+function syncStoryMenu() {
+  const st = game.progress.story;
+  const inStory = director.active;
+  const found = st.flags.includes('workshop') || st.items.includes('workshop');
+  $('menu-workshop').hidden = inStory && !found && !director.dev;
+  const sc = director.scene?.sc;
+  $('menu-story-next').hidden = !(inStory && director.scene && !director.stageScene && (director.dev || sc?.standInOf));
+  const tubes = inStory ? st.tubes.map(id => director.outline.scene(id)).filter(Boolean) : [];
+  $('menu-tubes-sec').hidden = !tubes.length;
+  const box = $('menu-tubes');
+  box.innerHTML = '';
+  for (const sc of tubes) {
+    const [a, b] = sc.ends ?? [];
+    for (const [end, reverse] of [[b, false], [a, true]]) {
+      if (!end) continue;
+      const btn = document.createElement('button');
+      btn.className = 'chip';
+      btn.textContent = `${reverse ? '◀' : '▶'} ${end.label ?? end.room}`;
+      btn.title = `${sc.title}${reverse ? ', backwards' : ''}`;
+      btn.addEventListener('click', () => { setMenu(false); director.ride(sc.id, reverse); });
+      box.appendChild(btn);
+    }
+  }
+  $('title-workshop-label').textContent = found ? 'workshop' : 'workshop (found in the Wood; open here while it is a prototype)';
 }
 
 boot().catch(err => {
