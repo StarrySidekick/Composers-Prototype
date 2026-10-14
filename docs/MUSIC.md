@@ -153,6 +153,27 @@ Mac alike, and **a Claude session can read them** (`ArtifactData`, collections
 running the tool on new music. On claude.ai a page may not hand over a .mid, so
 **Save .mid** gives a .zip with the .mid inside.
 
+### Loading it from the terminal
+
+Library → Load library.json is the whole job when you have the file in front of
+you. For one line instead:
+
+```bash
+node tools/songbook-upload.mjs
+```
+
+It opens a browser window, waits as long as you need to sign in to claude.ai, and
+hands `library/library.json` to the page's own file input. The sign-in is kept in
+`~/.composers-key-songbook-profile`, so later runs go straight through; nothing is
+typed for you. Needs Playwright and `CHROMIUM` (see **Checks**).
+
+This exists because the library outgrew the ways a file can be passed around: at
+13 MB it is past most upload limits, and far past what a Claude session could
+carry through a tool call — 1982 documents of it. A file input has no such limit,
+so the script drives the one the page already has. The same reason it is here is
+why **a Claude session cannot load the library for you**; it can read the page
+afterwards, which is the point.
+
 ### Republishing the private page
 
 `tools/songbook-artifact.html` is the page; it is published at the artifact's
