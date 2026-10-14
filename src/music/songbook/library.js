@@ -196,15 +196,17 @@ export function createLibrary({ store, player, openInWriter }) {
     fromBar.addEventListener('change', drawSheet);
     topOnly.addEventListener('change', drawSheet);
 
-    const play = (clip, drums, btn) => {
+    const voiced = (clip, drums) => clip.notes.map(([s, , midi, vel]) => drums
+      ? { step: s, midi: 60, family: 'percussion', kind: drumKind(midi), vel }
+      : { step: s, midi, family: 'keys', vel });
+    const playNotes = (ns, steps, btn) => {
       if (player.playing && player.owner === btn) { player.stop(); return; }
-      const ns = clip.notes.map(([s, , midi, vel]) => drums
-        ? { step: s, midi: 60, family: 'percussion', kind: drumKind(midi), vel }
-        : { step: s, midi, family: 'keys', vel });
-      player.play(ns, { bpm: p.bpm ?? 120, steps: Math.max(16, Math.ceil((clip.beats ?? 4) * 4)), loop: true, owner: btn,
+      player.play(ns, { bpm: p.bpm ?? 120, steps, loop: true, owner: btn,
         onStop: () => { btn.textContent = '▶'; } });
       btn.textContent = '■';
     };
+    const play = (clip, drums, btn) =>
+      playNotes(voiced(clip, drums), Math.max(16, Math.ceil((clip.beats ?? 4) * 4)), btn);
     const use = (clip, t, label) => {
       const key = keyOf(p) ?? { root: 0, mode: 'ionian' };
       const { motif, snapped, dropped } = motifFromClip(clip, {
@@ -229,6 +231,24 @@ export function createLibrary({ store, player, openInWriter }) {
       rows.set(clip, row);
       return row;
     };
+    // Every arranged track at once: the piece as you arranged it, rather than one
+    // part of it. Melodic tracks share the one voice, as a single track's preview
+    // already does — this is your record of the notes, not the game's orchestra.
+    const arranged = tracks.filter(t => t.arrangement?.notes.length);
+    const wholeEl = arranged.length < 2 ? null : (() => {
+      const ns = arranged.flatMap(t => voiced(t.arrangement, t.drums));
+      const bars = Math.max(...arranged.map(t => t.arrangement.bars ?? 1));
+      const steps = Math.max(16, ...arranged.map(t => Math.ceil((t.arrangement.beats ?? 4) * 4)));
+      const btn = h('button', { type: 'button', 'aria-label': 'Play the whole piece' }, '▶');
+      btn.addEventListener('click', () => playNotes(ns, steps, btn));
+      return h('div', { class: 'track' },
+        h('h4', {}, 'The whole piece'),
+        h('div', { class: 'clip' }, btn,
+          h('span', { class: 'what' },
+            h('span', { class: 'name' }, 'every track together'),
+            h('span', { class: 'n' }, `${arranged.length} tracks · ${bars} bar${bars > 1 ? 's' : ''} · ${ns.length} notes`))));
+    })();
+
     const trackEls = tracks.map(t => h('div', { class: 'track' },
       h('h4', {}, t.name, t.drums ? h('span', { class: 'pill' }, 'drums') : null, t.type === 'audio' ? h('span', { class: 'pill' }, 'audio') : null,
         t.trimmed ? h('span', { class: 'pill needs' }, 'trimmed to fit') : null),
@@ -257,7 +277,7 @@ export function createLibrary({ store, player, openInWriter }) {
         h('label', { class: 'field', style: 'flex-direction:row;display:flex;gap:6px;align-items:center' }, topOnly, 'top line only'),
         midiBtn) : null,
       sheet,
-      h('div', { class: 'tracks' }, trackEls));
+      h('div', { class: 'tracks' }, wholeEl, ...trackEls));
     const firstMelodic = tracks.find(t => !t.drums && (t.clips[0] || t.arrangement));
     if (firstMelodic) {
       const clip = firstMelodic.clips[0] ?? firstMelodic.arrangement;
