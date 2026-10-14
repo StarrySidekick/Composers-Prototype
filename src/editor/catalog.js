@@ -12,6 +12,7 @@ import { DRUM_PARTS } from '../doodads/percussion.js';
 import { FLUTE_PART_NAMES } from '../doodads/woodwind.js';
 import { DISSONANT_PATHS } from '../doodads/enemy.js';
 import { NOTE_NAMES } from '../core/music.js';
+import { STAGE_LOOKS } from '../doodads/story.js';
 
 export const ERASE_CHAR = '.';
 export const PLAYER_CHAR = '@';
@@ -98,6 +99,14 @@ export const GROUPS = [
       { char: 'U', label: 'boss body', hint: 'the rest of the boss: solid, swallows waves, drawn by the boss' },
     ],
   },
+  {
+    id: 'story', label: 'Story — the Wood, characters, moments', brushes: [
+      { char: '?', label: 'story moment', hint: 'step on it (or B, if a sign) and a scene from story/ plays: set its scene' },
+      { char: 'C', label: 'character', hint: 'B talks; a wave makes them hum. Who they are and their lines: story/outline.json' },
+      { char: 'A', label: 'tree', hint: 'solid; a wave rustles and stops' },
+      { char: '~', label: 'water', hint: 'Coda cannot cross; waves can' },
+    ],
+  },
 ];
 
 // Properties the inspector offers, by doodad type.
@@ -180,6 +189,21 @@ export const PROPS = {
     { key: 'open', type: 'bool', hint: 'starts open' },
     { key: 'latch', type: 'bool', hint: 'stays open once opened, even when chord forks go dark' },
   ],
+  stage: [
+    { key: 'scene', type: 'text', hint: 'the scene id in story/ it plays' },
+    { key: 'look', type: 'enum', values: STAGE_LOOKS },
+    { key: 'reverse', type: 'bool', hint: 'a tube run played backwards (the way back)' },
+    { key: 'needs', type: 'text', hint: 'a story flag that must be set first' },
+    { key: 'once', type: 'bool', hint: 'plays its scene only the first time' },
+    { key: 'again', type: 'text', hint: 'the scene it plays once its own has been seen' },
+    { key: 'rot', type: 'rot', when: s => s.look === 'tube', hint: 'the way the pipe runs' },
+  ],
+  npc: [
+    { key: 'who', type: 'text', hint: 'a name from the cast in story/outline.json' },
+    { key: 'degree', type: 'int', min: 0, max: 6, hint: 'the note they hum when a wave reaches them' },
+  ],
+  tree: [],
+  water: [{ key: 'rot', type: 'rot' }],
   keyshift: [
     { key: 'delta', type: 'int', min: -12, max: 12, hint: 'semitones' },
     { key: 'climb', type: 'bool', hint: 'a stair: only walking up it (rot) raises, walking down lowers' },

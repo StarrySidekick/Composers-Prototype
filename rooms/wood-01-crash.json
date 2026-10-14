@@ -1,0 +1,42 @@
+{
+  "id": "wood-crash",
+  "name": "The Crash Site",
+  "wing": "keys",
+  "hint": "A crater, and you in the middle of it. A sends a wave from the Key: it travels, and plays whatever it reaches. Try the string. B plays whatever you are facing. The owl has been watching you since you landed.",
+  "music": {
+    "root": 5,
+    "mode": "lydian",
+    "bpm": 92,
+    "timeSignature": 4,
+    "mood": "mysterious"
+  },
+  "overrides": [
+    {
+      "x": 12,
+      "y": 6,
+      "open": true,
+      "group": "entry"
+    },
+    {
+      "x": 4,
+      "y": 9,
+      "who": "fermata",
+      "degree": 4
+    }
+  ],
+  "layout": [
+    "#############",
+    "#AA.......AA#",
+    "#A...A......#",
+    "#..o=====o..#",
+    "#...........#",
+    "#A..........#",
+    "#.....@.....D",
+    "#..A........#",
+    "#........b..#",
+    "#A..C.......#",
+    "#AA.....A..A#",
+    "#AAA.....AAA#",
+    "#############"
+  ]
+}

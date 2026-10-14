@@ -16,17 +16,21 @@ export class Hud {
     this.lastKey = '';
     this.lastBeat = -1;
     this.beatCount = 0;
+    // Set by main.js: a scene on the stage (a cutscene, a tube run) says what the
+    // bars show instead of the room. Returns null in a room.
+    this.scene = null;
   }
 
   // Slow-changing text: call when the room changes, and cheaply every frame.
   refresh(force = false) {
     const g = this.game, r = g.room;
-    if (!r) return;
-    const m = r.music;
-    const key = `${r.id}|${m.label}|${m.bpm}|${m.mood}|${m.timeSignature}`;
+    const sc = this.scene?.();
+    if (!r && !sc) return;
+    const m = sc ? sc.music : r.music;
+    const key = `${sc ? `scene:${sc.name}` : r.id}|${m.label}|${m.bpm}|${m.mood}|${m.timeSignature}`;
     if (!force && key === this.lastKey) return;
     this.lastKey = key;
-    $('hud-room').textContent = r.name;
+    $('hud-room').textContent = sc ? sc.name : r.name;
     $('hud-key').textContent = m.label;
     $('hud-tempo').textContent = `${Math.round(m.bpm)} bpm`;
     $('hud-mood').textContent = m.mood;
@@ -39,18 +43,31 @@ export class Hud {
 
   frame() {
     const g = this.game, r = g.room;
-    if (!r) return;
+    const sc = this.scene?.();
+    if (!r && !sc) return;
     this.refresh();
 
     // Beat lights from the audio clock, so they flash with what you hear.
     const c = g.clock;
     const k = Math.floor((c.ctx.currentTime - c.startTime) / c.subInterval);
-    const beat = Math.floor(k / c.subdivisionsPerBeat) % r.music.timeSignature;
+    const beat = Math.floor(k / c.subdivisionsPerBeat) % (sc ? sc.music : r.music).timeSignature;
     if (beat !== this.lastBeat) {
       this.lastBeat = beat;
       [...this.beatsEl.children].forEach((el, i) => el.classList.toggle('on', i === beat));
     }
 
+    if (sc) {
+      // A scene: what it is and which act, instead of waves and forks.
+      $('hud-waves').textContent = '—';
+      $('hud-locks-label').textContent = 'scene';
+      $('hud-locks').textContent = sc.kind ?? '—';
+      $('hud-bag-label').textContent = 'act';
+      $('hud-bag').textContent = sc.act || '—';
+      this.label('btn-l', 'L', null);
+      this.label('btn-r', 'R', 'skip');
+      this.drawStaff();
+      return;
+    }
     const allow = g.waveAllowance;
     $('hud-waves').textContent = '◉'.repeat(Math.min(allow, g.activeWaves)).padEnd(allow, '○');
     // The satchel: what is in hand (L sets it down, R turns it), and how many more.
@@ -64,6 +81,7 @@ export class Hud {
     $('hud-bag').textContent = held
       ? `${held.name}${held.spec.rot ? ` ${held.spec.rot}°` : ''}${pr.satchel.length > 1 ? ` +${pr.satchel.length - 1}` : ''}`
       : '—';
+    $('hud-locks-label').textContent = 'forks';
     const locks = r.list.filter(d => d.isLock);
     $('hud-locks').textContent = locks.length ? locks.map(l => (l.lit ? '◆' : '◇')).join('') : '—';
     this.drawStaff();

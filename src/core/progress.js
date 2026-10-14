@@ -14,6 +14,9 @@
 //   opened     "room:x,y" doors a puzzle has opened, so solved rooms stay solved
 //   layers     score layers earned (see src/audio/score.js)
 //   visited    rooms entered, for the map
+//   story      where the story is (src/story/director.js): the scene, scenes
+//              seen, story flags, story items, tube routes ridden, and where to
+//              come back to after a scene that interrupted a room
 //
 // Rooms are rebuilt from their JSON; `apply(room)` replays the remembered changes
 // on top. That one function is what keeps a collected pickup from coming back
@@ -42,7 +45,12 @@ export class Progress {
     this.at = null;            // and where in it: { x, y, facing }
     this.free = false;         // free play: every tool, no saving
     this.metronome = false;    // the level's tune plays only while it runs
+    this.story = Progress.freshStory();
     return this;
+  }
+
+  static freshStory() {
+    return { scene: null, world: null, seen: [], flags: [], items: [], tubes: [], ret: null };
   }
 
   // Free play: every tool, so any room can be played on its own from the menu.
@@ -135,6 +143,7 @@ export class Progress {
       waves: this.waves, items: [...this.items], satchel: this.satchel, selected: this.selected,
       taken: [...this.taken], placed: this.placed, opened: [...this.opened],
       layers: [...this.layers], visited: [...this.visited], room: this.room, at: this.at, metronome: this.metronome,
+      story: this.story,
     };
   }
 
@@ -151,6 +160,7 @@ export class Progress {
     this.room = j.room ?? null;
     this.at = j.at ?? null;
     this.metronome = !!j.metronome;
+    this.story = { ...Progress.freshStory(), ...(j.story ?? {}) };
     return this;
   }
 
@@ -162,7 +172,7 @@ export class Progress {
   static saved() {
     try {
       const j = JSON.parse(localStorage.getItem(KEY));
-      return j && j.room ? new Progress(j) : null;
+      return j && (j.room || j.story?.scene) ? new Progress(j) : null;
     } catch { return null; }
   }
 

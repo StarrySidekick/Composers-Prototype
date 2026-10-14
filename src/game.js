@@ -29,6 +29,11 @@ export class Game {
     this.onCollect = null;      // (item) — picked something up
     this.onScoreLayer = null;   // (layer) — the level's tune grew
     this.onHurt = null;         // () — a dissonant caught Coda
+    // The story layer (src/story/director.js) listens on these three.
+    this.onRoomSolved = null;   // (room) — a puzzle opened a door in it, any room
+    this.onStage = null;        // (stage, room) — Coda reached a story moment (`?`)
+    this.onTalk = null;         // (npc, room) — B on a character (`C`)
+    this.noHurt = false;        // developer mode: dissonants cannot shove Coda
     this.world = null;          // set by main.js when rooms/world.json exists
     this.score = null;          // the level's tune (src/audio/score.js), from the world
     this.progress = new Progress();   // what Coda carries; see src/core/progress.js
@@ -255,6 +260,8 @@ export class Game {
       onRoomComplete: () => this.onRoomComplete?.(),
       collect: (d, item) => this.collect(d, item, room),
       hurt: (by) => { if (here()) this.hurt(by); },
+      stage: (d) => { if (here()) this.onStage?.(d, room); },
+      talk: (d) => { if (here()) this.onTalk?.(d, room); },
       wavesAt: (x, y) => room.waves.filter(w => w.alive && w.x === x && w.y === y),
     };
     this._ctx.set(room, ctx);
@@ -294,6 +301,7 @@ export class Game {
     if (!open) return;
     this.solved(room);
     this.unlockLayers(room.id);
+    this.onRoomSolved?.(room);
     this.save();
     if (room === this.room) this.onDoorOpen?.(door);
     else this.toast('Somewhere nearby, a door opens.');
@@ -548,6 +556,7 @@ export class Game {
   // A dissonant reached Coda: a sour sting and a shove away from it. No health, no
   // death; it costs you position and time, which in a timing puzzle is plenty.
   hurt(by) {
+    if (this.noHurt) return;
     const now = performance.now();
     if (now < this.hurtUntil) return;
     this.hurtUntil = now + 900;

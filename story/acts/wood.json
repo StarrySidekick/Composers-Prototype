@@ -1,0 +1,281 @@
+{
+  "id": "wood",
+  "name": "Act I: The Wood",
+  "subtitle": "Overture: trying things",
+  "music": {
+    "root": 5,
+    "mood": "mysterious",
+    "bpm": 92
+  },
+  "brief": "Open, no boss, no wrong answers. You try things, meet the first friend, find your old workshop and learn why you were falling, and ride the first pipe up the cliff. Teaches A (fire), B (play what you face), that sound crosses water, and the first tube run. Conductor's Key's way of moving may end up living here.",
+  "scenes": [
+    {
+      "id": "wood-card",
+      "kind": "card",
+      "title": "The Wood",
+      "name": "The Wood",
+      "family": "Overture",
+      "theme": "Trying things",
+      "status": "rough",
+      "minutes": 0.2,
+      "emblem": "wood",
+      "cue": "wonder",
+      "brief": "The first title card: the shape every area's card takes."
+    },
+    {
+      "id": "wood",
+      "kind": "world",
+      "title": "The Wood: the rooms",
+      "status": "rough",
+      "minutes": 18,
+      "world": "wood",
+      "room": "wood-crash",
+      "at": [
+        6,
+        6
+      ],
+      "brief": "Five rooms in curl trees (rooms/wood.json): the crash site with Fermata the owl, a glade of instruments to play with and nothing to solve, the burnt workshop north of it, a brook to the east with the first fork to ring across the water, and the cliff gate, reached only by the pipe. Its overture plays without the metronome and grows a layer when the pipe opens.",
+      "notes": [
+        "Rough: the rooms are 13 x 13 like the castle's. The Wood probably wants to be bigger and freer.",
+        "Eighteen minutes is generous for five rooms; the time is for what the Wood becomes (more glades, more to try, Conductor's Key traversal).",
+        "There is no way back down from the castle to the Wood yet."
+      ]
+    },
+    {
+      "id": "conductor",
+      "kind": "slate",
+      "slateOf": "world",
+      "title": "Conductor's Key: crossing the Wood on the beat",
+      "status": "idea",
+      "minutes": 6,
+      "emblem": "wood",
+      "then": "return",
+      "say": "This is where the Wood would play like Conductor's Key: you keep moving and steer on the beat, like a snake. I cannot show you yet. The code is on a laptop somewhere, and I have never seen it.",
+      "brief": "Timothy's ESP32 game Conductor's Key as the way you cross the overworld: keep moving, steer, on the beat. The rules have to be read out of its code first (a local folder on his laptop, not on GitHub). INTENT.md has the handoff.",
+      "notes": [
+        "Reached from the sign in the Glade."
+      ]
+    },
+    {
+      "id": "workshop-found",
+      "kind": "cutscene",
+      "title": "Your workshop",
+      "status": "rough",
+      "minutes": 1.5,
+      "music": {
+        "root": 0,
+        "mood": "reflective",
+        "bpm": 80
+      },
+      "cue": "musicbox",
+      "brief": "The burnt workshop, then a flashback to it whole: you building instruments out of anything, and a key that could play anything, tuned one note too far. The explosion. Why you were falling.",
+      "notes": [
+        "Self-aware close: the game remarks on the obvious."
+      ],
+      "shots": [
+        {
+          "draw": "workshop-ruin",
+          "beats": 6,
+          "say": "A roof with no roof. A workbench split down the middle. You know this place.",
+          "who": "narrator"
+        },
+        {
+          "draw": "workshop-before",
+          "beats": 6,
+          "fx": "fade-in",
+          "say": "You built things here. Horns out of kettles. A fiddle out of a fence. And one key that could play anything.",
+          "who": "narrator"
+        },
+        {
+          "draw": "workshop-before",
+          "beats": 4,
+          "cue": "tense",
+          "cam": {
+            "from": [
+              0.5,
+              0.5,
+              1
+            ],
+            "to": [
+              0.45,
+              0.5,
+              1.5
+            ]
+          },
+          "say": "You tuned it one note too far.",
+          "who": "narrator"
+        },
+        {
+          "draw": "explosion",
+          "beats": 4,
+          "fx": "boom",
+          "cue": "silence",
+          "hit": [
+            [
+              0,
+              0,
+              2,
+              "timpani"
+            ],
+            [
+              0,
+              0,
+              3,
+              "percussion",
+              "cymbal"
+            ],
+            [
+              2,
+              4,
+              1,
+              "timpani"
+            ]
+          ]
+        },
+        {
+          "draw": "workshop-ruin",
+          "beats": 6,
+          "cue": "musicbox",
+          "say": "So that is why you were falling.",
+          "who": "game"
+        }
+      ]
+    },
+    {
+      "id": "workshop-get",
+      "kind": "item",
+      "title": "The Workshop",
+      "name": "the Workshop",
+      "status": "rough",
+      "minutes": 0.5,
+      "draw": "item.workshop",
+      "item": "workshop",
+      "flags": [
+        "workshop"
+      ],
+      "then": "return",
+      "say": "You found your Workshop! It is a mess, but it is yours. From the pause menu you can build rooms in it and play anything you have found. (The workshop is the editor and free play, for now.)",
+      "brief": "Unlocks the customisable game: today, the pause menu's workshop (the editor, free play). In player mode the workshop is hidden until this is found."
+    },
+    {
+      "id": "tube-brook",
+      "kind": "rhythm",
+      "title": "The Brook Pipe",
+      "status": "rough",
+      "minutes": 1,
+      "orient": "vertical",
+      "family": "keys",
+      "cue": "wonder",
+      "say": "An old pipe, still breathing. Press the D-pad as each note reaches the line, and you play the tune on the way up.",
+      "brief": "The first tube run, gentle as a tutorial: one lane at a time, then two, then all four. Rides up the cliff to the castle gate. Once ridden it runs both ways; riding it down plays the chart backwards.",
+      "notes": [
+        "No failing: a missed note just sounds sour. Should a run be failable?"
+      ],
+      "chart": {
+        "chords": [
+          0,
+          1,
+          0,
+          4
+        ],
+        "bars": [
+          "L.......L.......",
+          "R.......R.......",
+          "L.......R.......",
+          "U.......D.......",
+          "L...R...L...R...",
+          "U...D...U...D...",
+          "L...D...U...R...",
+          "L...D...U...R...",
+          "R...U...D...L...",
+          "L.R.L.R.U...D...",
+          "L...L...R...R...",
+          "U.D.U.D.L-------"
+        ]
+      },
+      "ends": [
+        {
+          "world": "wood",
+          "room": "wood-brook",
+          "at": [
+            1,
+            2
+          ],
+          "label": "the Brook"
+        },
+        {
+          "world": "wood",
+          "room": "wood-gate",
+          "at": [
+            4,
+            11
+          ],
+          "label": "the Cliff Gate"
+        }
+      ],
+      "then": {
+        "world": "wood",
+        "room": "wood-gate",
+        "at": [
+          4,
+          11
+        ]
+      }
+    },
+    {
+      "id": "castle-approach",
+      "kind": "cutscene",
+      "title": "The castle on the cliff",
+      "status": "rough",
+      "minutes": 1.5,
+      "music": {
+        "root": 0,
+        "mood": "reflective",
+        "bpm": 76
+      },
+      "cue": "gate",
+      "brief": "The castle up close: ruinous, fantastical, humming through its holes. Da Capo at the gate says what the castle is (four wings and a heart) and that its organ has stopped.",
+      "shots": [
+        {
+          "draw": "castle-far",
+          "beats": 8,
+          "cam": {
+            "from": [
+              0.5,
+              0.75,
+              1.7
+            ],
+            "to": [
+              0.5,
+              0.45,
+              1
+            ]
+          },
+          "say": "Up close, it is mostly holes. Arches holding up nothing. Pipes that go nowhere, still humming.",
+          "who": "narrator"
+        },
+        {
+          "draw": "castle-gate",
+          "beats": 6,
+          "say": "The gate is open. Gates in stories usually are.",
+          "who": "game"
+        },
+        {
+          "draw": "castle-gate",
+          "say": "Another one. From the top, then.",
+          "who": "dacapo"
+        },
+        {
+          "draw": "castle-hall",
+          "say": "Four wings, each broken its own way. Wind on the walls, brass in the bones, strings up the tower, drums underneath. And in the middle, the water organ that keeps the rest alive. It stopped.",
+          "who": "dacapo"
+        },
+        {
+          "draw": "castle-hall",
+          "say": "Start the metronome inside. Nothing in there keeps time until somebody does.",
+          "who": "dacapo"
+        }
+      ]
+    }
+  ]
+}

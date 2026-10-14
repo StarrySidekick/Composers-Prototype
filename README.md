@@ -8,9 +8,10 @@ It doubles as the seed for a smaller, self-contained, mobile-friendly music game
 of these prototypes turns out to want its own life.
 
 ## Run it
-Ten test scripts live in `test/` (`rooms world walk timing art solve route
-mechanics controls snes`): serve the root, then `node test/<name>.mjs`. `route.mjs` plays the
-whole dungeon from the start; `mechanics.mjs` checks every gate holds. See
+Eleven test scripts live in `test/` (`rooms world walk timing art solve route
+mechanics controls snes story`): serve the root, then `node test/<name>.mjs`. `route.mjs` plays the
+whole dungeon from the start; `mechanics.mjs` checks every gate holds; `story.mjs`
+plays the whole game, start to credits. See
 CLAUDE.md for what each does and does not prove.
 
 
@@ -22,6 +23,18 @@ python3 -m http.server 8080
 
 Then open <http://localhost:8080>. On GitHub Pages it just works — see *Publishing* below.
 
+## The whole game (the Marble)
+
+Title → **new game** plays the whole of *Composer's Key* as it is planned, start to
+credits: the fall, the Wood, the castle's four wings and their bosses, the water
+organ, the bow, the encore. Most of it is placeholder, on purpose: real rooms where
+they exist, rough drafts (sketched cutscenes, tube runs, rhythm-duel bosses) where
+they do not, and slates stamped NOT YET CARVED for the rest. **Chapters** replays
+from anything you have reached. Pause menu → **developer mode** shows scene ids,
+skips, autoplay, cheats and **the Marble**: every scene as a block, as wide as its
+minutes, drawn by how carved it is, against the 3 to 5 hours the game should last.
+`docs/MARBLE.md` explains it and how to carve each placeholder into the real thing.
+
 ## Play
 
 | Input | Action |
@@ -31,7 +44,8 @@ Then open <http://localhost:8080>. On GitHub Pages it just works — see *Publis
 | E or F | **B** — interact / melee strike the tile you're facing |
 | Q | **L** — lift what you face into the satchel, or set it down (needs the Burin) |
 | Tab | **R** — turn what you are carrying |
-| Esc | pause menu: map, satchel, score, workshop |
+| Esc | pause menu: map, satchel, score, chapters, pipes, workshop, developer mode |
+| ` | developer mode on and off |
 | R | reset the room |
 | M | metronome |
 | Ctrl/⌘ Z | undo an edit (Ctrl ⇧ Z / Ctrl Y to redo) |

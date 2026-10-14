@@ -835,6 +835,188 @@ Object.assign(PLACEHOLDERS, {
 });
 
 // ---------------------------------------------------------------------------
+// The story's tiles (src/doodads/story.js, 2026-10-13): where a scene starts, the
+// characters, and the Wood's trees and water. Each is a small version of a drawing
+// in src/story/sketch.js, cut down to what still reads at ~30 px on a phone: a
+// silhouette at 3 px, one telling detail, curls no smaller than r 5.
+
+// A story moment on the floor: a ring that winds into a curl, a spiral at its heart.
+function stageMark(p) {
+  p.arc(M, M, 20, 0.5, Math.PI * 2 - 0.4, { width: 2, wobble: 0.15 });
+  p.curlAt(M + 20 * Math.cos(-0.4), M + 20 * Math.sin(-0.4), -0.4 + Math.PI / 2, 5.5, { dir: 1, width: 2 });
+  p.spiral(M, M, 13, { dir: -1, start: -Math.PI / 2, width: 3, turns: 1.6 });
+}
+
+// A castle gateway: a pointed arch in a thick frame of stones, a portcullis in it.
+function stageGate(p) {
+  // a gatehouse: a crenellated block, a round-topped opening, the portcullis down
+  p.poly([[6, 47], [6, 13], [11, 13], [11, 7], [19, 7], [19, 13], [32, 13], [32, 7], [40, 7], [40, 13], [45, 13], [45, 47]], { width: 3, wobble: 0.08 });
+  p.line(3, 47.5, 48, 47.5, crafted);
+  p.line(15.5, 47, 15.5, 30, crafted); p.line(35.5, 47, 35.5, 30, crafted);
+  p.arc(M, 30, 10, Math.PI, Math.PI * 2, crafted);
+  for (const x of [21, 25.5, 30]) p.line(x, 22, x, 46, { width: 2, wobble: 0 });
+  p.line(16, 34, 35, 34, { width: 2, wobble: 0 });
+}
+
+// A ruined shed: a broken roof, a door hanging off its frame, smoke curling up.
+function stageWorkshop(p) {
+  p.line(8.5, 47, 8.5, 22, crafted); p.line(42.5, 47, 42.5, 25, crafted);
+  p.poly([[4, 24], [21, 9], [27, 15], [31, 11], [35, 19], [47, 26]], { width: 3, wobble: 0.1 });
+  p.line(4, 47.5, 47, 47.5, crafted);
+  p.box(17, 28, 15, 19, { width: 2, overshoot: 0, ...crafted });
+  p.fill([[32, 28], [38.5, 31], [38.5, 46], [32, 47]]);                  // the door, swung out
+  p.stalk(29, 12, -Math.PI / 2 + 0.3, 3, 5.5, { dir: 1, width: 2, bend: 0.1 });
+}
+
+// The mouth of a big pipe seen from above, opening to the right at rot 0: its
+// walls come in from the left edge, the rim is a heavy oval with rivets on it, and
+// inside the rim is dark.
+function stageTube(p) {
+  p.line(0, 8.5, 30, 8.5); p.line(0, 42.5, 30, 42.5);
+  p.ellipse(36, M, 9, 19.5, { width: 3, wobble: 0.1 });
+  p.ellipse(37, M, 4.5, 14, { width: 2, wobble: 0.1 });
+  for (const [x, y] of [[29, 12], [28, M], [29, 39]]) p.bud(x, y, 1.7);
+  p.line(12, 8.5, 12, 42.5, { width: 2, wobble: 0 });
+}
+
+// A signpost: the post, a board pointing right with two lines on it, a curl on top.
+function stageSign(p) {
+  p.line(14.5, 48, 14.5, 14, crafted);
+  p.poly([[8, 17], [38, 17], [45, 23.5], [38, 30], [8, 30], [8, 17]], { width: 3, wobble: 0.1 });
+  p.line(13, 21.5, 34, 21.5, { width: 2, wobble: 0 }); p.line(13, 26, 28, 26, { width: 2, wobble: 0 });
+  p.curlAt(14.5, 14, -Math.PI / 2, 5.5, { dir: 1, width: 2 });
+  p.line(9, 48, 20, 48, crafted);
+}
+
+// An ornate door ajar: an arched frame, the leaf swung half open on its left hinge
+// with a scroll on it, and the dark gap beside it.
+function stageDoor(p) {
+  p.line(10.5, 47, 10.5, 18, crafted); p.line(40.5, 47, 40.5, 18, crafted);
+  p.arc(M, 18, 15, Math.PI, Math.PI * 2, crafted);
+  p.line(5, 47.5, 46, 47.5, crafted);
+  p.poly([[12, 20], [25, 15], [25, 46], [12, 46]], { width: 2, wobble: 0.1 });
+  p.spiral(18.5, 30, 4.5, { dir: 1, width: 2 });
+  p.bud(22.5, 36, 1.7);
+  for (const [y0, y1] of [[22, 20], [32, 33], [42, 46]]) p.line(30, y0, 36, y1, { width: 2, wobble: 0 });
+}
+
+// Fermata, the owl: one big egg, two big eyes, the left brow a fermata (an arch
+// with its dot), a beak, ear tufts.
+function npcFermata(p) {
+  p.ellipse(M, 29.5, 15.5, 18, { width: 3, wobble: 0.15 });
+  for (const x of [19, 32]) { p.circle(x, 27, 5.5, { width: 2, wobble: 0 }); fillDot(p, x + 0.5, 27.5, 2.2, 2.2, 0); }
+  // the fermata, over the left eye: an arch with its dot
+  p.arc(19, 25, 9, Math.PI + 0.2, Math.PI * 2 - 0.2, { width: 2.5, wobble: 0 });
+  p.bud(19, 19.5, 1.7);
+  p.fill([[23, 32], [28, 32], [25.5, 37]]);
+  // ear tufts that curl
+  p.curlAt(12, 16, -Math.PI / 2 - 0.4, 3.6, { dir: -1, width: 2 });
+  p.curlAt(39, 16, -Math.PI / 2 + 0.4, 3.6, { dir: 1, width: 2 });
+  p.line(19, 48, 32, 48, { width: 2, wobble: 0 });
+}
+
+// Da Capo, the caretaker: a hood, a beard falling in curls, a lantern held out.
+function npcDacapo(p) {
+  p.path(t => { const a = Math.PI + t * Math.PI; return [27 + Math.cos(a) * 13, 20 + Math.sin(a) * 15]; }, { width: 3, wobble: 0.1 });
+  p.line(14, 20, 12, 47, crafted); p.line(40, 20, 42, 47, crafted);
+  p.line(21, 18, 24, 18, { width: 2, wobble: 0 }); p.line(30, 18, 33, 18, { width: 2, wobble: 0 });
+  p.stalk(23, 24, Math.PI / 2 + 0.15, 11, 4.6, { dir: 1, width: 2.5, bend: 0.1 });
+  p.stalk(31, 24, Math.PI / 2 - 0.15, 13, 4.6, { dir: -1, width: 2.5, bend: -0.1 });
+  p.line(12, 30, 6.5, 30, { width: 2, wobble: 0 });
+  p.line(6.5, 30, 6.5, 33, { width: 2, wobble: 0 });
+  p.box(3.5, 33, 6, 8, { width: 2, overshoot: 0 });
+  fillDot(p, 6.5, 37, 1.4, 2, 0);
+}
+
+// Staccato, the jittery bird: a round body in short broken strokes, a big eye, an
+// open beak, a spiky tuft, stick legs.
+function npcStaccato(p) {
+  for (let i = 0; i < 6; i++) { const a0 = i * Math.PI / 3 + 0.2; p.arc(23, 28, 13, a0, a0 + 0.72, { width: 3, wobble: 0 }); }
+  fillDot(p, 28, 24, 2.6, 2.6, 0);
+  p.fill([[35, 22], [45, 26], [35, 30]]);                               // the beak, open a crack
+  p.line(20, 15, 17, 8, { width: 2.5, wobble: 0 }); p.line(25, 15, 26, 7, { width: 2.5, wobble: 0 });
+  p.poly([[11, 33], [3, 38], [8, 30]], { width: 2, wobble: 0 });         // a stubby tail
+  p.line(19, 41, 18, 48, { width: 2, wobble: 0 }); p.line(27, 41, 28, 48, { width: 2, wobble: 0 });
+  p.line(43, 14, 46, 10, { width: 2, wobble: 0 }); p.line(46, 18, 49, 16, { width: 2, wobble: 0 });
+}
+
+// Tutti, the automaton: a horn bell for a face, a body with valve buttons, legs.
+function npcTutti(p) {
+  p.circle(M, 15, 11.5, { width: 3, wobble: 0.1 });
+  p.circle(M + 1, 15.5, 4, { width: 2, wobble: 0 });
+  p.poly([[16, 28], [35, 28], [37, 42], [14, 42], [16, 28]], { width: 3, wobble: 0.05 });
+  for (const y of [31.5, 37]) fillDot(p, M, y, 2.6, 1.6, 0);
+  p.line(19, 42, 18, 48, crafted); p.line(32, 42, 33, 48, crafted);
+  p.stalk(37, 12, -0.3, 4, 4.8, { dir: 1, width: 2, bend: 0.1 });
+}
+
+// Lento, the ghost with the cello: a tall drooping sheet, sad eyes, the cello by it.
+function npcLento(p) {
+  p.path(t => {
+    if (t < 0.5) { const a = Math.PI + (t / 0.5) * Math.PI; return [17 + Math.cos(a) * 11, 15 + Math.sin(a) * 11]; }
+    const u = (t - 0.5) / 0.5; return [28 + u * 0, 15 + u * 31];
+  }, { width: 3, wobble: 0.1 });
+  p.line(6, 15, 4, 46, crafted);
+  p.path(t => [4 + t * 24, 46 + Math.sin(t * Math.PI * 3) * 2], { width: 3, wobble: 0 });
+  p.line(11, 16, 15, 18, { width: 2, wobble: 0 }); p.line(19, 18, 23, 16, { width: 2, wobble: 0 });
+  p.arc(17, 27, 4, Math.PI * 1.2, Math.PI * 1.8, { width: 2, wobble: 0 });
+  // the cello
+  p.ellipse(39, 39.5, 7, 7, { width: 2.5, wobble: 0.05 });
+  p.ellipse(39, 28.5, 5, 5, { width: 2.5, wobble: 0.05 });
+  p.line(39, 23, 39, 8, { width: 2.5, wobble: 0 });
+  p.curlAt(39, 8, -Math.PI / 2, 3.5, { dir: 1, width: 2 });
+}
+
+// Pianissimo, the moth: small in the middle of the tile, as if whispering.
+function npcPianissimo(p) {
+  for (const k of [-1, 1]) {
+    p.poly([[M + k * 1.5, 24], [M + k * 13, 16], [M + k * 13, 27], [M + k * 1.5, 28]], { width: 2, wobble: 0 });
+    p.poly([[M + k * 1.5, 28], [M + k * 9, 34], [M + k * 2, 34]], { width: 2, wobble: 0 });
+    p.line(M + k, 21, M + k * 5, 15, { width: 2, wobble: 0 });
+  }
+  p.line(M, 21, M, 35, { width: 3, wobble: 0 });
+}
+
+// The organist: a head and shoulders made of water running down, drops falling.
+function npcOrganist(p) {
+  p.circle(M, 12, 7, { width: 3, wobble: 0.1 });
+  // a cloak of water: shoulders spreading from the neck and running down
+  for (const k of [-1, 1]) p.path(t => [M + k * (4 + Math.sin(t * Math.PI / 2) * 17) + Math.sin(t * 9) * 0.8 * k, 20 + t * 28], { width: 3, wobble: 0.1 });
+  for (const k of [-1, 1]) p.path(t => [M + k * (2 + t * 6) + Math.sin(t * 8 + k) * 1.5, 22 + t * 24], { width: 2, wobble: 0 });
+  for (const [x, y] of [[6, 30], [45, 28]]) fillDot(p, x, y, 1.6, 2.4, 0);
+  p.arc(M - 3, 12, 2, 0.2, Math.PI - 0.2, { width: 1.5, wobble: 0 }); p.arc(M + 3, 12, 2, 0.2, Math.PI - 0.2, { width: 1.5, wobble: 0 });
+}
+
+// A curl tree, after his: a trunk that forks, every branch ending in an open spiral,
+// the canopy filling the top of the tile so a row of them reads as a forest's edge.
+function tree(p) {
+  p.line(M, 50, M, 25, { width: 3, wobble: 0.25 });
+  p.stalk(M, 48, Math.PI - 0.35, 5, 3.5, { dir: 1, width: 2, bend: 0.1 });
+  p.stalk(M, 48, 0.35, 5, 3.5, { dir: -1, width: 2, bend: -0.1 });
+  stalk2(p, M, 31, -Math.PI / 2 - 1.05, 13, 7, { dir: -1, bend: -0.25, width: 2.5 });
+  stalk2(p, M, 31, -Math.PI / 2 + 1.05, 13, 7, { dir: 1, bend: 0.25, width: 2.5 });
+  stalk2(p, M, 25, -Math.PI / 2 - 0.3, 12, 6.5, { dir: -1, bend: -0.1, width: 2.5 });
+  stalk2(p, M, 25, -Math.PI / 2 + 0.35, 10, 6, { dir: 1, bend: 0.1, width: 2.5 });
+}
+
+// Water: ripple lines running edge to edge, the same height at both edges so a run
+// of them joins left to right (rotated for a run going up and down).
+function water(p) {
+  for (const [y, amp, ph, w] of [[14.5, 3, 0, 3], [26, 3, Math.PI, 2], [37.5, 3, 0, 3]]) {
+    p.path(t => [t * T, y + Math.sin(t * Math.PI * 4 + ph) * amp], { width: w, wobble: 0.1 });
+  }
+}
+
+Object.assign(PLACEHOLDERS, {
+  'stage.mark': stageMark, 'stage.gate': stageGate, 'stage.workshop': stageWorkshop,
+  'stage.tube': stageTube, 'stage.sign': stageSign, 'stage.door': stageDoor,
+  'npc.fermata': npcFermata, 'npc.dacapo': npcDacapo, 'npc.staccato': npcStaccato,
+  'npc.tutti': npcTutti, 'npc.lento': npcLento, 'npc.pianissimo': npcPianissimo,
+  'npc.organist': npcOrganist,
+  'tree': tree, 'water': water,
+});
+
+// ---------------------------------------------------------------------------
 // Proposals: art for things the game does not have yet. Nothing asks for these
 // keys, so they never appear in a room; they exist to be argued about in the asset
 // review, next to the real thing.

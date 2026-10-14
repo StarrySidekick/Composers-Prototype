@@ -1,0 +1,233 @@
+{
+  "id": "tower",
+  "name": "The Tower",
+  "subtitle": "Strings · apathy",
+  "music": {
+    "root": 7,
+    "mood": "sad",
+    "bpm": 80
+  },
+  "brief": "Up the tower, where the strings are: plucked along their length, silent across it, tied off at pegs. The struggle: depression and the apathy that comes with it, when nothing seems worth playing. Stand-ins: the Triad, the Stand and the Stair (the Bell Tower), and Strings 01, which lives in the Undercroft today.",
+  "triggers": [
+    {
+      "on": "cross",
+      "from": "brass-03-crossing",
+      "to": "tower-01-triad",
+      "play": "tube-ascent"
+    },
+    {
+      "on": "area",
+      "area": "tower",
+      "play": "tower-card"
+    },
+    {
+      "on": "solved",
+      "room": "tower-03-stair",
+      "play": "tower-instrument"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "tube-ascent",
+      "kind": "rhythm",
+      "title": "The Ascent",
+      "status": "rough",
+      "minutes": 1.5,
+      "orient": "vertical",
+      "family": "strings",
+      "cue": "slow",
+      "then": "return",
+      "say": "A long pipe straight up the inside of the tower.",
+      "brief": "Upright run that climbs (the right-hand lanes more and more), the first time you walk from Brass 03 into the Triad.",
+      "chart": {
+        "chords": [
+          0,
+          5,
+          3,
+          4
+        ],
+        "bars": [
+          "L...D...U...R...",
+          "D...U...R...U...",
+          "L.D.U.R.D.U.R.U.",
+          "U...U...U...R...",
+          "L.D.L.D.U.R.U.R.",
+          "D.U.D.U.R.U.R.U.",
+          "L...D...U...R...",
+          "U.R.U.R.U-------"
+        ]
+      },
+      "ends": [
+        {
+          "world": "castle",
+          "room": "brass-03-crossing",
+          "at": [
+            11,
+            6
+          ],
+          "label": "the Atrium"
+        },
+        {
+          "world": "castle",
+          "room": "tower-01-triad",
+          "at": [
+            1,
+            6
+          ],
+          "label": "the Tower"
+        }
+      ]
+    },
+    {
+      "id": "tower-card",
+      "kind": "card",
+      "title": "The Tower",
+      "name": "The Tower",
+      "family": "Strings",
+      "theme": "Apathy, and the grey that comes with it",
+      "status": "rough",
+      "minutes": 0.3,
+      "emblem": "strings",
+      "cue": "slow",
+      "then": "return",
+      "say": "Oh. A visitor. I would get up, but... I would get up.",
+      "who": "lento"
+    },
+    {
+      "id": "tower-rooms",
+      "kind": "world",
+      "title": "The Tower: the rooms",
+      "status": "rough",
+      "minutes": 35,
+      "world": "castle",
+      "room": "tower-01-triad",
+      "at": [
+        1,
+        6
+      ],
+      "with": {
+        "waves": 3,
+        "metronome": true
+      },
+      "standInRooms": [
+        "tower-01-triad",
+        "tower-02-carry",
+        "tower-03-stair",
+        "strings-01-quiet-room"
+      ],
+      "brief": "About thirty-five minutes of string puzzles. Stand-in rooms are real, playable rooms from the prototype dungeon; the wing's other ~25 minutes are uncarved. The stand-ins are horn and fork rooms more than string rooms: the strings themselves have the least puzzle built on them so far.",
+      "notes": [
+        "Suggested shape for every wing, Nintendo's four steps per mechanic (kishotenketsu): introduce it where it is safe, develop it, twist it, then a room that uses all of it at once.",
+        "The stand-in rooms are in G mixolydian (confident). The wing probably wants something greyer."
+      ]
+    },
+    {
+      "id": "tower-instrument",
+      "kind": "item",
+      "title": "The Tuning Bow",
+      "name": "the Tuning Bow",
+      "status": "idea",
+      "minutes": 0.5,
+      "draw": "item.bow",
+      "emblem": "strings",
+      "item": "bow",
+      "say": "Midway up the Tower you would find its instrument. A guess: a bow that draws tension back into slack strings, so a string that has stopped sounding can be made to sing again.",
+      "brief": "A guess at the Tower's instrument: apathy undone a string at a time."
+    },
+    {
+      "id": "tower-boss",
+      "kind": "boss",
+      "title": "The Slack",
+      "name": "The Slack",
+      "status": "rough",
+      "minutes": 6,
+      "draw": "boss.slack",
+      "family": "strings",
+      "music": {
+        "mood": "sad",
+        "bpm": 84
+      },
+      "resolvedMood": "reflective",
+      "resolvedBpm": 92,
+      "resolvedCue": "slow",
+      "intro": "...is there any point? You will play it, and then it will be over, and then what.",
+      "resolve": "...that one hurt a little. In a good way. Like a string coming back up to pitch.",
+      "brief": "Apathy as a slack string. The notes come in grey and the lanes sag, and every phase the tempo drags lower. The last phase is long held notes: all you have to do is keep holding on. Resolving brings the tempo back up.",
+      "notes": [
+        "Aeolian (sad) resolving to dorian: still minor, with a lift in it."
+      ],
+      "phases": [
+        {
+          "say": "Go on, then. I will just... be here.",
+          "mod": "fade",
+          "cue": "slow",
+          "chart": {
+            "chords": [
+              0,
+              5,
+              3,
+              4
+            ],
+            "bars": [
+              "L.......D.......",
+              "U.......R.......",
+              "L...D...U...R...",
+              "L.......L......."
+            ]
+          }
+        },
+        {
+          "say": "It is getting slower. Everything does.",
+          "mod": "fade",
+          "bpm": 70,
+          "chart": {
+            "bars": [
+              "L...D...L...D...",
+              "U...R...U...R...",
+              "L.D.U.R.........",
+              "R...U...D...L..."
+            ]
+          }
+        },
+        {
+          "say": "Why are you still...",
+          "mod": "fade",
+          "bpm": 60,
+          "chart": {
+            "bars": [
+              "L-------D-------",
+              "U-------R-------",
+              "L---D---U---R---",
+              "L---------------"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "tower-after",
+      "kind": "cutscene",
+      "title": "After the Slack",
+      "status": "rough",
+      "minutes": 1,
+      "flags": [
+        "tower"
+      ],
+      "then": "return",
+      "cue": "slow",
+      "brief": "The strings across the stair pull tight, one at a time. Not happiness: a sound, which is a start.",
+      "shots": [
+        {
+          "draw": "tower",
+          "say": "One by one, the strings across the stair pull tight. They do not make you happy. They make a sound, which is a start.",
+          "who": "narrator"
+        },
+        {
+          "draw": "tower",
+          "say": "I think I will practise. Not today. Maybe today.",
+          "who": "lento"
+        }
+      ]
+    }
+  ]
+}

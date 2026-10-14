@@ -1,0 +1,236 @@
+{
+  "id": "ramparts",
+  "name": "The Ramparts",
+  "subtitle": "Woodwinds · the chaos of life",
+  "music": {
+    "root": 5,
+    "mood": "mysterious",
+    "bpm": 96
+  },
+  "brief": "The outskirts, open to the weather: everything blows, nothing stays where you put it. Woodwinds: the flute's fingering picks a note and a way out; the reed keeps breathing after you walk away. The struggle: life's chaos crowding out the time to make anything. Stand-ins today: the Flute and the Reed Loft (the Reed Gallery).",
+  "triggers": [
+    {
+      "on": "cross",
+      "from": "brass-02-crossroads",
+      "to": "woodwind-01-flute",
+      "play": "tube-updraft"
+    },
+    {
+      "on": "area",
+      "area": "gallery",
+      "play": "ramparts-card"
+    },
+    {
+      "on": "solved",
+      "room": "woodwind-02-reed",
+      "play": "ramparts-instrument"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "tube-updraft",
+      "kind": "rhythm",
+      "title": "The Updraft",
+      "status": "rough",
+      "minutes": 1.5,
+      "orient": "horizontal",
+      "family": "woodwind",
+      "cue": "wind",
+      "then": "return",
+      "say": "A pipe out of the Atrium, blowing straight up onto the ramparts. Up, A and down.",
+      "brief": "Sideways run, three lanes (up, A, down), the first time you walk from Brass 02 onto the Ramparts. Teaches that a run can use A as a lane.",
+      "chart": {
+        "lanes": [
+          "up",
+          "a",
+          "down"
+        ],
+        "chords": [
+          0,
+          1,
+          0,
+          4
+        ],
+        "bars": [
+          "U...A...D...A...",
+          "U.A.D.A.U.A.D...",
+          "U...U...D...D...",
+          "A.A.A.A.U...D...",
+          "U.A.D.A.U.A.D.A.",
+          "D.A.U.A.D.A.U.A.",
+          "U..AD..AU..AD...",
+          "U.U.A.A.D.D.A.A.",
+          "U...A...D...A...",
+          "U.A.D.A.U-------"
+        ]
+      },
+      "ends": [
+        {
+          "world": "castle",
+          "room": "brass-02-crossroads",
+          "at": [
+            6,
+            1
+          ],
+          "label": "the Atrium"
+        },
+        {
+          "world": "castle",
+          "room": "woodwind-01-flute",
+          "at": [
+            6,
+            11
+          ],
+          "label": "the Ramparts"
+        }
+      ]
+    },
+    {
+      "id": "ramparts-card",
+      "kind": "card",
+      "title": "The Ramparts",
+      "name": "The Ramparts",
+      "family": "Woodwinds",
+      "theme": "The chaos of life",
+      "status": "rough",
+      "minutes": 0.3,
+      "emblem": "woodwind",
+      "cue": "wind",
+      "then": "return",
+      "say": "Quick-quick! Everything's-blowing-away! Hold-onto-something!",
+      "who": "staccato"
+    },
+    {
+      "id": "ramparts-rooms",
+      "kind": "world",
+      "title": "The Ramparts: the rooms",
+      "status": "rough",
+      "minutes": 30,
+      "world": "castle",
+      "room": "woodwind-01-flute",
+      "at": [
+        6,
+        11
+      ],
+      "with": {
+        "metronome": true
+      },
+      "standInRooms": [
+        "woodwind-01-flute",
+        "woodwind-02-reed"
+      ],
+      "brief": "About thirty minutes of woodwind puzzles. Stand-in rooms are real, playable rooms from the prototype dungeon; the wing's other ~24 minutes are uncarved.",
+      "notes": [
+        "Suggested shape for every wing, Nintendo's four steps per mechanic (kishotenketsu): introduce it where it is safe, develop it, twist it, then a room that uses all of it at once.",
+        "Chaos as a room mechanic: gusts on a timer that push waves (and Coda) off their line, so a puzzle is solved in the gaps."
+      ]
+    },
+    {
+      "id": "ramparts-instrument",
+      "kind": "item",
+      "title": "The Weathervane Flute",
+      "name": "the Weathervane Flute",
+      "status": "idea",
+      "minutes": 0.5,
+      "draw": "item.vane",
+      "emblem": "woodwind",
+      "item": "vane",
+      "say": "Midway through the Ramparts you would find the wing's instrument. This one is a guess: a flute with a weathervane on it that points the wind, so the gusts that scatter everything can be turned to carry your waves instead.",
+      "brief": "The wing's whimsical instrument. A guess, not Timothy's: only the brass one is scoped. Found mid-wing in the finished game (Zelda's dungeon item); here it plays when the stand-in rooms are done."
+    },
+    {
+      "id": "ramparts-boss",
+      "kind": "boss",
+      "title": "The Squall",
+      "name": "The Squall",
+      "status": "rough",
+      "minutes": 6,
+      "draw": "boss.squall",
+      "family": "woodwind",
+      "music": {
+        "mood": "unhinged",
+        "bpm": 104
+      },
+      "resolvedMood": "mysterious",
+      "resolvedBpm": 96,
+      "resolvedCue": "wind",
+      "intro": "Too much! Too much at once! Everything you meant to make, I have blown into the next room!",
+      "resolve": "Oh. You just... kept going. One note, then the next one. Fine. I will blow somewhere else.",
+      "brief": "The chaos of life as a whirlwind. Notes start in the wrong lane and only settle at the last moment; then they come faster; then, if you keep going, it simply stops, and you are playing the castle's flute tune in the quiet. A rough draft as a rhythm duel; the real boss may be a room, like the Unresolved Chord.",
+      "notes": [
+        "Locrian (the unstable mode) resolving to lydian when it is beaten."
+      ],
+      "phases": [
+        {
+          "say": "Catch it if you can! It never comes down where it went up!",
+          "mod": "scatter",
+          "cue": "wind",
+          "chart": {
+            "chords": [
+              0,
+              4,
+              3,
+              0
+            ],
+            "bars": [
+              "L...D...U...R...",
+              "R...U...D...L...",
+              "L.D.U.R.L.D.U.R.",
+              "U...U...D...D..."
+            ]
+          }
+        },
+        {
+          "say": "Faster! Life does not wait for you to be ready!",
+          "mod": "scatter",
+          "bpm": 116,
+          "chart": {
+            "bars": [
+              "L.U.D.R.L.U.D.R.",
+              "L.L.D.D.U.U.R.R.",
+              "L.R.L.R.U.D.U.D.",
+              "R.U.L.D.R.U.L.D."
+            ]
+          }
+        },
+        {
+          "say": "...why are you still playing?",
+          "bpm": 96,
+          "cue": "hush",
+          "chart": {
+            "layer": {
+              "score": "castle",
+              "id": "flute"
+            },
+            "repeat": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "ramparts-after",
+      "kind": "cutscene",
+      "title": "After the Squall",
+      "status": "rough",
+      "minutes": 1,
+      "flags": [
+        "ramparts"
+      ],
+      "then": "return",
+      "cue": "wind",
+      "brief": "The wind drops; the reeds on the battlements stand up and hum. Staccato, for once, slows down.",
+      "shots": [
+        {
+          "draw": "ramparts",
+          "say": "The wind drops. Along the battlements, the reeds stand up straight and hum.",
+          "who": "narrator"
+        },
+        {
+          "draw": "ramparts",
+          "say": "Oh. It is... quiet. I did not know it could be quiet up here. Thank-you. Thank. You.",
+          "who": "staccato"
+        }
+      ]
+    }
+  ]
+}

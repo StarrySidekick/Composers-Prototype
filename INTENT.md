@@ -264,6 +264,60 @@ Every constraint in CLAUDE.md still holds for the port: no build step, touch-fir
 (the snake has to steer from the on-screen pad), every sound on a sixteenth and
 through a scale degree.
 
+## 2026-10-13: the whole game, encased in marble
+
+Timothy asked to scope the game's large strokes, not as a document but as the game
+itself: *"plotting out the entire game as a series of placeholders with the ability
+to sort of jump to different parts of the game or kind of enter a developer mode
+that allows me to see the game with more detail ... but overall, be able to jump
+back into an experience of, of like experiencing the game like a player ... this
+philosophy of carving something out of marble instead of building it out of
+nothing."* What he described, in his words, is recorded in `story/outline.json`
+(the pitch, the cast) and the act files.
+
+Done (`docs/MARBLE.md` has all of it):
+
+- **The whole game as scenes** (`story/`): prologue (falling from the sky, the
+  crash, the Key), the Wood (open, no boss, the workshop that exploded and why you
+  were falling, the first pipe), the castle on the cliff, four wings each with its
+  struggle as a boss (the Ramparts / woodwinds / chaos of life; the Core / brass /
+  judgment; the Tower / strings / apathy; the Basement / percussion / fear of the
+  past), the water organ at the heart, an ending, the credits as a conductor's bow,
+  and the secret piano boss as an encore. 46 scenes, about 4h10, inside his 3 to 5
+  hours. Each has a status and minutes, so the Marble view shows how much is carved.
+- **New game plays all of it.** Real rooms where they exist (the prototype dungeon
+  stands in for the castle, unchanged; the story wraps it with triggers), rough
+  drafts where they do not (cutscenes of code sketches, title cards, tube runs and
+  bosses on a rhythm engine), and slates that say what goes there where even a rough
+  draft would be a guess.
+- **Tube runs**: Guitar Hero in a pipe, upright or sideways, played on the D-pad
+  (and A/B), one the first time you walk between certain wings, the gentlest one up
+  the Wood's cliff. Ridden once, a pipe is fast travel from the pause menu, and
+  riding it backwards plays its chart backwards.
+- **Developer mode** and **the Marble** (jump anywhere, as a player would arrive
+  there), **chapters** for a player, characters who talk in sung text (placeholder
+  names: Fermata, Da Capo, Staccato, Tutti, Lento, Pianissimo, the Organist),
+  self-aware lines from the game itself, the workshop unlocking the editor.
+
+Guesses he should check (all marked in the outline):
+
+- **Every boss is a rhythm duel for now**, each with its struggle as the twist
+  (chaos scatters the lanes; judgment narrows the window and passes verdicts, then
+  lets you play any note; apathy greys and slows; fear hides the notes, then repeats
+  itself until you know it). The real bosses may be rooms, like the Unresolved Chord.
+- **Three of the four wing instruments are invented** (a weathervane flute, a tuning
+  bow, a heartbeat drum) and shown as idea slates. Only his brass horn is his; it is
+  a placeholder item.
+- **Which castle rooms stand in for which wing** is a best fit from the existing
+  areas (the Reed Gallery for the Ramparts, the Bell Tower for the Tower, the
+  Undercroft for the Basement, the Atrium and Cloister for the Core).
+- **The secret piano is reached after the credits** (an encore), not hidden in the
+  Basement. Either works with the outline.
+- **Nothing fails**: missed notes sound sour, phases end regardless. Whether a pipe
+  or a boss can be failed is an open question in the notes.
+- The Wood is five 13 x 13 rooms; it probably wants to be bigger and freer, and may
+  move like Conductor's Key (still waiting on that code; a slate marks the spot).
+
 ## Something that needs Timothy
 
 **The GDD should come into this repo.** It currently lives at

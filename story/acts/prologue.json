@@ -1,0 +1,223 @@
+{
+  "id": "prologue",
+  "name": "Prologue",
+  "subtitle": "The fall",
+  "music": {
+    "root": 5,
+    "mood": "mysterious",
+    "bpm": 84
+  },
+  "brief": "Cold open. You fall out of a night sky for no reason the game will explain yet, crash into a wood beside a castle hanging off a cliff, and find the Key ringing in the dirt. About three minutes, mostly pictures.",
+  "scenes": [
+    {
+      "id": "title",
+      "kind": "title",
+      "title": "The title screen",
+      "status": "playable",
+      "minutes": 0.5,
+      "brief": "Continue, new game, chapters, and the workshop (free play and the editor). The 3D note-key from Timothy's site spins over the first room. It notices when you come back.",
+      "notes": [
+        "The title could play the Wood's overture instead of the castle's motif, so the first thing heard is the first place you go."
+      ]
+    },
+    {
+      "id": "fall",
+      "kind": "cutscene",
+      "title": "The fall",
+      "status": "rough",
+      "minutes": 1,
+      "cue": "fall",
+      "brief": "A night sky. A speck tumbling through it, then you, with the Key falling beside you. The castle on its cliff seen from far above, then the trees coming up fast. Black.",
+      "notes": [
+        "Rough storyboard: every drawing here is a code sketch standing in for Timothy's.",
+        "Should the fall be playable (steer toward the castle, collect notes on the way down)? It would teach the D-pad before anything else."
+      ],
+      "shots": [
+        {
+          "draw": "sky",
+          "beats": 6,
+          "fx": "fade-in",
+          "cam": {
+            "from": [
+              0.5,
+              0.45,
+              1.25
+            ],
+            "to": [
+              0.5,
+              0.5,
+              1
+            ]
+          }
+        },
+        {
+          "draw": "sky",
+          "beats": 6,
+          "layers": [
+            {
+              "draw": "coda",
+              "o": {
+                "pose": "fall"
+              },
+              "box": [
+                0.44,
+                -0.2,
+                0.12,
+                0.14
+              ],
+              "to": [
+                0.44,
+                0.42
+              ]
+            }
+          ]
+        },
+        {
+          "draw": "fall",
+          "beats": 8,
+          "say": "Somewhere above the Wood, something is falling.",
+          "who": "narrator"
+        },
+        {
+          "draw": "fall",
+          "beats": 4,
+          "say": "It is you.",
+          "who": "game",
+          "cam": {
+            "from": [
+              0.5,
+              0.5,
+              1
+            ],
+            "to": [
+              0.5,
+              0.45,
+              1.4
+            ]
+          }
+        },
+        {
+          "draw": "castle-far",
+          "beats": 8,
+          "cam": {
+            "from": [
+              0.5,
+              0.3,
+              1.5
+            ],
+            "to": [
+              0.5,
+              0.5,
+              1
+            ]
+          },
+          "say": "Below you: a wood, a cliff, and a castle hanging off the edge of it, the way a held note hangs off the end of a bar.",
+          "who": "narrator"
+        },
+        {
+          "draw": "wood",
+          "beats": 3,
+          "cue": "tense",
+          "cam": {
+            "from": [
+              0.5,
+              0.5,
+              1
+            ],
+            "to": [
+              0.5,
+              0.65,
+              2.2
+            ]
+          }
+        },
+        {
+          "draw": "crash",
+          "beats": 4,
+          "fx": "boom",
+          "cue": "silence",
+          "hit": [
+            [
+              0,
+              0,
+              2,
+              "timpani"
+            ],
+            [
+              0,
+              0,
+              2,
+              "percussion",
+              "bass"
+            ],
+            [
+              3,
+              -3,
+              2,
+              "timpani"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "landing",
+      "kind": "cutscene",
+      "title": "The landing",
+      "status": "rough",
+      "minutes": 1,
+      "cue": "hush",
+      "brief": "You in a crater. A ringing in your ears, one note, held. Something in the dirt rings the same note.",
+      "shots": [
+        {
+          "draw": "crash",
+          "beats": 6,
+          "hit": [
+            [
+              0,
+              4,
+              6,
+              "voice"
+            ]
+          ],
+          "say": "Ringing. Just the one note, in your ears, for a long time.",
+          "who": "narrator"
+        },
+        {
+          "draw": "key-found",
+          "beats": 6,
+          "cue": "wonder",
+          "cam": {
+            "from": [
+              0.5,
+              0.5,
+              1.3
+            ],
+            "to": [
+              0.5,
+              0.55,
+              1
+            ]
+          },
+          "say": "Something half-buried in the dirt is ringing the same note.",
+          "who": "narrator"
+        }
+      ]
+    },
+    {
+      "id": "key-get",
+      "kind": "item",
+      "title": "The Composer's Key",
+      "name": "the Composer's Key",
+      "status": "rough",
+      "minutes": 0.5,
+      "draw": "item.key",
+      "item": "key",
+      "flags": [
+        "key"
+      ],
+      "say": "You found the Composer's Key! Press A and it sings: a wave of sound that travels, and plays whatever it reaches. Nothing it plays can be out of key.",
+      "brief": "The first item, held overhead. Unlocks A. The Key's design is from Timothy's concept art (the twisted shaft, the three note loops, the teardrop with spirals)."
+    }
+  ]
+}

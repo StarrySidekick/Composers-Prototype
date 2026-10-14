@@ -32,6 +32,9 @@ export class Score {
     this.steps = this.bars * 16;
     this.volume = json.volume ?? 0.3;
     this.muted = false;
+    // `always`: plays without the metronome. The Wood's overture is just there;
+    // the castle's tune waits for the metronome to be wound.
+    this.always = !!json.always;
     // The chord under each bar, as scale degrees (I vi IV V). The text box sings
     // its words from these, so dialogue is in the same harmony as the tune.
     this.chords = json.chords ?? [0, 5, 3, 4];
@@ -57,7 +60,7 @@ export class Score {
 
   // Is it playing? Only with the metronome going (progress.metronome), or under
   // the title screen (game.attract), and the pause menu's music switch on.
-  playing(game) { return !this.muted && !!(game.progress?.metronome || game.attract) && !!game.room; }
+  playing(game) { return !this.muted && !!(this.always || game.progress?.metronome || game.attract) && !!game.room; }
 
   // The chord root (a scale degree) sounding at clock sixteenth `index`.
   chordAt(index) {
