@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0b">
+<title>Composer's Key Songbook</title>
+<link rel="stylesheet" href="src/music/songbook/songbook.css">
+</head>
+<body>
+<!-- Your music as a library, and a motif writer whose motifs go straight into
+     the game. docs/MUSIC.md. The same page runs privately on claude.ai
+     (tools/songbook-artifact.html). -->
+<main class="songbook" id="songbook"><p class="caption">Opening the songbook…</p></main>
+<script type="module">
+  import { boot } from './src/music/songbook/main.js';
+  boot(document.getElementById('songbook'));
+</script>
+</body>
+</html>

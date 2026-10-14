@@ -154,6 +154,16 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   `~` water (`src/doodads/story.js`).
 - **Developer mode is per device** (`ck-dev-v1`): the pause menu's last button, the
   `` ` `` key, or `?dev`. Off, nothing of it shows.
+- **Timothy's own music comes in through `tools/music-library.mjs` and the songbook
+  (2026-10-14).** Read `docs/MUSIC.md` first. The tool runs on his Mac (this
+  container cannot see his Desktop) and writes `library/`, which is git-ignored on
+  purpose: his albums stay out of this public repo, and a motif enters the game only
+  when it is pasted into a room. `songbook.html` is the library and the motif
+  writer; the same page is his private Artifact
+  (https://claude.ai/artifact/4dDMySzsr1bXnqSyFZSsCt), whose `motifs` and `labels`
+  collections are where to read what he wants in the game. Motifs are scale
+  degrees ([step, length, degree]); exports drop the lengths. `src/music/` is pure
+  ES modules that run in node too: keep it free of the DOM outside `songbook/`.
 
 ## Assets
 
@@ -233,8 +243,9 @@ untouched, the renderer composes the linked key. Don't move it into the doodads.
 ## Testing
 
 **There is a runner now: `node test/rooms.mjs`** — serve the repo root on :8080
-first. (There are eleven now: `rooms world walk timing art solve route
-mechanics controls snes story`, each `node test/<name>.mjs`.) `rooms.mjs` plays every room in the manifest and checks the two things that break
+first. (There are thirteen now: `rooms world walk timing art solve route
+mechanics controls snes story music writer`, each `node test/<name>.mjs`;
+`music` needs no server.) `rooms.mjs` plays every room in the manifest and checks the two things that break
 silently in a port like this: a legend character claimed twice (an object
 literal just lets the later one win), and a doodad playing a pitch that never
 came through the room's scale.
@@ -368,6 +379,19 @@ skip, developer mode, the Marble and a pipe by touch. Proved by injection: a
 15-sixteenth bar, a misspelled trigger room, a link to a missing scene and audible
 cue notes each fail by name. It uses this browser's storage for the save check
 (a fresh Playwright profile, so nothing outside the run is touched).
+
+### And your music, in
+
+`node test/music.mjs` (node only) holds the music library to answers worked by
+hand: MIDI files both ways, a hand-made Live set (loops unrolled, an offset loop
+start, a disabled clip, a muted note), degrees round-tripping in all 84 keys, the
+key guess on the castle tune in every key and on three tunes of known key,
+spelling and rhythm in the notation, the zip, and the tool end to end on a fake
+Desktop. `node test/writer.mjs` is the songbook on a 390 x 844 touch screen, and
+as the private page against a stand-in for the artifact's database. Proved by
+injection: ignore a clip's loop offset, play a writer note heard, or let a dotted
+eighth start anywhere, and each fails by name. Neither proves a set saved by a
+real Live reads the same; see docs/MUSIC.md.
 
 ### And a report, for when you are making rooms rather than fixing them
 
