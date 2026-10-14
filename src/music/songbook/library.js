@@ -14,7 +14,7 @@ import { h, options, toast, copyText, saveFile } from './ui.js';
 export const STATUSES = [
   ['new', 'new'], ['listened', 'listened'], ['candidate', 'motif candidate'], ['in-game', 'in the game'], ['not-for-game', 'not for the game'],
 ];
-const COMMAND = 'node tools/music-library.mjs ~/Desktop/Albums ~/Music/Ableton';
+const COMMAND = 'node tools/music-library.mjs ~/Desktop/Albums ~/Desktop/Songs';
 
 export function createLibrary({ store, player, openInWriter }) {
   let lib = null, labels = {}, filter = 'all', query = '';
