@@ -171,6 +171,19 @@ Nothing to set up first: the first run installs Playwright into
 `~/.composers-key-tools` and finds its own Chromium. It stays out of the repo, so a
 checkout still needs nothing but a file server.
 
+**Or use the Chrome you are already signed into**, and skip the sign-in:
+
+```bash
+killall "Google Chrome"; open -a "Google Chrome" --args --remote-debugging-port=9222
+node tools/songbook-upload.mjs --attach
+```
+
+Your tabs come back and you stay signed in; the script opens one tab, loads the
+library and lets go, leaving Chrome running. Chrome has to be quit and reopened
+first because a running Chrome holds its profile locked and only listens for this
+if it was started that way — which is also why the script cannot simply use a
+window you already have open.
+
 This exists because the library outgrew the ways a file can be passed around: at
 13 MB it is past most upload limits, and far past what a Claude session could
 carry through a tool call — 1982 documents of it. A file input has no such limit,

@@ -61,9 +61,11 @@ async function playwright() {
 }
 
 const args = process.argv.slice(2);
-let file = 'library/library.json', url = ARTIFACT;
+let file = 'library/library.json', url = ARTIFACT, attach = false, port = 9222;
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--artifact') url = args[++i];
+  else if (args[i] === '--attach') attach = true;
+  else if (args[i] === '--port') { port = Number(args[++i]); attach = true; }
   else file = args[i];
 }
 file = path.resolve(file);
@@ -78,11 +80,37 @@ const tracks = (lib.pieces ?? []).reduce((a, p) => a + (p.tracks?.length ?? 0), 
 const mb = (fs.statSync(file).size / 1048576).toFixed(1);
 console.log(`${file}\n  ${pieces} pieces, ${tracks} tracks, ${mb} MB -> ${pieces + tracks + 1} documents`);
 
-const ctx = await chromium.launchPersistentContext(PROFILE, {
-  ...(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {}),
-  headless: false, viewport: { width: 1200, height: 900 },
-});
-const page = ctx.pages()[0] ?? await ctx.newPage();
+// Two ways in. By default a browser of our own, which means signing in to
+// claude.ai once inside it. With --attach, your own Chrome and the session you
+// are already signed into — but a running Chrome holds its profile locked, and
+// Playwright can only reach a browser that was started listening, so Chrome has
+// to be quit and reopened once with a debugging port:
+//
+//   killall "Google Chrome"; open -a "Google Chrome" --args --remote-debugging-port=9222
+//
+// Your tabs come back and you stay signed in. Nothing reads your cookies here;
+// the page is simply driven where it already sits.
+let browser = null, ctx, page;
+if (attach) {
+  console.log(`Attaching to Chrome on port ${port}…`);
+  try {
+    browser = await chromium.connectOverCDP(`http://localhost:${port}`);
+  } catch {
+    console.error(`\nNothing is listening on port ${port}. Quit Chrome and start it again with:`);
+    console.error('  killall "Google Chrome"; open -a "Google Chrome" --args --remote-debugging-port=9222');
+    console.error('Then run this again with --attach. (Chrome ignores the flag if it is already running.)');
+    process.exit(1);
+  }
+  ctx = browser.contexts()[0];
+  if (!ctx) { console.error('Chrome is listening but has no window open.'); process.exit(1); }
+  page = await ctx.newPage();
+} else {
+  ctx = await chromium.launchPersistentContext(PROFILE, {
+    ...(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {}),
+    headless: false, viewport: { width: 1200, height: 900 },
+  });
+  page = ctx.pages()[0] ?? await ctx.newPage();
+}
 
 try {
   console.log('\nOpening the songbook…');
@@ -126,7 +154,13 @@ try {
   }
   process.exitCode = 1;
 } finally {
-  await ctx.close().catch(() => {});
+  // Attached, the browser is yours: close only the tab this opened and let go.
+  if (browser) {
+    await page.close().catch(() => {});
+    await browser.close().catch(() => {});   // disconnects; it does not quit Chrome
+  } else {
+    await ctx.close().catch(() => {});
+  }
 }
 
 // The songbook's file input, in whichever frame holds it. Signing in can take as
