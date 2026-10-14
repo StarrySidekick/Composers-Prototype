@@ -165,7 +165,11 @@ node tools/songbook-upload.mjs
 It opens a browser window, waits as long as you need to sign in to claude.ai, and
 hands `library/library.json` to the page's own file input. The sign-in is kept in
 `~/.composers-key-songbook-profile`, so later runs go straight through; nothing is
-typed for you. Needs Playwright and `CHROMIUM` (see **Checks**).
+typed for you.
+
+Nothing to set up first: the first run installs Playwright into
+`~/.composers-key-tools` and finds its own Chromium. It stays out of the repo, so a
+checkout still needs nothing but a file server.
 
 This exists because the library outgrew the ways a file can be passed around: at
 13 MB it is past most upload limits, and far past what a Claude session could

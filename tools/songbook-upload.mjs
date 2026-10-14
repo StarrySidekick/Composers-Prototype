@@ -13,17 +13,52 @@
    to claude.ai; the sign-in is kept in a profile beside this repo, so later runs
    go straight through. Nothing is typed for you — you sign in yourself.
 
-   Needs Playwright, which is a dev tool and not a dependency of the harness:
-   see "Checks" in docs/MUSIC.md for the install and the CHROMIUM override.
+   It needs no setting up. Playwright is a dev tool, not a dependency of the
+   harness, so it is never installed into this repo: the first run puts it in
+   ~/.composers-key-tools and finds its own Chromium there. The repo keeps its
+   promise that a checkout needs nothing but a file server.
 */
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { chromium } from 'playwright';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const ARTIFACT = 'https://claude.ai/artifact/4dDMySzsr1bXnqSyFZSsCt';
-const EXEC = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
 const PROFILE = path.join(os.homedir(), '.composers-key-songbook-profile');
+const TOOLS = path.join(os.homedir(), '.composers-key-tools');
+
+// Playwright, from wherever it already is, and otherwise installed once into a
+// folder of its own. Left to itself Playwright knows where it put its browsers;
+// CHROMIUM is only for pointing at a different one on purpose.
+// Imported by path, Playwright arrives as a CommonJS namespace: its exports are
+// under .default, not beside it.
+const pw = await playwright();
+const chromium = pw.chromium ?? pw.default?.chromium;
+if (!chromium) { console.error('Playwright loaded but has no chromium. Delete ~/.composers-key-tools and try again.'); process.exit(1); }
+
+async function playwright() {
+  try { return await import('playwright'); } catch { /* not beside the repo */ }
+  const req = createRequire(path.join(TOOLS, 'x.js'));
+  const load = () => import(pathToFileURL(req.resolve('playwright')).href);
+  try { return await load(); } catch { /* not installed yet */ }
+
+  console.log('Installing Playwright, once, into ~/.composers-key-tools —');
+  console.log('nothing goes into the repo. This takes a minute.\n');
+  fs.mkdirSync(TOOLS, { recursive: true });
+  try {
+    execFileSync('npm', ['--prefix', TOOLS, 'install', '--no-fund', '--no-audit', 'playwright'], { stdio: 'inherit' });
+    execFileSync(path.join(TOOLS, 'node_modules/.bin/playwright'), ['install', 'chromium'], { stdio: 'inherit' });
+  } catch {
+    console.error('\nThat install failed. Run it by hand and try again:');
+    console.error(`  npm --prefix ${TOOLS} install playwright`);
+    console.error(`  ${path.join(TOOLS, 'node_modules/.bin/playwright')} install chromium`);
+    process.exit(1);
+  }
+  console.log('');
+  return load();
+}
 
 const args = process.argv.slice(2);
 let file = 'library/library.json', url = ARTIFACT;
@@ -44,7 +79,8 @@ const mb = (fs.statSync(file).size / 1048576).toFixed(1);
 console.log(`${file}\n  ${pieces} pieces, ${tracks} tracks, ${mb} MB -> ${pieces + tracks + 1} documents`);
 
 const ctx = await chromium.launchPersistentContext(PROFILE, {
-  executablePath: EXEC, headless: false, viewport: { width: 1200, height: 900 },
+  ...(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {}),
+  headless: false, viewport: { width: 1200, height: 900 },
 });
 const page = ctx.pages()[0] ?? await ctx.newPage();
 
