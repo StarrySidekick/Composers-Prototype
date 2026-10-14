@@ -105,8 +105,18 @@ try {
     if (m) console.log(`The page now lists ${m[1]} pieces.`);
   }
   process.exitCode = result.ok ? 0 : 1;
+} catch (e) {
+  // Closing the window is a thing people do; it should not read as a crash.
+  if (/has been closed|Target closed|browser has been closed/i.test(e?.message ?? '')) {
+    console.log('\nThe window closed before the library went in. Nothing was half-written —');
+    console.log('the page takes the whole file or none of it. Run it again and leave the');
+    console.log('window open; it waits as long as the sign-in takes.');
+  } else {
+    console.error('\n' + (e?.message ?? e));
+  }
+  process.exitCode = 1;
 } finally {
-  await ctx.close();
+  await ctx.close().catch(() => {});
 }
 
 // The songbook's file input, in whichever frame holds it. Signing in can take as
@@ -115,6 +125,7 @@ async function waitForInput(page, timeout) {
   const start = Date.now(), until = start + timeout;
   let asked = false;
   while (Date.now() < until) {
+    if (page.isClosed()) throw new Error('The window has been closed');
     for (const frame of page.frames()) {
       const el = frame.locator('#l-file');
       if (await el.count().catch(() => 0)) {
