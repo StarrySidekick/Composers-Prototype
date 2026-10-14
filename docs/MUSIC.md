@@ -169,7 +169,21 @@ serve .m4a, so the recorded cello and horn stay behind: on claude.ai the
   degrees in all 84 keys, the key guess, spelling, rhythms, the zip, and the
   tool end to end on a fake Desktop.
 - `node test/writer.mjs` (serve the root on :8080): the songbook on a 390 × 844
-  touch screen, and as the private page with a stand-in for its database.
+  touch screen, and as the private page with a stand-in for its database. All 30
+  checks pass as of 2026-10-14, the artifact-runtime ones included.
+
+  Every browser test here wants Chromium at `/opt/pw-browsers/chromium`, which is
+  not where this Mac keeps it, so set `CHROMIUM` and give node a `playwright` to
+  resolve. Playwright is a dev tool, not a dependency of the harness — install it
+  anywhere but the repo and symlink it in, so `library/` is still all that a
+  checkout gains:
+
+  ```bash
+  npm --prefix /tmp/pw install playwright && npx --prefix /tmp/pw playwright install chromium
+  ln -sfn /tmp/pw/node_modules node_modules    # untracked; delete it after
+  CHROMIUM="$HOME/Library/Caches/ms-playwright/chromium-1248/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" \
+    node test/writer.mjs
+  ```
 
 **Real sets, since 2026-10-14.** The doubt above — the reader had only ever seen
 hand-made sets — is settled for Live 11. The first import read 254 projects off
