@@ -44,6 +44,8 @@ textarea {
   padding: 5px 10px; font: inherit; cursor: pointer;
 }
 .chip:hover { border-color: var(--gold); }
+/* A chip that leaves the game (the songbook) is a link, dressed the same. */
+a.chip { color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
 .chip.on { background: var(--gold); color: #000; border-color: var(--gold); }
 .chip.primary { border-color: var(--gold); color: var(--hot); }
 

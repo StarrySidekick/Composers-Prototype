@@ -1,0 +1,14 @@
+<title>Composer's Key Songbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- The songbook as a private page on claude.ai. Published at the artifact's
+     root, so its paths are the repo root's, not tools/'s: publish it with every
+     file under src/ that main.js imports, src/music/songbook/songbook.css, the
+     game's rooms/world.json and rooms/wood.json, and assets/audio for the real
+     instruments (docs/MUSIC.md, "Republishing the private page"). It keeps its
+     data in the artifact's database (src/music/songbook/store.js). -->
+<link rel="stylesheet" href="src/music/songbook/songbook.css">
+<main class="songbook" id="songbook"><p class="caption">Opening the songbook…</p></main>
+<script type="module">
+  import { boot } from './src/music/songbook/main.js';
+  boot(document.getElementById('songbook'));
+</script>

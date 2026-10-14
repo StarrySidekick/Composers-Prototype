@@ -318,6 +318,47 @@ Guesses he should check (all marked in the outline):
 - The Wood is five 13 x 13 rooms; it probably wants to be bigger and freer, and may
   move like Conductor's Key (still waiting on that code; a slate marks the spot).
 
+## 2026-10-14: his own music, in the game
+
+Timothy, in his words: *"I want to take all of the music that I've made ... I have
+all of these WAV files in my, in the albums folder on my desktop ... I also have
+the MIDI files from the Ableton projects themselves ... inject all the music I've
+made in the past into Composer's Key in some way ... label them and create like a
+little artifacted list of various things so that I can kind of keep tabs on it ...
+eventually be able to use that to create like sheet music ... and then also maybe
+a way to like build like a little very easy to use sheet music creation thing to
+write little motifs and melodies that can eventually be used for the game."*
+
+Done (`docs/MUSIC.md` has all of it):
+
+- **An importer for his Mac**, `tools/music-library.mjs`: reads every Ableton
+  project's MIDI (session clips and the arrangement played out), loose .mid files,
+  and WAV headers; matches bounces to projects by name; guesses each piece's key
+  and mode; writes `library/library.json` and a clean `.mid` per piece with the key
+  signature. `library/` is git-ignored: the repo is public and the music is his.
+- **The songbook** (`songbook.html`, a chip on the title screen and in the pause
+  menu's workshop): the library, labelled (status, tags, notes, the key when the
+  guess is wrong), playable, four bars of any clip as sheet music; and a motif
+  writer whose grid is scale degrees, drawing sheet music as you tap, exporting a
+  score layer, a cue, a lock phrase or a .mid. Any clip of his opens in it.
+- **The "artifacted list"**: the same page as his private Artifact, keeping labels
+  and motifs in its database so they follow him across devices and a Claude
+  session can read them to put a motif into a room.
+- **Sheet music**: drawn in the page for motifs; for whole pieces, the `.mid` files
+  open in MuseScore with the right key signature.
+
+What a cloud session could not do, and what needs him:
+
+- **Run the importer.** His Desktop is not in reach of a cloud session. Run it once
+  on the Mac, then load `library/library.json` into the private page.
+- **Check one real project.** The Ableton reader is tested against hand-made sets
+  that follow the format, not against a set saved by Live. Compare one piece with
+  Live; the field names are listed at the top of `src/music/ableton.js`.
+- **Audio-only pieces** have no notes until transcribed (`--transcribe`, Spotify's
+  basic-pitch, a sketch at best on a full mix) or until their project is found.
+- **Judge the key guesses by ear**, and correct them in the library; the correction
+  is what every motif from that piece uses.
+
 ## Something that needs Timothy
 
 **The GDD should come into this repo.** It currently lives at

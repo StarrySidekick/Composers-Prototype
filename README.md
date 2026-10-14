@@ -8,8 +8,8 @@ It doubles as the seed for a smaller, self-contained, mobile-friendly music game
 of these prototypes turns out to want its own life.
 
 ## Run it
-Eleven test scripts live in `test/` (`rooms world walk timing art solve route
-mechanics controls snes story`): serve the root, then `node test/<name>.mjs`. `route.mjs` plays the
+Thirteen test scripts live in `test/` (`rooms world walk timing art solve route
+mechanics controls snes story music writer`): serve the root, then `node test/<name>.mjs`. `route.mjs` plays the
 whole dungeon from the start; `mechanics.mjs` checks every gate holds; `story.mjs`
 plays the whole game, start to credits. See
 CLAUDE.md for what each does and does not prove.
@@ -34,6 +34,16 @@ from anything you have reached. Pause menu → **developer mode** shows scene id
 skips, autoplay, cheats and **the Marble**: every scene as a block, as wide as its
 minutes, drawn by how carved it is, against the 3 to 5 hours the game should last.
 `docs/MARBLE.md` explains it and how to carve each placeholder into the real thing.
+
+## Your music (the songbook)
+
+`songbook.html` (or **songbook** on the title screen) is a library of your own
+music and a motif writer for the game. Run `node tools/music-library.mjs
+~/Desktop/Albums ~/Music/Ableton` on the computer with the music: it reads every
+Ableton project's MIDI clips, matches each bounce to its project, guesses keys and
+writes `library/` (git-ignored). The writer takes notes as scale degrees, draws
+them as sheet music, plays them through the game's instruments and copies them
+out as a score layer, a cue or a lock phrase. `docs/MUSIC.md` has the lot.
 
 ## Play
 
