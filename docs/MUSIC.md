@@ -22,10 +22,13 @@ loose *.mid  ─┘   (library.json,  (sheet music, playback,            lock ph
 Run it on the computer that has the music, from this repo:
 
 ```bash
-node tools/music-library.mjs ~/Desktop/Albums ~/Music/Ableton
+node tools/music-library.mjs ~/Desktop/Albums ~/Desktop/Songs
 ```
 
-Name every folder that holds albums or projects. It writes `library/` (which git
+Name every folder that holds albums or projects. On this Mac those two are the
+ones: `Albums` holds the bounces, `Songs` holds the projects, an album to a
+numbered folder. Not `~/Music/Ableton` — that is Live's factory packs, 134 sets
+of someone else's demo content. It writes `library/` (which git
 ignores: your music is yours, and this repo is public):
 
 - `library/library.json`: every piece with its tracks and clips as notes on the
@@ -168,8 +171,20 @@ serve .m4a, so the recorded cello and horn stay behind: on claude.ai the
 - `node test/writer.mjs` (serve the root on :8080): the songbook on a 390 × 844
   touch screen, and as the private page with a stand-in for its database.
 
-**Not proved here:** that a set saved by a real Live reads the same as the
-hand-made one. No .als was in reach when this was written; the fixture follows
-the format as documented and as other readers parse it. Run the tool on one
-project you know and compare with Live. If a clip lands in the wrong place, the
-field names at the top of `src/music/ableton.js` are where to look.
+**Real sets, since 2026-10-14.** The doubt above — the reader had only ever seen
+hand-made sets — is settled for Live 11. The first import read 254 projects off
+`Albums` and `Songs` with no file it could not open, and one of them, *Prelude*
+(Live 11.0.6, 7 MIDI tracks and an audio track), was checked tag by tag against
+its own XML: 7 `MidiTrack` and 1 `AudioTrack` in the file, 7 and 1 read; 67
+`MidiClip`, 67 read; all 6732 `MidiNoteEvent` parsed, none dropped. Of those,
+3425 sit inside the clip markers and are what the tool plays and exports — the
+rest are notes trimmed off a clip's edges, which Live keeps in the file and does
+not sound. Clip names came through as Live shows them, and the tempo matched the
+set's `<Manual Value="144" />`.
+
+**Still not proved:** that Live *displays* what the tool reads. The check above
+is against the file, not against Live's own window — Live was never opened. A
+tempo that looks wrong is worth one look at the set before blaming the tool:
+seven pieces came in outside 40–220 bpm and all seven were real, two of them
+sets genuinely saved at Live's 999 maximum. If a clip does land in the wrong
+place, the field names at the top of `src/music/ableton.js` are where to look.
