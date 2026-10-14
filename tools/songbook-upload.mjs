@@ -88,10 +88,20 @@ try {
   console.log('\nOpening the songbook…');
   await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-  // The artifact renders in a frame of its own. Wait for the page's own file
-  // input to turn up in any frame — that is the songbook, loaded and signed in.
-  const input = await waitForInput(page, 5 * 60_000);
-  if (!input) throw new Error('The songbook never appeared. Is it the right artifact URL?');
+  // A private artifact is "page not found" to a signed-out visitor — it never
+  // offers a sign-in. So if the songbook does not appear, go to claude.ai, let
+  // the sign-in happen there, and come back.
+  let input = await waitForInput(page, 10_000, { quiet: true });
+  if (!input) {
+    console.log('  Not signed in — a private page reads as "page not found" until you are.');
+    console.log('  Sending you to claude.ai. Sign in; I will open the songbook when you are through.');
+    await page.goto('https://claude.ai/', { waitUntil: 'domcontentloaded' });
+    await waitForSignIn(ctx, page, 10 * 60_000);
+    console.log('  Signed in. Opening the songbook…');
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    input = await waitForInput(page, 2 * 60_000);
+  }
+  if (!input) throw new Error('The songbook never appeared, even signed in. Is it the right artifact URL?');
 
   const frame = input.frame;
   await frame.locator('#l-file').setInputFiles(file);
@@ -121,7 +131,7 @@ try {
 
 // The songbook's file input, in whichever frame holds it. Signing in can take as
 // long as it takes; say so once, not every second.
-async function waitForInput(page, timeout) {
+async function waitForInput(page, timeout, { quiet = false } = {}) {
   const start = Date.now(), until = start + timeout;
   let asked = false;
   while (Date.now() < until) {
@@ -134,13 +144,27 @@ async function waitForInput(page, timeout) {
         return { frame };
       }
     }
-    if (!asked && Date.now() > start + 8000) {
-      console.log('  Waiting for the songbook. If a sign-in is showing, sign in — I will carry on when it loads.');
+    if (!quiet && !asked && Date.now() > start + 8000) {
+      console.log('  Still waiting for the songbook to load…');
       asked = true;
     }
     await page.waitForTimeout(500);
   }
   return null;
+}
+
+// Signed in, as the browser can tell: claude.ai has set a session cookie and
+// stopped showing a login page. No credentials pass through here.
+async function waitForSignIn(ctx, page, timeout) {
+  const until = Date.now() + timeout;
+  while (Date.now() < until) {
+    if (page.isClosed()) throw new Error('The window has been closed');
+    const cookies = await ctx.cookies('https://claude.ai').catch(() => []);
+    const hasSession = cookies.some(c => /session/i.test(c.name) && c.value?.length > 20);
+    if (hasSession && !/\/login|\/magic-link/.test(page.url())) return true;
+    await page.waitForTimeout(1000);
+  }
+  throw new Error('No sign-in after ten minutes.');
 }
 
 // Import runs behind a progress bar and ends in a toast. The toast clears itself
