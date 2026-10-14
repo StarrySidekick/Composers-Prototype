@@ -171,18 +171,24 @@ Nothing to set up first: the first run installs Playwright into
 `~/.composers-key-tools` and finds its own Chromium. It stays out of the repo, so a
 checkout still needs nothing but a file server.
 
-**Or use the Chrome you are already signed into**, and skip the sign-in:
+**The Chrome you are already signed into cannot be used**, and it is worth knowing
+why, because it looks as though it should be. A running Chrome holds its profile
+locked, so Playwright can only drive a browser that was started listening on a
+debugging port — and since Chrome 136, `--remote-debugging-port` is ignored, with
+no error at all, on the default user data directory. Chrome does that deliberately,
+so that nothing running on your Mac can drive the profile you are signed in with.
+A debugging port only works with its own `--user-data-dir`, and that profile is
+signed into nothing.
 
-```bash
-killall "Google Chrome"; open -a "Google Chrome" --args --remote-debugging-port=9222
-node tools/songbook-upload.mjs --attach
-```
+`--attach` is there for a Chrome already listening on such a port
+(`--attach`, `--port <n>`), which is useful in a harness and no use for your
+session. Tested: attaching, loading and letting go without quitting the browser
+all work.
 
-Your tabs come back and you stay signed in; the script opens one tab, loads the
-library and lets go, leaving Chrome running. Chrome has to be quit and reopened
-first because a running Chrome holds its profile locked and only listens for this
-if it was started that way — which is also why the script cannot simply use a
-window you already have open.
+So for the private page there are two honest routes, and the quick one is yours:
+press **Library → Load library.json** in a browser you are already signed into —
+a file input takes the whole 13 MB — or run the script and sign in once inside the
+window it opens.
 
 This exists because the library outgrew the ways a file can be passed around: at
 13 MB it is past most upload limits, and far past what a Claude session could

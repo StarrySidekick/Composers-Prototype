@@ -81,24 +81,32 @@ const mb = (fs.statSync(file).size / 1048576).toFixed(1);
 console.log(`${file}\n  ${pieces} pieces, ${tracks} tracks, ${mb} MB -> ${pieces + tracks + 1} documents`);
 
 // Two ways in. By default a browser of our own, which means signing in to
-// claude.ai once inside it. With --attach, your own Chrome and the session you
-// are already signed into — but a running Chrome holds its profile locked, and
-// Playwright can only reach a browser that was started listening, so Chrome has
-// to be quit and reopened once with a debugging port:
+// claude.ai once inside it.
 //
-//   killall "Google Chrome"; open -a "Google Chrome" --args --remote-debugging-port=9222
+// --attach drives a Chrome that is already listening on a debugging port. Note
+// what that cannot be: since Chrome 136, --remote-debugging-port is ignored, with
+// no error, on the default user data directory. Chrome does this on purpose, so
+// that nothing local can drive the profile you are signed in with — which is
+// exactly what we would have wanted it for. So --attach reaches a Chrome started
+// with its own --user-data-dir, and that profile is signed into nothing.
 //
-// Your tabs come back and you stay signed in. Nothing reads your cookies here;
-// the page is simply driven where it already sits.
+// Which leaves the honest answer: to put the library into the private page from a
+// browser you are already signed into, open the songbook there and press Library >
+// Load library.json yourself. A file input takes the whole 13 MB without trouble.
 let browser = null, ctx, page;
 if (attach) {
   console.log(`Attaching to Chrome on port ${port}…`);
   try {
     browser = await chromium.connectOverCDP(`http://localhost:${port}`);
   } catch {
-    console.error(`\nNothing is listening on port ${port}. Quit Chrome and start it again with:`);
-    console.error('  killall "Google Chrome"; open -a "Google Chrome" --args --remote-debugging-port=9222');
-    console.error('Then run this again with --attach. (Chrome ignores the flag if it is already running.)');
+    console.error(`\nNothing is listening on port ${port}.`);
+    console.error('\nIf you started Chrome with --remote-debugging-port and this still says so:');
+    console.error('since Chrome 136 that flag is ignored, silently, on the default profile.');
+    console.error('Chrome does that so nothing local can drive the profile you are signed in');
+    console.error('with. A debugging port needs its own --user-data-dir, which is signed into');
+    console.error('nothing — so attaching cannot borrow your session.');
+    console.error('\nTo load the library from a browser you are already signed into, open the');
+    console.error('songbook there and press Library > Load library.json. It takes the whole file.');
     process.exit(1);
   }
   ctx = browser.contexts()[0];
