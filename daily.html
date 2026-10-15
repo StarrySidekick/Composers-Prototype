@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Composer's Key Daily</title>
+<link rel="stylesheet" href="src/daily/daily.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='black'/><circle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-width='3'/></svg>">
+</head>
+<body>
+<!-- The daily board: one wave, a table of instruments, a tune of Timothy's to
+     make. docs/DAILY.md. Everything with class d-fixed is measured to size the
+     board (src/daily/main.js fit). -->
+<main class="daily">
+  <header class="d-top d-fixed">
+    <a class="d-back" href="index.html" aria-label="Back to the game">‹</a>
+    <div class="d-days" id="d-days" role="tablist" aria-label="Days"></div>
+    <button class="d-help" id="d-help" aria-label="How to play">?</button>
+  </header>
+
+  <section class="d-tune d-fixed" aria-label="The tune">
+    <div class="d-head">
+      <span class="d-when" id="d-when">Day 1</span>
+      <b class="d-title" id="d-title"></b>
+      <span class="d-key" id="d-key"></span>
+    </div>
+    <div class="d-notes" id="d-notes" aria-label="Notes to play"></div>
+    <div class="d-staff" id="d-staff" aria-hidden="true"></div>
+  </section>
+
+  <div class="d-stage" id="d-stage">
+    <canvas id="d-board" class="d-board"></canvas>
+    <div class="d-locked" id="d-locked" hidden>This day has not opened yet.</div>
+  </div>
+
+  <p class="d-hint d-fixed" id="d-hint" role="status" aria-live="polite"></p>
+
+  <footer class="d-bar d-fixed">
+    <button id="d-reset" class="d-btn">reset</button>
+    <button id="d-play" class="d-btn d-play">play</button>
+    <button id="d-listen" class="d-btn">listen</button>
+  </footer>
+
+  <div class="d-howto" id="d-howto" hidden role="dialog" aria-label="How to play">
+    <div class="d-card">
+      <h2>Make the tune</h2>
+      <p><b>Listen</b> to the tune. Then set the table so one wave plays it, note for note, and press <b>play</b>.</p>
+      <ul class="d-legend">
+        <li><i class="g-turn"></i> an arrow: tap to turn it</li>
+        <li><i class="g-tune"></i> a dial: tap to tune it</li>
+        <li><i class="g-move"></i> corners: drag it somewhere else</li>
+        <li><i class="g-fixed"></i> nothing: it stays as it is</li>
+      </ul>
+      <p>Tap any instrument to hear its note. Drums bounce the wave and keep time; they are not the tune. A wave running along a string holds one note.</p>
+      <label class="d-row"><input type="checkbox" id="d-names" checked> show note names</label>
+      <button class="d-btn" id="d-howto-close">got it</button>
+    </div>
+  </div>
+
+  <div class="d-done" id="d-done" hidden role="dialog" aria-label="Solved">
+    <div class="d-card">
+      <h2 id="d-done-title">Solved</h2>
+      <p class="d-stats" id="d-done-stats"></p>
+      <p id="d-done-from"></p>
+      <div class="d-row">
+        <button class="d-btn" id="d-done-hear">hear it</button>
+        <button class="d-btn d-play" id="d-done-next">next day</button>
+        <button class="d-btn" id="d-done-close">close</button>
+      </div>
+    </div>
+  </div>
+</main>
+<script type="module">
+  import { boot } from './src/daily/main.js';
+  boot();
+</script>
+</body>
+</html>

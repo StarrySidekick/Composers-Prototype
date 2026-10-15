@@ -8,8 +8,8 @@ It doubles as the seed for a smaller, self-contained, mobile-friendly music game
 of these prototypes turns out to want its own life.
 
 ## Run it
-Thirteen test scripts live in `test/` (`rooms world walk timing art solve route
-mechanics controls snes story music writer`): serve the root, then `node test/<name>.mjs`. `route.mjs` plays the
+Fifteen test scripts live in `test/` (`rooms world walk timing art solve route
+mechanics controls snes story music writer daily daily-touch`): serve the root, then `node test/<name>.mjs`. `route.mjs` plays the
 whole dungeon from the start; `mechanics.mjs` checks every gate holds; `story.mjs`
 plays the whole game, start to credits. See
 CLAUDE.md for what each does and does not prove.
@@ -44,6 +44,14 @@ Ableton project's MIDI clips, matches each bounce to its project, guesses keys a
 writes `library/` (git-ignored). The writer takes notes as scale degrees, draws
 them as sheet music, plays them through the game's instruments and copies them
 out as a score layer, a cue or a lock phrase. `docs/MUSIC.md` has the lot.
+
+## The daily board
+
+`daily.html` (or **daily** on the title screen) is a break from the castle: an
+8 x 14 table of the game's instruments, one wave, and one of Timothy's own tunes a
+day to make. Tap a drum to turn it, tap a flute hole or a slide to tune it, drag
+a drum somewhere else, then play and watch the wave bounce. Ten days, all open for
+testing. `docs/DAILY.md` has the rules, the ten tunes and how to make more.
 
 ## Play
 
@@ -181,6 +189,7 @@ src/ui/             status bars, title and pause menus, movable controls
 src/render/         canvas renderer, wing palettes, sprite store, placeholder baker
 src/editor/         the room editor — catalog, canvas painting, panel
 rooms/*.json        the rooms, plus manifest.json and world.json (the dungeon)
+daily.html, src/daily/, daily/days.json   the daily board (docs/DAILY.md)
 test/*.mjs          the checks (see CLAUDE.md)
 assets/             sprites, if there are any — optional
 docs/PORTING.md     how each piece maps back to the Unity project
