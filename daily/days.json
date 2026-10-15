@@ -1,0 +1,557 @@
+{
+  "epoch": "2026-10-15",
+  "days": [
+    {
+      "id": "day-01",
+      "title": "Three Strings",
+      "hint": "Tap a drum with an arrow to turn it. Then press play and follow the wave.",
+      "music": {"root":9,"mode":"ionian","bpm":104},
+      "motif": {
+        "name": "Stay Warm",
+        "key": {"root":9,"mode":"ionian"},
+        "bpm": 200,
+        "bars": 1,
+        "family": "strings",
+        "octave": 4,
+        "notes": [[0,2,2],[2,2,1],[4,2,0]],
+        "source": {
+          "piece": "staywarm-4bfd5c",
+          "title": "Stay Warm",
+          "album": "Out of Bed",
+          "track": "Melody",
+          "clip": "Opener 4/4"
+        }
+      },
+      "launch": {"x":1,"y":13,"dir":"up"},
+      "layout": [
+        ".b.b....",
+        "...H....",
+        "...H....",
+        "...H....",
+        "...H....",
+        "...H.H..",
+        "...H.H..",
+        ".....H..",
+        ".H...H..",
+        ".H...H..",
+        ".H...H..",
+        ".H...H..",
+        ".H...H..",
+        "...b.b.."
+      ],
+      "overrides": [
+        {"x":1,"y":0,"rot":90,"can":"turn"},
+        {"x":3,"y":0,"rot":270},
+        {"x":3,"y":13,"rot":0,"can":"turn"},
+        {"x":5,"y":13,"rot":0}
+      ],
+      "solution": [{"tap":[1,0],"times":1},{"tap":[3,13],"times":1}]
+    },
+    {
+      "id": "day-02",
+      "title": "Across the Grain",
+      "hint": "A wave running along a string plays it. Crossing one, it goes by without a sound.",
+      "music": {"root":5,"mode":"dorian","bpm":100},
+      "motif": {
+        "name": "Toaster Tension",
+        "key": {"root":5,"mode":"dorian"},
+        "bpm": 100,
+        "bars": 2,
+        "family": "strings",
+        "octave": 5,
+        "notes": [[0,1,1],[12,2,4],[15,1,0],[16,2,1]],
+        "source": {
+          "piece": "toastertension-b7f2d6",
+          "title": "Toaster Tension",
+          "album": null,
+          "track": "Lead",
+          "clip": "4 Lead"
+        }
+      },
+      "launch": {"x":0,"y":13,"dir":"right"},
+      "layout": [
+        "...H....",
+        "...H.H..",
+        "...b...b",
+        "...H.H.H",
+        "...H.H.H",
+        "...H...H",
+        ".b.H.b.H",
+        ".H.H.H.H",
+        ".H.H.H.H",
+        ".H...H.H",
+        ".H...b.b",
+        ".H.....H",
+        ".H.....H",
+        ".b.....H"
+      ],
+      "overrides": [
+        {"x":1,"y":13,"rot":0},
+        {"x":1,"y":6,"rot":90,"can":"turn"},
+        {"x":5,"y":6,"rot":180,"can":"turn"},
+        {"x":5,"y":10,"rot":90},
+        {"x":7,"y":10,"rot":270,"can":"turn"},
+        {"x":7,"y":2,"rot":270},
+        {"x":3,"y":2,"rot":0,"can":"turn"}
+      ],
+      "solution": [
+        {"tap":[1,6],"times":1},
+        {"tap":[5,6],"times":1},
+        {"tap":[7,10],"times":1},
+        {"tap":[3,2],"times":2}
+      ]
+    },
+    {
+      "id": "day-03",
+      "title": "Two Horns",
+      "hint": "A horn plays as the wave leaves its bell. Tap a slide to pull it out: a longer horn plays lower.",
+      "music": {"root":0,"mode":"lydian","bpm":108},
+      "motif": {
+        "name": "Moonshot",
+        "key": {"root":0,"mode":"lydian"},
+        "bpm": 170,
+        "bars": 2,
+        "family": "brass",
+        "octave": 5,
+        "notes": [[0,20,5],[20,4,4],[24,4,8],[28,4,6]],
+        "source": {
+          "piece": "moonshot-2e1270",
+          "title": "Moonshot",
+          "album": "Reach Back Artifact",
+          "track": "Lead",
+          "clip": "1 Bass"
+        }
+      },
+      "launch": {"x":1,"y":13,"dir":"up"},
+      "layout": [
+        "........",
+        "........",
+        "........",
+        ".H......",
+        "........",
+        ".b.YSMb.",
+        "........",
+        "........",
+        "........",
+        "........",
+        ".bMSY.b.",
+        ".H......",
+        ".H....H.",
+        "......H."
+      ],
+      "overrides": [
+        {"x":1,"y":10,"rot":180},
+        {"x":3,"y":10,"rot":0,"can":"tune","extend":2},
+        {"x":4,"y":10,"rot":0},
+        {"x":6,"y":10,"rot":270,"can":"turn"},
+        {"x":6,"y":5,"rot":270},
+        {"x":5,"y":5,"rot":180},
+        {"x":4,"y":5,"rot":180,"can":"tune","extend":1},
+        {"x":3,"y":5,"rot":180},
+        {"x":1,"y":5,"rot":90}
+      ],
+      "solution": [{"tap":[3,10],"times":2},{"tap":[6,10],"times":1},{"tap":[4,5],"times":2}]
+    },
+    {
+      "id": "day-04",
+      "title": "The First Open Hole",
+      "hint": "A flute lets the wave out at the first open hole it meets, and that hole is the note. Tap a hole to cover it.",
+      "music": {"root":8,"mode":"phrygian","bpm":112},
+      "motif": {
+        "name": "Midiphonia (Inverted)",
+        "key": {"root":8,"mode":"phrygian"},
+        "bpm": 140,
+        "bars": 2,
+        "family": "woodwind",
+        "octave": 6,
+        "notes": [[0,4,5],[4,4,6],[8,8,2],[16,4,6],[20,4,4]],
+        "source": {
+          "piece": "midiphoniainverted-467d4b",
+          "title": "Midiphonia (Inverted)",
+          "album": null,
+          "track": "Lead",
+          "clip": "Track 0"
+        }
+      },
+      "wing": "woodwind",
+      "launch": {"x":0,"y":12,"dir":"right"},
+      "layout": [
+        "........",
+        ".......H",
+        ".......H",
+        "........",
+        "..b....b",
+        "........",
+        "..===b..",
+        "........",
+        "........",
+        "........",
+        "..H..H..",
+        "........",
+        ".Qqqqqdb",
+        "........"
+      ],
+      "overrides": [
+        {"x":2,"y":4,"rot":180},
+        {"x":7,"y":4,"rot":0,"can":"turn"},
+        {"x":5,"y":6,"rot":270},
+        {"x":7,"y":12,"rot":0},
+        {"x":2,"y":12,"rot":0,"can":"tune","covered":true},
+        {"x":3,"y":12,"rot":0,"can":"tune"},
+        {"x":4,"y":12,"rot":0,"can":"tune"},
+        {"x":5,"y":12,"rot":0,"can":"tune","covered":true}
+      ],
+      "solution": [{"tap":[2,12],"times":1},{"tap":[7,4],"times":3},{"tap":[5,12],"times":1}]
+    },
+    {
+      "id": "day-05",
+      "title": "Pick It Up",
+      "hint": "A piece with corners can be dragged. Put the drum where the wave needs turning.",
+      "music": {"root":7,"mode":"mixolydian","bpm":100},
+      "motif": {
+        "name": "AM I DEAD ?",
+        "key": {"root":7,"mode":"mixolydian"},
+        "bpm": 70,
+        "bars": 1,
+        "family": "keys",
+        "octave": 3,
+        "notes": [[0,4,4],[4,2,9],[6,4,14],[10,2,15],[12,4,11]],
+        "source": {
+          "piece": "amidead-65d894",
+          "title": "AM I DEAD ?",
+          "album": "Please Wake Up",
+          "track": "Solo Lead",
+          "clip": "Solo Lead"
+        }
+      },
+      "launch": {"x":1,"y":13,"dir":"up"},
+      "layout": [
+        "........",
+        "b======b",
+        "H......H",
+        "H......H",
+        "H......H",
+        ".......H",
+        ".......H",
+        ".......H",
+        ".......H",
+        ".b=====.",
+        ".H......",
+        ".H......",
+        ".H..b...",
+        "........"
+      ],
+      "overrides": [
+        {"x":0,"y":1,"rot":90,"can":"turn"},
+        {"x":7,"y":1,"rot":270},
+        {"x":1,"y":9,"rot":90,"can":"turn"},
+        {"x":4,"y":12,"rot":0,"can":"move"}
+      ],
+      "solution": [{"tap":[1,9],"times":1},{"move":[[4,12],[7,9]]},{"tap":[0,1],"times":1}]
+    },
+    {
+      "id": "day-06",
+      "title": "Both Ends",
+      "hint": "A flute can be played from its foot too. Then the first open hole is the one nearest the foot.",
+      "music": {"root":2,"mode":"dorian","bpm":104},
+      "motif": {
+        "name": "Far in The Park - Path 1",
+        "key": {"root":2,"mode":"dorian"},
+        "bpm": 112,
+        "bars": 1,
+        "family": "woodwind",
+        "octave": 6,
+        "notes": [[0,4,4],[4,1,3],[5,1,2],[6,1,1],[8,1,4],[9,1,1]],
+        "source": {
+          "piece": "farintheparkpath1-2eded8",
+          "title": "Far in The Park - Path 1",
+          "album": "Far in The Park",
+          "track": "Melody",
+          "clip": "clip 1"
+        }
+      },
+      "wing": "woodwind",
+      "launch": {"x":0,"y":13,"dir":"right"},
+      "layout": [
+        "..b..b..",
+        "..H..H..",
+        "..H..H..",
+        "..H..H..",
+        "..b..H..",
+        "H....H..",
+        "H....H..",
+        "H..b...b",
+        "H..H....",
+        "H..H....",
+        "H..H....",
+        "...H....",
+        "......b.",
+        ".Qqqqqdb"
+      ],
+      "overrides": [
+        {"x":5,"y":0,"rot":180,"can":"turn"},
+        {"x":2,"y":0,"rot":90,"can":"turn"},
+        {"x":2,"y":4,"rot":0},
+        {"x":3,"y":7,"rot":90,"can":"turn"},
+        {"x":7,"y":7,"rot":270},
+        {"x":7,"y":13,"rot":0},
+        {"x":6,"y":12,"rot":180,"can":"move"},
+        {"x":2,"y":13,"rot":0,"can":"tune"},
+        {"x":3,"y":13,"rot":0,"can":"tune"},
+        {"x":4,"y":13,"rot":0,"covered":true},
+        {"x":5,"y":13,"rot":0,"can":"tune","covered":true}
+      ],
+      "solution": [
+        {"tap":[2,13],"times":1},
+        {"tap":[5,13],"times":1},
+        {"tap":[3,7],"times":1},
+        {"tap":[5,0],"times":1},
+        {"tap":[2,0],"times":1},
+        {"move":[[6,12],[0,4]]}
+      ]
+    },
+    {
+      "id": "day-07",
+      "title": "Down from the Ruins",
+      "hint": "Every drum on the way may need turning, and one is missing. Strings that play the right note can still be on the wrong road.",
+      "music": {"root":4,"mode":"phrygian","bpm":108},
+      "motif": {
+        "name": "Beneath Ruins",
+        "key": {"root":4,"mode":"phrygian"},
+        "bpm": 120,
+        "bars": 2,
+        "family": "strings",
+        "octave": 5,
+        "notes": [[0,6,2],[6,2,3],[8,2,4],[10,2,5],[12,2,6],[14,2,5],[16,2,4]],
+        "source": {
+          "piece": "beneathruins-d5c11b",
+          "title": "Beneath Ruins",
+          "album": null,
+          "track": "Lead",
+          "clip": "1 6-CalmPad"
+        }
+      },
+      "launch": {"x":2,"y":13,"dir":"up"},
+      "layout": [
+        "....s==.",
+        ".H.H...H",
+        ".H.H...H",
+        ".H..H..H",
+        ".b==t==.",
+        "........",
+        "..t====b",
+        "..H....H",
+        "..H....H",
+        "t.H..H.H",
+        "..H..H..",
+        "..H..H..",
+        ".....H..",
+        ".....H.."
+      ],
+      "overrides": [
+        {"x":2,"y":6,"rot":0,"can":"turn"},
+        {"x":7,"y":6,"rot":270,"can":"turn"},
+        {"x":4,"y":0,"rot":90,"can":"turn"},
+        {"x":4,"y":4,"rot":180,"can":"turn"},
+        {"x":1,"y":4,"rot":270,"can":"turn"},
+        {"x":0,"y":9,"rot":270,"can":"move"}
+      ],
+      "solution": [
+        {"move":[[0,9],[7,0]]},
+        {"tap":[2,6],"times":2},
+        {"tap":[1,4],"times":2},
+        {"tap":[4,4],"times":2},
+        {"tap":[4,0],"times":1},
+        {"tap":[7,6],"times":1}
+      ]
+    },
+    {
+      "id": "day-08",
+      "title": "Brass Section",
+      "hint": "A bell can feed straight into the next mouthpiece. Count the tubes, then pull the slides.",
+      "music": {"root":7,"mode":"mixolydian","bpm":112},
+      "motif": {
+        "name": "Raiders Theme",
+        "key": {"root":7,"mode":"mixolydian"},
+        "bpm": 120,
+        "bars": 1,
+        "family": "brass",
+        "octave": 4,
+        "notes": [[0,1,1],[2,1,2],[4,1,3],[6,1,2],[8,1,3],[10,1,4],[12,1,3]],
+        "source": {
+          "piece": "raiderstheme-fe6c37",
+          "title": "Raiders Theme",
+          "album": null,
+          "track": "Lead",
+          "clip": "1 Lead"
+        }
+      },
+      "launch": {"x":5,"y":13,"dir":"up"},
+      "layout": [
+        "..======",
+        "H.......",
+        "H.......",
+        "H.......",
+        "H......=",
+        "........",
+        "sYSM.b..",
+        "M....H..",
+        "SYSMsH.H",
+        "Y...YH.H",
+        "M...SH.H",
+        "S...MH.H",
+        "Y....H.H",
+        "bMSYt..H"
+      ],
+      "overrides": [
+        {"x":0,"y":6,"rot":180},
+        {"x":1,"y":6,"rot":180},
+        {"x":2,"y":6,"rot":180,"extend":0,"can":"tune"},
+        {"x":3,"y":6,"rot":180},
+        {"x":5,"y":6,"rot":90,"can":"turn"},
+        {"x":0,"y":7,"rot":90},
+        {"x":0,"y":8,"rot":90,"extend":1},
+        {"x":1,"y":8,"rot":180},
+        {"x":2,"y":8,"rot":180,"extend":2,"can":"tune"},
+        {"x":3,"y":8,"rot":180},
+        {"x":4,"y":8,"rot":90,"can":"turn"},
+        {"x":0,"y":9,"rot":90},
+        {"x":4,"y":9,"rot":270},
+        {"x":0,"y":10,"rot":90},
+        {"x":4,"y":10,"rot":270,"extend":0},
+        {"x":0,"y":11,"rot":90,"extend":2},
+        {"x":4,"y":11,"rot":270},
+        {"x":0,"y":12,"rot":90},
+        {"x":0,"y":13,"rot":270,"can":"turn"},
+        {"x":1,"y":13,"rot":0},
+        {"x":2,"y":13,"rot":0,"extend":1},
+        {"x":3,"y":13,"rot":0},
+        {"x":4,"y":13,"rot":180,"can":"turn"}
+      ],
+      "solution": [
+        {"tap":[4,8],"times":2},
+        {"tap":[0,13],"times":2},
+        {"tap":[4,13],"times":2},
+        {"tap":[5,6],"times":2},
+        {"tap":[2,6],"times":2},
+        {"tap":[2,8],"times":3}
+      ]
+    },
+    {
+      "id": "day-09",
+      "title": "Everything Feels Nice",
+      "hint": "Strings, horns, drums, and a timpani to tune for the last note. One drum is in the wrong place.",
+      "music": {"root":9,"mode":"aeolian","bpm":112},
+      "motif": {
+        "name": "Feel Nice",
+        "key": {"root":9,"mode":"aeolian"},
+        "bpm": 150,
+        "bars": 1,
+        "family": "strings",
+        "octave": 3,
+        "notes": [[0,2,4],[2,2,3],[4,2,7],[6,2,3],[8,2,6],[10,2,3],[12,2,7],[14,2,9]],
+        "source": {"piece":"feelnice-61f4ec","title":"Feel Nice","album":null,"track":"Lead","clip":"3 Melody"}
+      },
+      "launch": {"x":1,"y":13,"dir":"up"},
+      "layout": [
+        "t=.YSM..",
+        "H.....H.",
+        "H.....H.",
+        "H.....H.",
+        "H.===.H.",
+        "tM-SYpH.",
+        ".H....H.",
+        "......H.",
+        ".s====t.",
+        ".Y......",
+        ".S...H..",
+        ".M...Hb.",
+        "........",
+        "........"
+      ],
+      "overrides": [
+        {"x":0,"y":0,"rot":0,"can":"turn"},
+        {"x":3,"y":0,"rot":180},
+        {"x":4,"y":0,"rot":180,"extend":0,"can":"tune"},
+        {"x":5,"y":0,"rot":180},
+        {"x":0,"y":5,"rot":0,"can":"turn"},
+        {"x":1,"y":5,"rot":0},
+        {"x":3,"y":5,"rot":0,"extend":0,"can":"tune"},
+        {"x":4,"y":5,"rot":0},
+        {"x":5,"y":5,"degree":6,"can":"tune"},
+        {"x":1,"y":8,"rot":90,"can":"turn"},
+        {"x":6,"y":8,"rot":180,"can":"turn"},
+        {"x":1,"y":9,"rot":270},
+        {"x":1,"y":10,"rot":270,"extend":0},
+        {"x":1,"y":11,"rot":270},
+        {"x":6,"y":11,"rot":270,"can":"move"}
+      ],
+      "solution": [
+        {"move":[[6,11],[6,0]]},
+        {"tap":[1,8],"times":1},
+        {"tap":[0,5],"times":1},
+        {"tap":[6,8],"times":2},
+        {"tap":[0,0],"times":2},
+        {"tap":[5,5],"times":3},
+        {"tap":[4,0],"times":1},
+        {"tap":[3,5],"times":3}
+      ]
+    },
+    {
+      "id": "day-10",
+      "title": "Twice Around",
+      "hint": "Eight notes, and only four instruments to play them. Where does the wave go after the last one?",
+      "music": {"root":11,"mode":"locrian","bpm":116},
+      "motif": {
+        "name": "Along We Go",
+        "key": {"root":11,"mode":"locrian"},
+        "bpm": 120,
+        "bars": 1,
+        "family": "keys",
+        "octave": 3,
+        "notes": [[0,4,1],[2,2,7],[4,4,3],[6,2,7],[8,4,1],[10,2,7],[12,4,3],[14,2,7]],
+        "source": {
+          "piece": "alongwego-060138",
+          "title": "Along We Go",
+          "album": null,
+          "track": "Motifs",
+          "clip": "The Road"
+        }
+      },
+      "launch": {"x":0,"y":3,"dir":"right","can":"turn"},
+      "layout": [
+        "........",
+        "........",
+        "b======b",
+        "....b..H",
+        "H......H",
+        "H.H....H",
+        "H.H.==.H",
+        "H.H....H",
+        "H......H",
+        "H...H..H",
+        "H...H...",
+        "b..YS-M.",
+        "........",
+        "..b....."
+      ],
+      "overrides": [
+        {"x":0,"y":2,"rot":180},
+        {"x":7,"y":2,"rot":0,"can":"turn"},
+        {"x":4,"y":3,"rot":270},
+        {"x":0,"y":11,"rot":0,"can":"turn"},
+        {"x":3,"y":11,"rot":180},
+        {"x":4,"y":11,"rot":180,"can":"tune","extend":2},
+        {"x":6,"y":11,"rot":180},
+        {"x":2,"y":13,"rot":0,"can":"move"}
+      ],
+      "solution": [
+        {"tap":[0,3],"times":3},
+        {"tap":[7,2],"times":3},
+        {"move":[[2,13],[7,11]]},
+        {"tap":[4,11],"times":2},
+        {"tap":[0,11],"times":1}
+      ]
+    }
+  ]
+}

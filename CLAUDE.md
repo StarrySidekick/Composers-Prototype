@@ -164,6 +164,17 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   collections are where to read what he wants in the game. Motifs are scale
   degrees ([step, length, degree]); exports drop the lengths. `src/music/` is pure
   ES modules that run in node too: keep it free of the DOM outside `songbook/`.
+- **The daily board is its own page (2026-10-15).** Read `docs/DAILY.md` first.
+  `daily.html` (title screen: **daily**) is an 8 x 14 pinball table of the
+  castle's own doodads, one wave from a launcher, ten days in `daily/days.json`,
+  each a motif of Timothy's from the songbook. It adds two rules the castle does
+  not have, both in `src/daily/board.js` and nowhere else: a wave running along
+  one string is ONE held note, and percussion is never judged. Handles live in a
+  tile's override as `can` (`turn`, `tune`, `move`); a piece without one is
+  fixed. A day must not play its tune untouched, its recorded `solution` must,
+  and the solver must find it (`node tools/daily-solve.mjs`). Strings that touch
+  are one string here too. `src/daily/board.js` and `solve.js` run in node: keep
+  the DOM out of them.
 
 ## Assets
 
@@ -243,9 +254,9 @@ untouched, the renderer composes the linked key. Don't move it into the doodads.
 ## Testing
 
 **There is a runner now: `node test/rooms.mjs`** — serve the repo root on :8080
-first. (There are thirteen now: `rooms world walk timing art solve route
-mechanics controls snes story music writer`, each `node test/<name>.mjs`;
-`music` needs no server.) `rooms.mjs` plays every room in the manifest and checks the two things that break
+first. (There are fifteen now: `rooms world walk timing art solve route
+mechanics controls snes story music writer daily daily-touch`, each `node test/<name>.mjs`;
+`music` and `daily` need no server.) `rooms.mjs` plays every room in the manifest and checks the two things that break
 silently in a port like this: a legend character claimed twice (an object
 literal just lets the later one win), and a doodad playing a pitch that never
 came through the room's scale.
@@ -392,6 +403,17 @@ as the private page against a stand-in for the artifact's database. Proved by
 injection: ignore a clip's loop offset, play a writer note heard, or let a dotted
 eighth start anywhere, and each fails by name. Neither proves a set saved by a
 real Live reads the same; see docs/MUSIC.md.
+
+### And the daily board, a puzzle each day
+
+`node test/daily.mjs` (node only) holds each of the ten days to being a fair
+puzzle: untouched it is not the tune, its recorded solution touch by touch is,
+every handle does something, every note on the way is in the day's scale, drums
+are never judged, a string is one held note, and the solver finds an answer on
+every day small enough to play in a test. `node test/daily-touch.mjs` is the page
+on a 390 x 844 phone with real touch events: turn, tune, drag, play, the solved
+card, the title chip. Proved by injection: pluck a string on every tile and 18
+checks fail; drop the drag's lift above the finger and the drag fails.
 
 ### And a report, for when you are making rooms rather than fixing them
 

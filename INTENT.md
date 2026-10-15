@@ -359,6 +359,43 @@ What a cloud session could not do, and what needs him:
 - **Judge the key guesses by ear**, and correct them in the library; the correction
   is what every motif from that piece uses.
 
+## 2026-10-15: a daily board, a break from the castle
+
+Timothy, in his words: *"a fun break from Composer's Key ... in the same PWA ...
+a daily mode ... almost more like a fun little pinball game where you've got ...
+an 8 by 14 grid that has little instrumentini on it, and certain instruments
+respond to tapping and dragging, and your goal is to create the tune or replicate
+the motif that's playing ... about 10 suitable motifs from my collection ... you
+shoot the wave from one position ... and you have to rotate or click things in
+order to create the melody ... still using the tile-based sprites ...
+modifications to show what can be rotated and what can't ... 10 levels of
+progressing difficulty that represent kind of 10 days of play ... for testing
+purposes, we can play all 10 levels now."* CLAUDE.md already said this repo "may
+also become a smaller standalone mobile music game"; this is the first thing in
+it built for that rather than for Unity, and it lives in this repo because he
+asked for it in the same app.
+
+Done (`docs/DAILY.md` has all of it): `daily.html`, ten days, each a motif lifted
+from his songbook database (six projects with no album, four from Out of Bed,
+Reach Back Artifact, Please Wake Up and Far in The Park), every mode once or
+more. The castle's own drums, strings, horns, flutes and timpani on an 8 x 14
+board; arrows, dials and corner brackets show what turns, tunes and moves.
+Days 1 to 6 each teach one thing; 7 to 9 combine them and were made by search
+(`tools/daily-forge.mjs`), 10 is a loop the wave goes round twice. A solver
+proves every day has its answer, and all but day 4 exactly one.
+
+Guesses he should check:
+
+- **Notes are judged by degree, not octave**, and **only the notes, not the
+  rhythm**: the wave's timing is its path's. Matching his rhythm too is the
+  obvious next difficulty, and much harder to author.
+- **A wave along one string is one held note.** The castle plucks every tile;
+  the board would have been unsolvable to the ear without the change. It lives
+  only in `src/daily/board.js`.
+- Days 7 to 9 are searched, not composed. They are fair; whether they are fun
+  needs his thumbs.
+- Six song titles from projects with no album are now public in this repo.
+
 ## Something that needs Timothy
 
 **The GDD should come into this repo.** It currently lives at
