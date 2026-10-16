@@ -1,5 +1,6 @@
 /* The daily board. The game's look: white line-work on near black, nothing
-   coloured. One column, phone first; the board takes what the bars leave. */
+   coloured. One column, phone first: a thin bar, the tune as sheet music, and
+   the board taking everything that is left. */
 :root {
   --bg: #0b0b0b;
   --raised: #151515;
@@ -26,81 +27,54 @@ html, body {
 
 .daily {
   height: 100%;
-  max-width: 560px; margin: 0 auto;
+  max-width: 600px; margin: 0 auto;
   display: flex; flex-direction: column;
-  padding: env(safe-area-inset-top, 0px) max(8px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(8px, env(safe-area-inset-left, 0px));
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
 }
 
 button { font: inherit; color: inherit; cursor: pointer; }
 
-/* ---- the strip of days ---- */
-.d-top { display: flex; align-items: center; gap: 6px; padding: 6px 0 4px; }
-.d-back, .d-help {
-  flex: 0 0 34px; height: 34px; display: grid; place-items: center;
-  border: 1px solid var(--line); border-radius: 8px; background: var(--raised);
-  color: var(--ink); text-decoration: none; font-size: 18px;
+/* ---- the bar ---- */
+.d-top { display: flex; align-items: center; gap: 8px; padding: 4px 6px 0; }
+.d-icon {
+  flex: 0 0 36px; height: 36px; padding: 6px; display: grid; place-items: center;
+  border: 0; border-radius: 8px; background: transparent; color: var(--ink);
 }
-.d-days { flex: 1; display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
-.d-day {
-  height: 34px; min-width: 0; padding: 0;
-  border: 1px solid var(--line); border-radius: 6px; background: transparent;
-  font-variant-numeric: tabular-nums; font-size: 13px; color: var(--dim);
-}
-.d-day.today { border-color: var(--dim); color: var(--ink); }
-.d-day.solved { background: var(--raised); color: var(--ink); }
-.d-day.solved::after { content: ""; display: block; width: 5px; height: 5px; margin: 1px auto 0; border-radius: 50%; background: var(--ink); }
-.d-day.on { border-color: var(--hot); color: var(--hot); box-shadow: inset 0 0 0 1px var(--hot); }
-.d-day.later { border-style: dashed; }
-
-/* ---- the tune ---- */
-.d-tune { padding: 4px 2px 2px; }
-.d-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.d-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.d-head { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; overflow: hidden; white-space: nowrap; }
 .d-when { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
-.d-title { font: 600 17px/1.2 var(--serif); }
-.d-key { margin-left: auto; font-size: 12px; color: var(--dim); }
-.d-notes { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 2px; }
-.d-note {
-  position: relative; min-width: 38px; padding: 4px 7px; text-align: center;
-  border: 1px solid var(--dim); border-radius: 14px; font-weight: 600; font-size: 13px;
-  transition: background .08s, color .08s;
+.d-title { font: 600 16px/1.2 var(--serif); overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- the tune: sheet music, tap to hear ---- */
+.d-staff {
+  display: block; width: 100%; padding: 0 6px; margin: 0;
+  border: 0; background: transparent; color: var(--ink);
 }
-.d-note.sing { background: var(--raised); border-color: var(--hot); color: var(--hot); }
-.d-note.hit { background: var(--ink); color: #000; border-color: var(--ink); }
-.d-note.wrong { text-decoration: line-through; border-style: dashed; color: var(--dim); }
-.d-note.wrong::after {
-  content: attr(data-got); position: absolute; left: 50%; top: 100%; transform: translate(-50%, 2px);
-  font-size: 11px; color: var(--hot); text-decoration: none;
-}
-.d-staff { height: 0; overflow: hidden; }
-.d-staff svg { display: block; max-width: 100%; height: auto; }
-@media (min-height: 900px) { .d-staff { height: auto; margin-top: 4px; } }
+.d-staff svg { display: block; width: 100%; height: auto; max-height: 92px; }
 
 /* ---- the board ---- */
 .d-stage { flex: 1; min-height: 0; display: grid; place-items: center; position: relative; }
-.d-board { display: block; touch-action: none; border-radius: 2px; }
+.d-board { display: block; touch-action: none; }
+.d-toast {
+  position: absolute; left: 50%; top: 8px; transform: translateX(-50%);
+  max-width: calc(100% - 24px); padding: 7px 12px; border-radius: 10px;
+  background: rgba(0, 0, 0, .82); border: 1px solid var(--line);
+  font-size: 13px; text-align: center; text-wrap: balance; pointer-events: none;
+  opacity: 0; transition: opacity .25s;
+}
+.d-toast.on { opacity: 1; }
 .d-locked {
   position: absolute; inset: 0; display: grid; place-items: center;
   background: rgba(0, 0, 0, .78); font: 600 16px var(--serif);
 }
 
-.d-hint { margin: 2px 4px; min-height: 2.6em; font-size: 13px; color: var(--dim); text-wrap: balance; }
-
-.d-bar { display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 8px; padding: 2px 0 8px; }
-.d-btn {
-  height: 46px; padding: 0 12px; border-radius: 10px;
-  border: 1px solid var(--line); background: var(--raised); color: var(--ink);
-  font-size: 15px; letter-spacing: .02em;
-}
-.d-btn:disabled { opacity: .4; cursor: default; }
-.d-play { border-color: var(--hot); color: var(--hot); font-weight: 600; font-size: 17px; }
-
-/* ---- cards over the board ---- */
-.d-howto, .d-done {
+/* ---- sheets over the board ---- */
+.d-sheet {
   position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px;
   background: rgba(0, 0, 0, .72);
 }
 .d-card {
-  width: min(380px, 100%); padding: 18px; display: grid; gap: 10px;
+  width: min(380px, 100%); max-height: 100%; overflow: auto; padding: 18px; display: grid; gap: 12px;
   background: var(--raised); border: 1px solid var(--line); border-radius: 12px;
   -webkit-user-select: text; user-select: text;
 }
@@ -108,7 +82,27 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .d-card p { margin: 0; }
 .d-stats { color: var(--dim); }
 .d-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.d-row.d-spread { justify-content: space-between; }
 .d-row .d-btn { flex: 1; }
+.d-btn {
+  height: 44px; padding: 0 12px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  font-size: 15px; text-decoration: none;
+}
+.d-strong { border-color: var(--hot); color: var(--hot); font-weight: 600; }
+
+.d-days { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.d-day {
+  padding: 6px 2px; border: 1px solid var(--line); border-radius: 8px; background: transparent;
+  display: grid; gap: 1px; justify-items: center; color: var(--dim);
+}
+.d-day b { font: 600 17px/1.1 var(--serif); color: var(--ink); }
+.d-day small { font-size: 10px; }
+.d-day.today { border-color: var(--dim); }
+.d-day.on { border-color: var(--hot); box-shadow: inset 0 0 0 1px var(--hot); }
+.d-day.solved::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--ink); }
+.d-day.later { border-style: dashed; }
+
 .d-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .d-legend li { display: flex; align-items: center; gap: 10px; }
 .d-legend i { flex: 0 0 26px; height: 26px; border: 1px solid var(--line); border-radius: 4px; position: relative; }

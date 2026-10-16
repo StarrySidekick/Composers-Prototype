@@ -166,15 +166,20 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   ES modules that run in node too: keep it free of the DOM outside `songbook/`.
 - **The daily board is its own page (2026-10-15).** Read `docs/DAILY.md` first.
   `daily.html` (title screen: **daily**) is an 8 x 14 pinball table of the
-  castle's own doodads, one wave from a launcher, ten days in `daily/days.json`,
-  each a motif of Timothy's from the songbook. It adds two rules the castle does
-  not have, both in `src/daily/board.js` and nowhere else: a wave running along
-  one string is ONE held note, and percussion is never judged. Handles live in a
-  tile's override as `can` (`turn`, `tune`, `move`); a piece without one is
-  fixed. A day must not play its tune untouched, its recorded `solution` must,
-  and the solver must find it (`node tools/daily-solve.mjs`). Strings that touch
-  are one string here too. `src/daily/board.js` and `solve.js` run in node: keep
-  the DOM out of them.
+  castle's own doodads, one wave from Coda, ten days in `daily/days.json`, each
+  a motif of Timothy's from the songbook. **Since 2026-10-16 its strings are its
+  own** (`src/daily/pieces.js`, characters in `DAILY_LEGEND`, not
+  `DEFAULT_LEGEND`: `= H` string, `o` peg, `v y f` violin, trumpet, flute): a
+  string sounds when the wave CROSSES it, never along it; its note is
+  `7 - length + wraps` on its two pegs; a peg on a block slides along its
+  string. The castle's `s` string still sounds along, and no day uses it.
+  Percussion is never judged. Handles live in a tile's override as `can`
+  (`turn`, `tune`, `move`; a peg winds on `turn`); Coda aims on
+  `launch.can: 'turn'`. Tapping Coda plays, tapping the sheet music plays the
+  tune. A day must not play its tune untouched, its recorded `solution` must,
+  and the solver must find it (`node tools/daily-solve.mjs`).
+  `src/daily/board.js`, `pieces.js` and `solve.js` run in node: keep the DOM out
+  of them.
 
 ## Assets
 
@@ -409,11 +414,15 @@ real Live reads the same; see docs/MUSIC.md.
 `node test/daily.mjs` (node only) holds each of the ten days to being a fair
 puzzle: untouched it is not the tune, its recorded solution touch by touch is,
 every handle does something, every note on the way is in the day's scale, drums
-are never judged, a string is one held note, and the solver finds an answer on
-every day small enough to play in a test. `node test/daily-touch.mjs` is the page
-on a 390 x 844 phone with real touch events: turn, tune, drag, play, the solved
-card, the title chip. Proved by injection: pluck a string on every tile and 18
-checks fail; drop the drag's lift above the finger and the drag fails.
+are never judged, and the solver finds an answer on every day small enough to
+play in a test; plus the board's own pieces on a small table (a crossed string
+plays, a wrap raises it a step, a slid peg lowers it and stays on its line, a
+little instrument plays from any side). `node test/daily-touch.mjs` is the page
+on a 390 x 844 phone with real touch events: wind a peg, turn a drum, slide a peg
+block, tap Coda to play, tap the music to hear it, the gear's days, aim Coda by
+dragging, the solved card, the title chip. Proved by injection: make a tap on
+Coda do nothing and drop the drag's lift above the finger, and 8 checks fail by
+name.
 
 ### And a report, for when you are making rooms rather than fixing them
 

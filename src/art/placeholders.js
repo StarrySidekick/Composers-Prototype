@@ -1017,6 +1017,89 @@ Object.assign(PLACEHOLDERS, {
 });
 
 // ---------------------------------------------------------------------------
+// The daily board's little instruments (src/daily/pieces.js, 2026-10-16): one
+// tile, one set note, a wave passes through from any side, so no connectors and
+// no direction. Each is a whole instrument, drawn so it can never be mistaken
+// for one tile of a bigger one: the violin upright, the trumpet in profile, the
+// flute on the diagonal (a flute run lies flat). On the daily board a tile is
+// shown at about 48 px, near its native 51.
+
+// A violin with its bow, crafted register. Alone, an upright violin read as a
+// treble clef at play size (2026-10-16): the scroll curled like the clef's top.
+// So it leans, it is wide in the body and short in the neck, and the bow crosses
+// it: nothing else in the game is a body with a stick across it.
+function soloViolin(p) {
+  const c = p.c;
+  c.save();
+  c.translate(M, M);
+  c.rotate(0.5);                                                       // leaning right
+  c.translate(-M, -M);
+  const upper = { c: 27, h: 7, rx: 9 }, lower = { c: 40.5, h: 8.5, rx: 11.5 };
+  const half = y => {
+    const e = ({ c: cy, h, rx }) => Math.abs(y - cy) < h ? rx * Math.sqrt(1 - ((y - cy) / h) ** 2) : 0;
+    return Math.max(e(upper), e(lower));
+  };
+  const y0 = upper.c - upper.h, y1 = lower.c + lower.h;
+  p.path(t => {
+    const k = t < 0.5 ? t * 2 : (1 - t) * 2;
+    const y = y0 + (y1 - y0) * (1 - Math.cos(k * Math.PI)) / 2;
+    return [M + (t < 0.5 ? 1 : -1) * half(y), y];
+  }, { width: 3, wobble: 0.15, steps: 90 });
+  p.line(M, 9, M, 33, { width: 3, ...crafted });                     // neck and fingerboard
+  p.fill([[M - 3, 4], [M + 3, 4], [M + 2.5, 10], [M - 2.5, 10]]);     // the pegbox, solid
+  p.line(M - 5, 39, M + 5, 39, { width: 3, wobble: 0 });             // the bridge
+  p.fill([[M - 3, 42], [M + 3, 42], [M + 1.5, 46.5], [M - 1.5, 46.5]]);   // the tailpiece
+  c.restore();
+  // The bow, across the strings at the bridge, ending in a curl at its frog.
+  p.line(6, 30, 46, 14, { width: 2.5, wobble: 0.1 });
+  p.curlAt(6, 30, Math.PI + 0.4, 3.5, { dir: -1, width: 2 });
+}
+
+// A trumpet in profile, bell to the right: the lead pipe from a solid mouthpiece
+// cup, three valves standing on it with solid finger buttons, the tuning loop
+// slung underneath, and the bell flaring to a solid rim as the horn's bell does.
+function soloTrumpet(p) {
+  const y = 23.5;
+  p.line(7, y, 34, y, { width: 3, ...crafted });                     // lead pipe
+  fillDot(p, 6, y, 3.4, 3.4, 0);                                      // mouthpiece cup
+  // The bell's flare: narrow, then opening fast toward the rim, not a cone.
+  for (const sd of [-1, 1]) p.path(t => [34 + t * 11, y + sd * (1.5 + 10 * t ** 2.4)], { width: 3, wobble: 0.1, steps: 30 });
+  p.fill([[44, 10], [48, 11], [48, 36], [44, 37]]);                   // its rim, solid
+  // The loop: down from the pipe, along underneath, up into the bell's throat.
+  p.path(t => {
+    if (t < 0.25) { const a = -Math.PI / 2 - t / 0.25 * Math.PI; return [15 + Math.cos(a) * 6, y + 6 + Math.sin(a) * 6]; }
+    if (t < 0.8) return [15 + (t - 0.25) / 0.55 * 15, y + 12];
+    const k = (t - 0.8) / 0.2; return [30 + k * 4, y + 12 - k * 9];
+  }, { width: 3, wobble: 0.15, steps: 60 });
+  for (const x of [17, 23, 29]) {                                     // the valves
+    p.line(x, y - 8, x, y + 12, { width: 3, wobble: 0 });
+    fillDot(p, x, y - 10, 2.1, 1.8, 0);
+  }
+}
+
+// A flute on the diagonal, head up at the left: a solid crown, the lip plate with
+// its embouchure, solid keys down the body, and the foot rolling into a scroll.
+function soloFlute(p) {
+  const hx = 7, hy = 13, fx = 42, fy = 40;
+  const len = Math.hypot(fx - hx, fy - hy), ux = (fx - hx) / len, uy = (fy - hy) / len;
+  const nx = -uy, ny = ux, w = 3.6;
+  const at = (k, off = 0) => [hx + ux * len * k + nx * off, hy + uy * len * k + ny * off];
+  for (const side of [-1, 1]) {
+    const [x0, y0] = at(0.04, side * w), [x1, y1] = at(1, side * w);
+    p.line(x0, y0, x1, y1, { width: 3, wobble: 0.1 });
+  }
+  p.fill([at(0, -w - 1.5), at(0.06, -w - 1.5), at(0.06, w + 1.5), at(0, w + 1.5)]);   // the crown
+  const [lx, ly] = at(0.2, -w - 2.5);
+  fillDot(p, lx, ly, 5, 3.2, Math.atan2(uy, ux));                     // the lip plate
+  erase(p, () => fillDot(p, lx, ly, 2.2, 1.3, Math.atan2(uy, ux)));   // its embouchure
+  for (const k of [0.48, 0.64, 0.8]) { const [kx, ky] = at(k); fillDot(p, kx, ky, 2.3, 2.3, 0); }
+  const [cx, cy] = at(1, w);
+  p.curlAt(cx, cy, Math.atan2(uy, ux) + 1.1, 5.5, { dir: 1, width: 2 });
+}
+
+Object.assign(PLACEHOLDERS, { 'solo.violin': soloViolin, 'solo.trumpet': soloTrumpet, 'solo.flute': soloFlute });
+
+// ---------------------------------------------------------------------------
 // Proposals: art for things the game does not have yet. Nothing asks for these
 // keys, so they never appear in a room; they exist to be argued about in the asset
 // review, next to the real thing.

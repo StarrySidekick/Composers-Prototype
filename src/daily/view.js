@@ -9,13 +9,17 @@
 //             (Board.labels), so the board can be read against the tune.
 //   the trail where the last wave went, faint, under the pieces: the table
 //             remembers the ball, so a wrong run still teaches something.
+//   Coda      with an arrow the way the wave will leave him.
 //
-// White line-work only, like everything else: the handles are drawn in the
-// same ink as the art and the trail is the same white, quieter.
+// The floor is plain: the castle's faint staves through every tile are left
+// out here (Timothy, 2026-10-16), only the cell grid stays. White line-work
+// only, like everything else: handles in the same ink as the art, the trail the
+// same white, quieter.
 
 import { Renderer } from '../render/renderer.js';
 import { PALETTE } from '../render/palette.js';
 import { handlesOf } from './board.js';
+import { TuningPeg, TautString } from './pieces.js';
 
 export class BoardView extends Renderer {
   constructor(canvas, assets) {
@@ -45,6 +49,7 @@ export class BoardView extends Renderer {
         if (!d || (this.drag && this.drag.piece === d)) continue;
         c.save();
         c.translate(x * s, y * s);
+        if (d instanceof TuningPeg && handlesOf(d).move) this._block(s);
         this._doodad(d, s, board.ctx, room);
         this._handles(d, s, board);
         c.restore();
@@ -56,6 +61,41 @@ export class BoardView extends Renderer {
     this._launcher(board, s, p);
     this._waves({ waves: board.waves, clock }, s, p);
     if (this.drag) this._carry(board, s);
+    c.restore();
+  }
+
+  // The floor: its mode's tint and the cell grid, without the staves.
+  _floor(room, s, p) {
+    const c = this.c;
+    c.fillStyle = this.floorColour(room);
+    c.fillRect(0, 0, room.width * s, room.height * s);
+    c.strokeStyle = p.grid;
+    c.globalAlpha = 0.6;
+    c.lineWidth = 1;
+    c.beginPath();
+    for (let x = 0; x <= room.width; x++) { c.moveTo(x * s + 0.5, 0); c.lineTo(x * s + 0.5, room.height * s); }
+    for (let y = 0; y <= room.height; y++) { c.moveTo(0, y * s + 0.5); c.lineTo(room.width * s, y * s + 0.5); }
+    c.stroke();
+    c.globalAlpha = 1;
+  }
+
+  // The block a sliding peg stands on: a square of line-work, under the peg.
+  _block(s) {
+    const c = this.c, m = s * 0.12;
+    c.save();
+    c.fillStyle = '#000000';
+    c.strokeStyle = '#ffffff';
+    c.lineWidth = Math.max(2, s * 0.05);
+    c.beginPath();
+    if (c.roundRect) c.roundRect(m, m, s - 2 * m, s - 2 * m, s * 0.08);
+    else c.rect(m, m, s - 2 * m, s - 2 * m);
+    c.fill();
+    c.stroke();
+    c.globalAlpha = 0.6;
+    c.lineWidth = Math.max(1, s * 0.03);
+    c.beginPath();
+    c.moveTo(m * 1.8, s - m * 1.8); c.lineTo(s - m * 1.8, s - m * 1.8); c.lineTo(s - m * 1.8, m * 1.8);
+    c.stroke();
     c.restore();
   }
 
@@ -132,7 +172,10 @@ export class BoardView extends Renderer {
     }
     for (const l of this._labels_) {
       if (this.drag && this.drag.piece === l.piece) continue;
-      const x = l.x * s + s * 0.27, y = l.y * s + s * 0.8;
+      // Beside a string, not on it: above a level one, left of an upright one.
+      const str = l.piece instanceof TautString;
+      const x = l.x * s + (str && l.piece.axis === 'v' ? s * 0.22 : s * 0.3);
+      const y = l.y * s + (str && l.piece.axis === 'h' ? s * 0.22 : s * 0.8);
       const w = c.measureText(l.text).width + s * 0.14;
       c.globalAlpha = 0.85;
       c.fillStyle = '#000000';
@@ -209,8 +252,20 @@ export class BoardView extends Renderer {
     c.setLineDash([s * 0.08, s * 0.08]);
     c.beginPath(); c.arc((x + 0.5) * s, (y + 0.5) * s, s * 0.44, 0, Math.PI * 2); c.stroke();
     c.restore();
-    const facing = dir.x > 0 ? 'right' : dir.x < 0 ? 'left' : dir.y > 0 ? 'down' : 'up';
+    const aim = this.aiming ? { up: [0, -1], right: [1, 0], down: [0, 1], left: [-1, 0] }[this.aiming] : [dir.x, dir.y];
+    const facing = aim[0] > 0 ? 'right' : aim[0] < 0 ? 'left' : aim[1] > 0 ? 'down' : 'up';
     this._player({ player: { x, y, rx: x, ry: y, facing, side: facing === 'left' ? 'left' : 'right', walking: false, stride: 0 } }, s, p);
+    // The way the wave will go: a chevron just past Coda's tile. A Coda that can
+    // be aimed also shows the turning arrow.
+    c.save();
+    c.translate((x + 0.5 + aim[0] * 0.62) * s, (y + 0.5 + aim[1] * 0.62) * s);
+    c.rotate(Math.atan2(aim[1], aim[0]));
+    c.strokeStyle = '#ffffff';
+    c.globalAlpha = board.running ? 0.35 : 0.85;
+    c.lineWidth = Math.max(2, s * 0.06);
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    c.beginPath(); c.moveTo(-s * 0.1, -s * 0.13); c.lineTo(s * 0.04, 0); c.lineTo(-s * 0.1, s * 0.13); c.stroke();
+    c.restore();
     if (can.includes('turn')) {
       c.save();
       c.translate(x * s, y * s);

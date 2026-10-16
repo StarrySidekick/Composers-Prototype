@@ -21,23 +21,27 @@ const trail = process.argv.includes('--trail');
 const names = d => d.map(x => SOLFEGE[x]).join(' ');
 const ARROW = { up: '^', down: 'v', left: '<', right: '>' };
 
+// The board as text, from the pieces as they are now (a slid peg moves its
+// string, so the layout as written is not enough). Handles after each piece:
+// T turn, t tune, m move, M move and turn. A dot on a floor tile: the wave went there.
+const GLYPH = { taut: d => (d.axis === 'h' ? '=' : 'H'), tuningpeg: () => 'o', solo: d => ({ violin: 'v', trumpet: 'y', flute: 'f' }[d.voice]) };
 function draw(board, path = null) {
-  const seen = new Map();
-  for (const p of path ?? []) seen.set(`${p.x},${p.y}`, (seen.get(`${p.x},${p.y}`) ?? 0) + 1);
+  const seen = new Set((path ?? []).map(p => `${p.x},${p.y}`));
   const rows = [];
   for (let y = 0; y < board.room.height; y++) {
     let row = '';
     for (let x = 0; x < board.room.width; x++) {
       const d = board.pieceAt(x, y);
-      let ch = board.room.layout[y][x];
-      if (board.isLauncher(x, y)) ch = '@';
-      if (d) {
+      let ch;
+      if (board.isLauncher(x, y)) ch = '@ ';
+      else if (!d) ch = seen.has(`${x},${y}`) ? '· ' : '. ';
+      else {
         const h = handlesOf(d);
-        const mark = h.move ? (h.turn ? 'M' : 'm') : h.turn ? 'T' : h.tune ? 't' : ' ';
-        ch = (d.typeName === 'drum' && d.mirror ? ['/', '-', '\\', '|'][(d.rot / 45) % 4] : ch) + mark;
-      } else ch += seen.has(`${x},${y}`) ? '·' : ' ';
-      if (!d && ch[0] === '.') ch = (seen.has(`${x},${y}`) ? '·' : '.') + ' ';
-      row += ch.padEnd(2) + ' ';
+        const mark = h.move ? (h.turn ? 'M' : 'm') : h.turn ? 'T' : h.tune ? 't' : (seen.has(`${x},${y}`) ? '·' : ' ');
+        const g = GLYPH[d.typeName]?.(d) ?? (d.typeName === 'drum' && d.mirror ? ['/', '-', '\\', '|'][(d.rot / 45) % 4] : board.room.layout[y][x]);
+        ch = g + mark;
+      }
+      row += ch + ' ';
     }
     rows.push(`   ${String(y).padStart(2)} ${row}`);
   }
@@ -50,19 +54,21 @@ for (const [i, day] of DAYS.days.entries()) {
   const b0 = new Board(day);
   console.log(`\nDay ${n}: ${day.title}  (${day.music.bpm} bpm, ${['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][b0.key.root]} ${b0.key.mode})`);
   console.log(`  tune: ${names(b0.target)}   from "${day.motif.source?.title}"`);
-  console.log(`  handles: ${b0.handles().map(h => h.launcher ? 'launcher' : `${h.piece.typeName}${h.piece.part ? '.' + h.piece.part : ''}@${h.piece.x},${h.piece.y}[${['turn', 'tune', 'move'].filter(k => h[k]).join('+')}]`).join('  ')}`);
+  console.log(`  handles: ${b0.handles().map(h => h.launcher ? 'Coda (aim)' : `${h.piece.typeName}${h.piece.part ? '.' + h.piece.part : ''}@${h.piece.x},${h.piece.y}[${['turn', 'tune', 'move'].filter(k => h[k]).join('+')}]`).join('  ')}`);
   const as = b0.simulate();
   console.log(`  as it stands: ${as.verdict.kind}, heard ${names(as.heard.map(h => h.degree)) || 'nothing'} (${as.steps} steps)`);
   if (trail) console.log(draw(new Board(day), as.trail));
   const b1 = new Board(day);
   const ok = applySolution(b1, day.solution);
   const sol = b1.simulate();
-  console.log(`  solution (${(day.solution ?? []).map(s => s.tap ? `tap ${s.tap}${s.times > 1 ? ' x' + s.times : ''}` : `move ${s.move[0]}->${s.move[1]}`).join(', ') || 'none'}): ${ok ? '' : 'A TOUCH DID NOTHING, '}${sol.verdict.kind}, heard ${names(sol.heard.map(h => h.degree))} (${sol.steps} steps)`);
+  const say = s => s.tap ? `tap ${s.tap}${s.times > 1 ? ' x' + s.times : ''}` : s.aim ? `aim ${s.aim}` : `move ${s.move[0]}->${s.move[1]}`;
+  console.log(`  solution (${(day.solution ?? []).map(say).join(', ') || 'none'}): ${ok ? '' : 'A TOUCH DID NOTHING, '}${sol.verdict.kind}, heard ${names(sol.heard.map(h => h.degree))} (${sol.steps} steps)`);
   if (trail) { const b2 = new Board(day); applySolution(b2, day.solution); console.log(draw(b2, b2.simulate().trail)); }
   const t0 = Date.now();
+  const size = space(day);
+  if (size > 3e6) { console.log(`  space: ${size} configurations, too many to play`); continue; }
   const r = solve(day);
   if (r.tooBig) console.log(`  space: ${r.configs} configurations, too many to play`);
   else console.log(`  space: ${r.configs} configurations, ${r.solutions} play the tune, fewest touches ${r.fewest}  [${Date.now() - t0} ms]` +
-    (r.best.length ? `\n  e.g. ${r.best.slice(0, 3).map(t => t.map(s => s.tap ? `tap ${s.tap}${s.times > 1 ? ' x' + s.times : ''}` : `move ${s.move[0]}->${s.move[1]}`).join(', ')).join('  |  ')}` : ''));
+    (r.best.length ? `\n  e.g. ${r.best.slice(0, 3).map(t => t.map(say).join(', ')).join('  |  ')}` : ''));
 }
-void space;
