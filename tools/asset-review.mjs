@@ -38,6 +38,9 @@ const ABOUT = {
   'brass.mute.open': 'Mute, pulled out of the bell.',
   'string': 'String. Plucked along its length, silent across it. Length sets the instrument.',
   'peg': 'Peg. Turns itself so the stem points at its string.',
+  'solo.violin': 'Little violin, daily board only. One tile, one note, from any side. Leans, with its bow, so it does not read as a clef.',
+  'solo.trumpet': 'Little trumpet, daily board only. One tile, one note, from any side.',
+  'solo.flute': 'Little flute, daily board only. One tile, one note, from any side.',
   'drum.bass': 'Bass drum, head / facing up-left. Only the head reflects, like a mirror; the back absorbs. Eight positions, 45° apart.',
   'drum.bass.flat': 'Bass drum, head level — facing up. The drawing used for the in-between positions, turned in 90° steps.',
   'drum.tom': 'Tom. A mirror like the bass drum, higher; default slant \\.',
@@ -93,7 +96,8 @@ const assets = await page.evaluate(async () => {
     cv.getContext('2d').drawImage(slice.image, slice.sx, slice.sy, slice.sw, slice.sh, 0, 0, slice.sw, slice.sh);
     return cv.toDataURL('image/png');
   };
-  const keys = [...spriteSlots().map(s => s.key), 'player', 'wave', 'block'];
+  // The daily board's own pieces are not in the castle's legend, so they are named here.
+  const keys = [...spriteSlots().map(s => s.key), 'solo.violin', 'solo.trumpet', 'solo.flute', 'player', 'wave', 'block'];
   const out = keys.map(key => ({ key, real: url(store.real(key)), sketch: url(store.draft(key)) }));
   for (const key of proposalKeys()) out.push({ key, proposal: true, sketch: drawProposal(key).toDataURL('image/png') });
   return out;
@@ -110,6 +114,7 @@ for (const a of assets) {
     : /^(door|lock|notelock|keyshift|exit|dissonance|strumentino)/.test(a.key) ? 'puzzle'
     : /^(pianokey|mallet)/.test(a.key) ? 'keys'
     : /^(string|peg)/.test(a.key) ? 'strings'
+    : /^solo\./.test(a.key) ? 'daily'
     : /^drum/.test(a.key) ? 'percussion'
     : /^brass/.test(a.key) ? 'brass' : 'characters';
 }

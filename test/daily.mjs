@@ -6,27 +6,30 @@
 
      - it plays the tune before anyone touches it (no puzzle), or the recorded
        solution no longer plays it (no answer). Every touch of the solution goes
-       through Board.tap / Board.move, the same calls a finger makes, and a touch
-       that does nothing fails by name, so a stale solution cannot pass quietly.
-     - a handle that does nothing ("tune" on a piece with one state), a launcher
-       on top of a piece, a board that is not 8 x 14, a horn with a loose end or
-       no bell (the castle's horn rule holds here too)
+       through Board.tap / Board.move / Board.aim, the same calls a finger makes,
+       and a touch that does nothing fails by name, so a stale solution cannot
+       pass quietly.
+     - a handle that does nothing ("tune" on a piece with one state), Coda on top
+       of a piece, a board that is not 8 x 14, a horn with a loose end or no bell
+       (the castle's horn rule holds here too)
      - a note off the board's scale: every pitch the wave sets off on the way to
        the answer is checked against the day's key, the rule the whole game is
        built on
-     - the two rules the board adds to the castle: a wave running along a string
-       is ONE held note, not a pluck per tile; drums keep time and are never
-       judged
+     - the daily's own pieces doing something other than what they say
+       (src/daily/pieces.js): a string sounds when CROSSED and not along, a wrap
+       raises it a step, a slid peg lengthens it and only slides along it, two
+       strings side by side stay two, a little instrument plays its one note from
+       any side and lets the wave through, and drums are never judged
 
    And the solver plays every configuration of the smaller days (src/daily/
    solve.js): each must have an answer, and how many it has is printed. The
-   bigger days are left to `node tools/daily-solve.mjs`, which is for reading.
+   days with many pieces to drag are left to the recorded solution.
 
    Node only, no server: `node test/daily.mjs`. The page itself, by touch, is
    test/daily-touch.mjs.
 */
 import { readFileSync } from 'node:fs';
-import { Board, applySolution, targetOf, handlesOf, cycleOf, COLS, ROWS, SOLFEGE } from '../src/daily/board.js';
+import { Board, applySolution, targetOf, handlesOf, cycleOf, COLS, ROWS, SOLFEGE, DAILY_LEGEND } from '../src/daily/board.js';
 import { solve, space } from '../src/daily/solve.js';
 import { hornProblems } from '../src/doodads/brass.js';
 import { DEFAULT_LEGEND } from '../src/core/room.js';
@@ -51,11 +54,11 @@ for (const [i, day] of DAYS.days.entries()) {
   // ---- the board as drawn ----
   ok(`${tag}: ${ROWS} rows of ${COLS}`, day.layout.length === ROWS && day.layout.every(r => r.length === COLS),
     day.layout.map(r => r.length).join(','));
-  const legend = { ...DEFAULT_LEGEND, ...(day.legend ?? {}) };
+  const legend = { ...DEFAULT_LEGEND, ...DAILY_LEGEND, ...(day.legend ?? {}) };
   const unknown = [...new Set(day.layout.join(''))].filter(ch => !(ch in legend));
   ok(`${tag}: every character is in the legend`, !unknown.length, unknown.join(''));
   const b0 = new Board(day);
-  ok(`${tag}: the launcher stands on empty floor`, b0.room.inBounds(b0.launch.x, b0.launch.y) && !b0.pieceAt(b0.launch.x, b0.launch.y),
+  ok(`${tag}: Coda stands on empty floor`, b0.room.inBounds(b0.launch.x, b0.launch.y) && !b0.pieceAt(b0.launch.x, b0.launch.y),
     `${b0.launch.x},${b0.launch.y}`);
   const horns = hornProblems(b0.room);
   ok(`${tag}: every horn runs mouthpiece to bell`, !horns.length, horns.join('; '));
@@ -100,28 +103,52 @@ for (const [i, day] of DAYS.days.entries()) {
   } else console.log(`       ${n} configurations: too many to play here (node tools/daily-solve.mjs ${i + 1})`);
 }
 
-// ---- the two rules the board adds ----
-console.log('\nthe rules');
+// ---- the daily's own pieces -----------------------------------------------
+console.log('\nthe pieces');
 {
-  // Day 1's first string is five tiles of mi. Along it, one note.
-  const b = new Board(DAYS.days[0]);
-  b.fire();
-  while (b.running && b.step < 8) b.tick();
-  const mis = b.heard.filter(h => SOLFEGE[h.degree] === 'mi');
-  ok('a wave along a five-tile string plays one note, not five', mis.length === 1, `${mis.length}`);
-
-  // The same string again after a drum is a new note: a pedal can be played.
-  const day = {
-    ...DAYS.days[0], id: 'rule', overrides: [],
+  // A small table: Coda at the bottom of column 3, a string across row 10 held
+  // by two pegs (three tiles: sol in C), a violin on do above it.
+  const base = {
+    id: 'rule', title: 'rule', music: { root: 0, mode: 'ionian', bpm: 100 },
+    motif: { key: { root: 0, mode: 'ionian' }, notes: [[0, 1, 4], [1, 1, 0], [2, 1, 2]] },
+    launch: { x: 3, y: 13, dir: 'up' },
     layout: ['........', '........', '........', '........', '........', '........', '........',
-      '.s......', '.H......', '.H......', '.H......', '.H......', '.H......', '........'],
-    solution: [],
+             '........', '...v....', '........', '.o===o..', '........', '........', '........'],
+    overrides: [{ x: 5, y: 10, can: 'turn move' }, { x: 3, y: 8, degree: 0 }],
   };
-  const pedal = new Board({ ...day, overrides: [{ x: 1, y: 7, rot: 225 }] });   // a flat head facing down: straight back
-  pedal.fire();
-  while (pedal.running && pedal.step < 20) pedal.tick();
-  ok('back along the same string after a drum is a second note', pedal.heard.length === 2 && pedal.heard[0].degree === pedal.heard[1].degree,
-    names(pedal.heard.map(h => h.degree)));
+  const heard = (b) => { b.simulate(); return names(b.heard.map(h => h.degree)); };
+  ok('a wave crossing a string plays it, and a violin its one note', heard(new Board(base)) === 'sol do', heard(new Board(base)));
+
+  let b = new Board(base);
+  b.tap(5, 10);
+  ok('one wrap on either peg raises the string a step', heard(b) === 'la', heard(b));
+
+  b = new Board(base);
+  const slid = b.move({ x: 5, y: 10 }, { x: 7, y: 10 });
+  const row = [...Array(8)].map((_, x) => ({ taut: '=', tuningpeg: 'o' })[b.pieceAt(x, 10)?.typeName] ?? '.').join('');
+  ok('a peg slid along its string lays a longer string, and it plays lower', slid && row === '.o=====o' && heard(b) === 'mi', `${row} ${heard(b)}`);
+  b = new Board(base);
+  ok('a peg will not leave its string\'s line, nor pass its partner', !b.move({ x: 5, y: 10 }, { x: 5, y: 9 }) && !b.move({ x: 5, y: 10 }, { x: 2, y: 10 }) && !b.move({ x: 5, y: 10 }, { x: 1, y: 10 }));
+
+  // Two strings side by side stay two: rows 9 and 10, crossed one after the other.
+  const pair = new Board({ ...base, layout: base.layout.map((r, y) => y === 8 ? '........' : y === 9 ? '.o==o...' : r), overrides: [] });
+  ok('two strings side by side are two strings, two notes', pair.simulate() && pair.heard.length === 2 && pair.heard[0].degree !== pair.heard[1].degree, names(pair.heard.map(h => h.degree)));
+
+  // A little instrument from the side: still its one note, and the wave goes on
+  // through it to cross the string beyond (a second note proves it went through).
+  const side = new Board({
+    ...base, launch: { x: 0, y: 8, dir: 'right' }, overrides: [{ x: 3, y: 8, degree: 0 }],
+    motif: { key: { root: 0, mode: 'ionian' }, notes: [[0, 1, 0], [1, 1, 6], [2, 1, 2]] },
+    layout: base.layout.map((r, y) => y === 7 ? '.....o..' : y === 8 ? '...v.H..' : y === 9 ? '.....o..' : r),
+  });
+  side.simulate();
+  ok('a little instrument plays its note from the side and lets the wave through', side.heard.length === 2 && side.heard[0].degree === 0,
+    names(side.heard.map(h => h.degree)));
+
+  // Drums keep time: a drum's hit is never a note of the tune.
+  const drum = new Board({ ...base, layout: base.layout.map((r, y) => y === 12 ? '...b....' : r), overrides: [{ x: 3, y: 12, rot: 270 }] });
+  drum.simulate();
+  ok('a drum is heard and never judged', drum.heard.length === 0);
 }
 
 if (fails.length) {

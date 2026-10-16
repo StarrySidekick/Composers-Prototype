@@ -141,7 +141,7 @@ const S = 10;                 // space between staff lines, px
 const HALF = S / 2;
 
 export function renderStaff({ notes = [], bars = 1, key = { root: 0, mode: 'ionian' }, clef = null,
-  width = 360, beatsPerBar = 4, playStep = null, title = '' } = {}) {
+  width = 360, beatsPerBar = 4, playStep = null, title = '', marks = null } = {}) {
   const bar = beatsPerBar * 4;
   if (!clef) {
     const ms = notes.map(n => n.midi).sort((a, b) => a - b);
@@ -261,7 +261,11 @@ export function renderStaff({ notes = [], bars = 1, key = { root: 0, mode: 'ioni
   // Notes, rests, stems, dots, ties.
   events.forEach((ev, i) => {
     const on = playStep != null && playStep >= ev.start && playStep < ev.start + ev.d;
-    const cls = on ? ' on' : '';
+    // `marks`: [{ from, to, cls }] in sixteenths, a class for every event that
+    // starts inside the span (the daily board lights the notes the wave has
+    // played, 'on', and dims a wrong one, 'no').
+    const mark = marks?.find(m => ev.start >= m.from && ev.start < m.to);
+    const cls = on ? ' on' : mark ? ` ${mark.cls}` : '';
     if (ev.rest) { parts.push(rest(ev.d, ev.x + 2, ev.top, cls)); return; }
     const up = ev.up ?? (ev.heads.reduce((a, h) => a + h.pos, 0) / ev.heads.length < 4);
     const hollow = ev.d >= 8;
@@ -326,7 +330,7 @@ export function renderStaff({ notes = [], bars = 1, key = { root: 0, mode: 'ioni
     });
   }
 
-  const style = `<style>.sl{stroke:currentColor;stroke-width:1;opacity:.75}.bl{stroke:currentColor;stroke-width:1.2}.st{stroke:currentColor;stroke-width:1.3}.f{fill:currentColor}.o{fill:none;stroke:currentColor;stroke-width:1.6}.tie{fill:none;stroke:currentColor;stroke-width:1.3}.cl{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.ts{fill:currentColor;font:bold 19px Georgia,'Times New Roman',serif;text-anchor:middle}.t{fill:currentColor;font-family:inherit}.on{fill:var(--hot,#fff);stroke:var(--hot,#fff);filter:drop-shadow(0 0 3px currentColor)}</style>`;
+  const style = `<style>.sl{stroke:currentColor;stroke-width:1;opacity:.75}.bl{stroke:currentColor;stroke-width:1.2}.st{stroke:currentColor;stroke-width:1.3}.f{fill:currentColor}.o{fill:none;stroke:currentColor;stroke-width:1.6}.tie{fill:none;stroke:currentColor;stroke-width:1.3}.cl{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.ts{fill:currentColor;font:bold 19px Georgia,'Times New Roman',serif;text-anchor:middle}.t{fill:currentColor;font-family:inherit}.on{fill:var(--hot,#fff);stroke:var(--hot,#fff);filter:drop-shadow(0 0 3px currentColor)}.no{opacity:.3}</style>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(title || 'staff')}">${style}${parts.join('')}</svg>`;
 }
 

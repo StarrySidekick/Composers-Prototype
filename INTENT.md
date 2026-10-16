@@ -375,25 +375,51 @@ also become a smaller standalone mobile music game"; this is the first thing in
 it built for that rather than for Unity, and it lives in this repo because he
 asked for it in the same app.
 
-Done (`docs/DAILY.md` has all of it): `daily.html`, ten days, each a motif lifted
-from his songbook database (six projects with no album, four from Out of Bed,
-Reach Back Artifact, Please Wake Up and Far in The Park), every mode once or
-more. The castle's own drums, strings, horns, flutes and timpani on an 8 x 14
-board; arrows, dials and corner brackets show what turns, tunes and moves.
-Days 1 to 6 each teach one thing; 7 to 9 combine them and were made by search
-(`tools/daily-forge.mjs`), 10 is a loop the wave goes round twice. A solver
-proves every day has its answer, and all but day 4 exactly one.
+Done the same day: `daily.html`, ten days, each a motif lifted from his
+songbook database, every mode once or more, on the castle's own pieces.
+
+### 2026-10-16: after playing it
+
+*"it's weird to have level setup where strings are facing parallel to the wave,
+in between drums, not sure why they are there. strings would be hit
+perpendicular, and be adjustable in pitch by their length, and the peg on each
+end, when rotated, tightens or loosens the string. so it's the length plus how
+many wraps are on the string that define pitch. there are also just little
+violins that play a set note. if a peg is on a movable block then you can drag
+the block and therefore adjust length ... the grid shouldn't have those little
+horizontal lines going through each cell - tapping the composer should send the
+wave, no need for a play button - grid should fill the screen more - top should
+have the sheet music of the motif instead of the do re mi thing - level selector
+should just be behind a settings icon to save space - tapping the sheet music
+plays the motif for you, no need for the listen button. redesign levels with
+these new things in mind. also, take up more of the grid with the levels. also
+use single grid sized instruments like a single sized trumpet, violin, or
+flute, which have a set note to play. those are different than the more complex
+larger instruments, but allow more notes to be played"* (spelling tidied)
+
+Done (`docs/DAILY.md` has all of it): the board's own pieces in
+`src/daily/pieces.js`, daily-only so the castle and the Unity port are
+untouched. A string is crossed, never travelled; its note is
+`7 - length + wraps`; a peg winds (0 to 3 wraps) and, on a block, slides. Little
+violins, trumpets and flutes play one note from any side. The page: tap Coda to
+play, the tune as sheet music on top (tap it to hear it), the days behind a
+gear, the board as big as the screen allows, no staff lines through the cells.
+Ten new days on those pieces; a solver proves each has exactly one answer where
+it can count them (days 2 and 8 are too big to count).
 
 Guesses he should check:
 
 - **Notes are judged by degree, not octave**, and **only the notes, not the
   rhythm**: the wave's timing is its path's. Matching his rhythm too is the
   obvious next difficulty, and much harder to author.
-- **A wave along one string is one held note.** The castle plucks every tile;
-  the board would have been unsolvable to the ear without the change. It lives
-  only in `src/daily/board.js`.
-- Days 7 to 9 are searched, not composed. They are fair; whether they are fun
-  needs his thumbs.
+- **A long string goes down in octave, not just in note** (two tiles a violin,
+  three or four a viola, five or more a cello), and the note name wraps round
+  the scale, so a six-tile string with no wraps is re, not a low do. He said
+  length and wraps define pitch; the exact rule is a guess.
+- **"Take up more of the grid"** is done on the days where the player's choices
+  change the wave's road (lures sit on the wrong roads). Days 1, 2, 4 and 7 have
+  one road; anything off it would never be hit, so they stay sparse rather than
+  decorated. If he wants them busier, they need a second road.
 - Six song titles from projects with no album are now public in this repo.
 
 ## Something that needs Timothy
