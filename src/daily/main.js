@@ -1,8 +1,8 @@
-// The daily page (daily.html): one board a day, ten days, Timothy's own tunes.
+// The daily page (daily.html): one board a day, ten days, ten tunes.
 //
 // docs/DAILY.md has the why. This file is the page: the tune as sheet music on
-// top (tap it to hear it), the board under it (tap Coda to play), the days and
-// the help behind the gear. The board itself (what a touch does, what the wave
+// top (tap it to hear it), the board under it (tap Coda, under its bottom-left
+// tile, to play), the tempo top right, the days and the help behind the gear. The board itself (what a touch does, what the wave
 // plays, whether it is the tune) is src/daily/board.js; the page never decides
 // any of that on its own.
 
@@ -12,11 +12,13 @@ import { BeatClock } from '../core/beat-clock.js';
 import { motifPitches } from '../music/motif.js';
 import { renderStaff } from '../music/notation.js';
 import { Board, targetSpans, handlesOf, noteName } from './board.js';
+import { TuningPeg } from './pieces.js';
 import { BoardView } from './view.js';
 
 const $ = (id) => document.getElementById(id);
 const SAVE_KEY = 'ck-daily-v1';
 const SOUND_KEY = 'ck-sound-v1';          // the castle's sound choice, same device
+const DEV_KEY = 'ck-dev-v1';              // the castle's developer mode, same device
 const DAY_MS = 86400000;
 const DRAG_PX = 10;                        // a finger that moves this far is dragging
 
@@ -30,6 +32,7 @@ let board = null;
 let view = null;
 let clock = null;
 let save = loadSave();
+let dev = false;         // developer mode: the tempo buttons
 let tuneTimers = [];     // the staff's playhead while the tune plays
 let toastTimer = 0;
 
@@ -78,6 +81,11 @@ export async function boot() {
   $('d-howto-open').addEventListener('click', () => { $('d-menu').hidden = true; $('d-howto').hidden = false; });
   $('d-howto-close').addEventListener('click', () => { $('d-howto').hidden = true; });
   $('d-names').addEventListener('change', (e) => { view.showLabels = e.target.checked; });
+  try { dev = localStorage.getItem(DEV_KEY) === '1' || params.has('dev'); } catch { dev = params.has('dev'); }
+  setDev(dev);
+  $('d-dev').addEventListener('change', (e) => setDev(e.target.checked, true));
+  $('d-slower').addEventListener('click', () => setBpm(board.room.music.bpm - 10));
+  $('d-faster').addEventListener('click', () => setBpm(board.room.music.bpm + 10));
   $('d-done-next').addEventListener('click', () => { $('d-done').hidden = true; openDay(Math.min(index + 1, DAYS.days.length - 1)); });
   $('d-done-hear').addEventListener('click', listen);
   $('d-done-close').addEventListener('click', () => { $('d-done').hidden = true; });
@@ -113,10 +121,31 @@ function openDay(i, { keepTries = false } = {}) {
   const today = todayIndex();
   $('d-when').textContent = `Day ${i + 1}${i === today ? ' · today' : ''}`;
   $('d-title').textContent = day.title;
+  renderBpm();
   renderTune();
   say(day.hint, 6000);
   fit();
 }
+
+// ---- the tempo, top right ---------------------------------------------------------
+//
+// Each day has its own (day 1 at 100, five more a day). Developer mode adds ten
+// slower and ten faster; that holds until another day is opened.
+
+function setDev(on, remember = false) {
+  dev = on;
+  $('d-dev').checked = on;
+  document.body.classList.toggle('dev', on);
+  if (remember) try { localStorage.setItem(DEV_KEY, on ? '1' : '0'); } catch {}
+}
+
+function setBpm(bpm) {
+  board.room.music.bpm = Math.max(40, Math.min(300, bpm));
+  clock?.setBpm(board.room.music.bpm);
+  renderBpm();
+}
+
+function renderBpm() { $('d-bpm-n').textContent = String(board.room.music.bpm); }
 
 // ---- the days, behind the gear ---------------------------------------------------
 
@@ -142,17 +171,16 @@ function renderDays() {
 
 // ---- the tune: sheet music, lit as it is played ------------------------------------
 
-// The staff, with the notes the wave has played lit ('on') and a wrong one dimmed
-// ('no'), or the playhead while the tune plays.
+// The staff, with each note the wave has played lit ('on') where it is the
+// tune's note and dimmed ('no') where it is not, or the playhead while the tune
+// plays.
 function renderTune(playStep = null) {
   const m = DAYS.days[index].motif;
   const spans = targetSpans(m);
   const marks = [];
   board.heard.forEach((h, i) => {
     const s = spans[i];
-    if (!s) return;
-    const wrong = board.verdict?.kind === 'wrong' && board.verdict.at === i;
-    marks.push({ ...s, cls: wrong ? 'no' : 'on' });
+    if (s) marks.push({ ...s, cls: h.degree === board.target[i] ? 'on' : 'no' });
   });
   const width = Math.max(240, Math.min(588, $('d-staff').clientWidth - 12 || 360));
   try {
@@ -160,13 +188,13 @@ function renderTune(playStep = null) {
   } catch (err) { $('d-staff').innerHTML = ''; console.warn('[staff]', err); }
 }
 
-// Tap the music: the tune as he wrote it, his rhythm, his tempo, on the grid,
-// with a playhead across the staff.
+// Tap the music: the tune in its own rhythm, at the board's tempo, with a
+// playhead across the staff.
 function listen() {
   stopTune();
   audio.resume();
   const m = DAYS.days[index].motif;
-  const sub = 60 / Math.max(70, Math.min(170, m.bpm)) / 4;
+  const sub = 60 / board.room.music.bpm / 4;
   const t0 = audio.now + 0.12;
   for (const n of motifPitches(m)) {
     audio.play({ family: m.family === 'timpani' ? 'keys' : m.family, midi: n.midi, intensity: 0.85, when: t0 + n.start * sub, heard: false });
@@ -205,7 +233,7 @@ function finished() {
   const v = board.verdict;
   const day = DAYS.days[index];
   for (const [i, h] of board.heard.entries()) {
-    view.marks.push({ x: h.x, y: h.y, ok: !(v?.kind === 'wrong' && v.at === i) });
+    view.marks.push({ x: h.x, y: h.y, ok: h.degree === board.target[i] });
   }
   renderTune();
   if (v?.kind === 'solved') {
@@ -222,10 +250,11 @@ function finished() {
     return;
   }
   const n = board.heard.length;
-  if (v?.kind === 'wrong') say(`The wave played ${named(v.got)} where the tune wants ${named(v.wanted)}.`);
-  else if (v?.kind === 'short') say(n ? `The wave stopped after ${n} of ${board.target.length} notes. Next comes ${named(v.wanted)}.` : `The wave played nothing. The tune starts on ${named(board.target[0])}.`);
+  const circles = board.looped ? ' Then it went round in circles.' : '';
+  if (v?.kind === 'wrong') say(`Note ${v.at + 1} was ${named(v.got)}; the tune wants ${named(v.wanted)}.${circles}`);
+  else if (v?.kind === 'short') say((n ? `The wave played ${n} of ${board.target.length} notes. Next comes ${named(v.wanted)}.` : `The wave played nothing. The tune starts on ${named(board.target[0])}.`) + circles);
+  else if (v?.kind === 'long') say(`That was the whole tune, then ${v.extra} more ${v.extra === 1 ? 'note' : 'notes'}. The wave should stop after the last one.`);
   else if (v?.kind === 'stopped') say('Stopped.', 1500);
-  else say('The wave went round in circles.');
 }
 
 function showDone() {
@@ -237,6 +266,7 @@ function showDone() {
   from.innerHTML = '';
   from.append('The tune is from ');
   const b = document.createElement('b'); b.textContent = src.title ?? 'your songbook'; from.append(b);
+  if (src.composer) from.append(`, ${src.composer}`);
   if (src.album) from.append(`, on ${src.album}`);
   from.append(src.track ? ` (the ${src.track} line).` : '.');
   $('d-done-next').hidden = index >= DAYS.days.length - 1;
@@ -245,10 +275,13 @@ function showDone() {
 
 // ---- touch ----------------------------------------------------------------------------
 //
-// One finger. On Coda: a tap plays (or stops); on a day that lets him turn, a drag
-// aims him. On a piece: a tap turns, winds or tunes it (or plays its note); a
-// finger that moves more than a few pixels from a movable piece carries it and
-// lets go over the tile it should land on. Pointer events, so a mouse does the same.
+// One finger, any time, the wave in flight or not. On Coda: a tap plays, or
+// stops the wave. On a piece: a tap turns, winds or tunes it (or plays its note).
+// A finger that moves more than a few pixels from a movable piece takes it:
+//   a peg on a block slides along its string's line as the finger goes, tile
+//     by tile, and the string is laid again each tile, so it stays fastened;
+//   anything else rides above the finger and lands on the tile under it.
+// Pointer events, so a mouse does the same.
 
 function bindBoard() {
   const cv = $('d-board');
@@ -260,24 +293,36 @@ function bindBoard() {
     const t = view.pick(e.clientX, e.clientY);
     const coda = board.isLauncher(t.x, t.y);
     const piece = coda ? null : board.pieceAt(t.x, t.y);
-    down = { t, piece, coda, x: e.clientX, y: e.clientY, movable: !board.running && !!piece && handlesOf(piece).move };
+    const movable = !!piece && handlesOf(piece).move;
+    const held = movable && piece instanceof TuningPeg ? board.strung(piece) : null;
+    down = { t, piece, coda, x: e.clientX, y: e.clientY, movable, axis: held?.string.axis ?? null, slid: false };
     e.preventDefault();
   });
   cv.addEventListener('pointermove', (e) => {
-    if (!down) return;
+    if (!down || !down.movable) return;
     const dx = e.clientX - down.x, dy = e.clientY - down.y;
-    const far = Math.hypot(dx, dy) > DRAG_PX * 2;
-    if (down.coda && far && !board.running && board.launch.can.includes('turn')) {
-      down.aim = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
-      view.aiming = down.aim;
-    }
-    if (!view.drag && down.movable && Math.hypot(dx, dy) > DRAG_PX) {
-      view.drag = { piece: down.piece, from: down.t, at: local(e), to: null, ok: false };
-    }
-    if (view.drag) {
+    if (!down.dragging && Math.hypot(dx, dy) <= DRAG_PX) return;
+    down.dragging = true;
+    const s = view.tile;
+    if (down.axis) {
+      // A peg: follow the finger along the string's line, one tile at a time.
+      const at = view.pick(e.clientX, e.clientY);
+      const want = down.axis === 'h' ? at.x : at.y;
+      for (let guard = 0; guard < 16; guard++) {
+        const cur = down.axis === 'h' ? down.t.x : down.t.y;
+        if (cur === want) break;
+        const step = Math.sign(want - cur);
+        const to = down.axis === 'h' ? { x: down.t.x + step, y: down.t.y } : { x: down.t.x, y: down.t.y + step };
+        if (!board.move(down.t, to, { count: !down.slid })) break;
+        down.t = to;
+        if (!down.slid && !board.running) clearRun();
+        down.slid = true;
+      }
+      view.lift = down.piece;
+    } else {
+      if (!view.drag) view.drag = { piece: down.piece, from: down.t, at: local(e), to: null, ok: false };
       view.drag.at = local(e);
       // The piece rides above the finger, so the tile it lands on is the one under it.
-      const s = view.tile;
       const to = view.pick(e.clientX, e.clientY - s * 0.4);
       view.drag.to = board.room.inBounds(to.x, to.y) ? to : null;
       view.drag.ok = !!view.drag.to && board.canMove(down.t, view.drag.to);
@@ -286,21 +331,22 @@ function bindBoard() {
   });
   const up = (e) => {
     if (!down) return;
-    view.aiming = null;
+    view.lift = null;
     if (down.coda) {
-      if (down.aim) { if (board.aim(down.aim)) clearRun(); }
-      else if (e.type === 'pointerup') play();
+      if (e.type === 'pointerup') play();
+    } else if (down.slid) {
+      board.preview(down.piece);
     } else if (view.drag) {
       const { to, ok } = view.drag;
       view.drag = null;
       if (ok && board.move(down.t, to)) {
-        clearRun();
+        if (!board.running) clearRun();
         const p = board.pieceAt(to.x, to.y);
         if (p) board.preview(p);
       }
-    } else if (e.type === 'pointerup' && !board.running) {
+    } else if (e.type === 'pointerup' && !down.dragging) {
       const what = board.tap(down.t.x, down.t.y);
-      if (what === 'turn' || what === 'tune') clearRun();
+      if ((what === 'turn' || what === 'tune') && !board.running) clearRun();
     }
     down = null;
   };
@@ -319,16 +365,18 @@ function clearRun() {
 
 // ---- layout and the frame loop -------------------------------------------------------------
 
-// The board takes all the width it can, and the height left by the bar and the tune.
+// The board takes all the width it can, and the height left by the bar and the
+// tune, with one row more under it for Coda.
 function fit() {
   const wrap = $('d-stage');
   const cv = $('d-board');
   const used = [...document.querySelectorAll('.d-fixed')].reduce((h, el) => h + el.offsetHeight, 0);
   const availH = window.innerHeight - used - 4;
   const availW = Math.min(wrap.clientWidth || window.innerWidth, 600);
-  const tile = Math.max(24, Math.floor(Math.min(availW / board.room.width, availH / board.room.height)));
+  const rows = board.room.height + 1;
+  const tile = Math.max(24, Math.floor(Math.min(availW / board.room.width, availH / rows)));
   cv.style.width = `${tile * board.room.width}px`;
-  cv.style.height = `${tile * board.room.height}px`;
+  cv.style.height = `${tile * rows}px`;
   view.resize(board.room);
 }
 

@@ -416,11 +416,50 @@ Guesses he should check:
   three or four a viola, five or more a cello), and the note name wraps round
   the scale, so a six-tile string with no wraps is re, not a low do. He said
   length and wraps define pitch; the exact rule is a guess.
-- **"Take up more of the grid"** is done on the days where the player's choices
-  change the wave's road (lures sit on the wrong roads). Days 1, 2, 4 and 7 have
-  one road; anything off it would never be hit, so they stay sparse rather than
-  decorated. If he wants them busier, they need a second road.
 - Six song titles from projects with no album are now public in this repo.
+
+### 2026-10-16, later: after playing it again
+
+*"coda should always be in the bottom left, just below the bottom left tile,
+the wave traveling right from there as the first beat, upwards. the wave
+shouldn't stop if the wrong note is played, it should just play the wrong thing
+and keep going until it naturally terminates. doesn't seem to be a sound for
+strings as triggered by the sound wave. moving the peg of the string should
+stretch the string with it, it should stay connected. faint horizontal lines
+are still in each cell that shouldn't be there. the motifs should be longer and
+maybe for now mirror famous public domain songs. show the bpm in the top right,
+and let me adjust it in 10 point increments up or down as a dev thing. levels
+start at 100 and go up 5 every level. some objects need to be tapped or rotated
+during the wave's flight from you, either in time or for some other reason, so
+let us if we can't already move things while the wave is traveling"* (spelling
+tidied)
+
+Done (`docs/DAILY.md`): Coda under the bottom-left tile, the wave up into it on
+the next beat. A run plays everything and ends by itself, then is judged: the
+tune exactly, nothing more; a loop is stopped once it can only repeat. Touches
+work in flight, and day 10 needs one. The strings were 8 to 12 dB under every
+other voice (the synth pluck), and in "live" sound the low ones played the
+bowed cello, which swells in late; they now pluck, as loud as a horn. A peg
+block's string is laid again under the finger, tile by tile. No lines on the
+floor at all. The tempo top right, 100 plus 5 a day, ten up or down in
+developer mode. Ten public-domain tunes, seven to fifteen notes, on ten new
+boards made by the forge and picked by eye.
+
+Guesses he should check:
+
+- **"The wave traveling right from there as the first beat, upwards"** is read
+  as: the wave leaves Coda going UP into the bottom-left tile, on beat one. A
+  string cannot cross column 0, so most days turn the wave right with a drum
+  soon after.
+- **Nothing after the last note.** A run that plays the whole tune and then more
+  is not solved; each board gives the wave a quiet way out. If that feels harsh,
+  the alternative is to stop judging at the tune's last note.
+- **Developer mode is the castle's** (`ck-dev-v1`, also a switch behind the
+  gear). The tempo buttons hide without it.
+- **The castle's strings got louder too**: the fix is in the shared synth.
+- **The new boards are searched, not composed**, and busier than the last ones:
+  that is "take up more of the grid", done by lures. Whether they are fun needs
+  his thumbs.
 
 ## Something that needs Timothy
 

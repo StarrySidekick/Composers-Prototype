@@ -9,12 +9,12 @@
 //             (Board.labels), so the board can be read against the tune.
 //   the trail where the last wave went, faint, under the pieces: the table
 //             remembers the ball, so a wrong run still teaches something.
-//   Coda      with an arrow the way the wave will leave him.
+//   Coda      under the bottom-left tile, in a row of his own below the board,
+//             with a chevron up the way the wave leaves him.
 //
-// The floor is plain: the castle's faint staves through every tile are left
-// out here (Timothy, 2026-10-16), only the cell grid stays. White line-work
-// only, like everything else: handles in the same ink as the art, the trail the
-// same white, quieter.
+// The floor is plain, its mode's tint and nothing else: no staves, no cell grid
+// (Timothy, 2026-10-16, twice). White line-work only, like everything else:
+// handles in the same ink as the art, the trail the same white, quieter.
 
 import { Renderer } from '../render/renderer.js';
 import { PALETTE } from '../render/palette.js';
@@ -27,6 +27,12 @@ export class BoardView extends Renderer {
     this.showLabels = true;
     this.drag = null;        // { piece, from, at: {px, py}, to } while a finger carries one
     this.marks = [];         // [{x, y, ok}] where the last run's notes sounded
+    this.lift = null;        // a peg under a finger, sliding along its string
+  }
+
+  // The board fills the width, with one row more under it for Coda.
+  resize(room) {
+    super.resize({ width: room.width, height: room.height + 1 });
   }
 
   // The canvas is sized by the page; the tile is whatever fits it.
@@ -40,7 +46,7 @@ export class BoardView extends Renderer {
     c.save();
     c.translate(this.ox, this.oy);
 
-    this._floor(room, s, p);
+    this._floor(room, s);
     this._trail(board, s);
 
     for (let y = 0; y < room.height; y++) {
@@ -49,7 +55,7 @@ export class BoardView extends Renderer {
         if (!d || (this.drag && this.drag.piece === d)) continue;
         c.save();
         c.translate(x * s, y * s);
-        if (d instanceof TuningPeg && handlesOf(d).move) this._block(s);
+        if (d instanceof TuningPeg && handlesOf(d).move) this._block(s, this.lift === d);
         this._doodad(d, s, board.ctx, room);
         this._handles(d, s, board);
         c.restore();
@@ -64,28 +70,21 @@ export class BoardView extends Renderer {
     c.restore();
   }
 
-  // The floor: its mode's tint and the cell grid, without the staves.
-  _floor(room, s, p) {
+  // The floor: its mode's tint, and no lines at all.
+  _floor(room, s) {
     const c = this.c;
     c.fillStyle = this.floorColour(room);
     c.fillRect(0, 0, room.width * s, room.height * s);
-    c.strokeStyle = p.grid;
-    c.globalAlpha = 0.6;
-    c.lineWidth = 1;
-    c.beginPath();
-    for (let x = 0; x <= room.width; x++) { c.moveTo(x * s + 0.5, 0); c.lineTo(x * s + 0.5, room.height * s); }
-    for (let y = 0; y <= room.height; y++) { c.moveTo(0, y * s + 0.5); c.lineTo(room.width * s, y * s + 0.5); }
-    c.stroke();
-    c.globalAlpha = 1;
   }
 
   // The block a sliding peg stands on: a square of line-work, under the peg.
-  _block(s) {
+  // Heavier while a finger is sliding it.
+  _block(s, held = false) {
     const c = this.c, m = s * 0.12;
     c.save();
     c.fillStyle = '#000000';
     c.strokeStyle = '#ffffff';
-    c.lineWidth = Math.max(2, s * 0.05);
+    c.lineWidth = Math.max(2, s * (held ? 0.09 : 0.05));
     c.beginPath();
     if (c.roundRect) c.roundRect(m, m, s - 2 * m, s - 2 * m, s * 0.08);
     else c.rect(m, m, s - 2 * m, s - 2 * m);
@@ -105,9 +104,8 @@ export class BoardView extends Renderer {
     const h = handlesOf(d);
     if (!h.turn && !h.tune && !h.move) return;
     const c = this.c;
-    const idle = !board.running;
     c.save();
-    c.globalAlpha = idle ? 0.95 : 0.4;
+    c.globalAlpha = 0.95;
     c.strokeStyle = '#ffffff';
     c.fillStyle = '#ffffff';
     c.lineCap = 'round';
@@ -239,39 +237,21 @@ export class BoardView extends Renderer {
     c.restore();
   }
 
-  // ---- the launcher: Coda, facing the way the wave will go -------------------------
+  // ---- Coda, under the bottom-left tile ------------------------------------------
 
   _launcher(board, s, p) {
-    const { x, y, dir, can } = board.launch;
+    const { x, y } = board.launch;
     const c = this.c;
-    // A ring on the floor: the plunger.
+    this._player({ player: { x, y, rx: x, ry: y, facing: 'up', side: 'right', walking: false, stride: 0 } }, s, p);
+    // The way the wave goes: a chevron at the top of his row, pointing up.
     c.save();
-    c.strokeStyle = '#ffffff';
-    c.globalAlpha = 0.5;
-    c.lineWidth = Math.max(1.5, s * 0.04);
-    c.setLineDash([s * 0.08, s * 0.08]);
-    c.beginPath(); c.arc((x + 0.5) * s, (y + 0.5) * s, s * 0.44, 0, Math.PI * 2); c.stroke();
-    c.restore();
-    const aim = this.aiming ? { up: [0, -1], right: [1, 0], down: [0, 1], left: [-1, 0] }[this.aiming] : [dir.x, dir.y];
-    const facing = aim[0] > 0 ? 'right' : aim[0] < 0 ? 'left' : aim[1] > 0 ? 'down' : 'up';
-    this._player({ player: { x, y, rx: x, ry: y, facing, side: facing === 'left' ? 'left' : 'right', walking: false, stride: 0 } }, s, p);
-    // The way the wave will go: a chevron just past Coda's tile. A Coda that can
-    // be aimed also shows the turning arrow.
-    c.save();
-    c.translate((x + 0.5 + aim[0] * 0.62) * s, (y + 0.5 + aim[1] * 0.62) * s);
-    c.rotate(Math.atan2(aim[1], aim[0]));
+    c.translate((x + 0.5) * s, (y + 0.06) * s);
     c.strokeStyle = '#ffffff';
     c.globalAlpha = board.running ? 0.35 : 0.85;
     c.lineWidth = Math.max(2, s * 0.06);
     c.lineCap = 'round'; c.lineJoin = 'round';
-    c.beginPath(); c.moveTo(-s * 0.1, -s * 0.13); c.lineTo(s * 0.04, 0); c.lineTo(-s * 0.1, s * 0.13); c.stroke();
+    c.beginPath(); c.moveTo(-s * 0.13, s * 0.08); c.lineTo(0, -s * 0.05); c.lineTo(s * 0.13, s * 0.08); c.stroke();
     c.restore();
-    if (can.includes('turn')) {
-      c.save();
-      c.translate(x * s, y * s);
-      this._handles({ spec: { can: 'turn' } }, s, board);
-      c.restore();
-    }
   }
 
   // ---- a piece on a finger -----------------------------------------------------

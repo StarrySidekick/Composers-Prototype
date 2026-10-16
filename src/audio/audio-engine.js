@@ -146,8 +146,10 @@ export class AudioEngine {
   // phrase, passes `heard: false`, or the lock hears its own answer and opens itself.
   heard(opts) { return opts?.heard !== false; }
 
+  // `sampled: false` asks for the synth voice even where a recording would cover
+  // the note: a string the wave plucks wants a pluck, and the cello is bowed.
   play(opts) {
-    const { family = 'brass', midi = 60, intensity = 1, when = 0, modulation = 0, kind = null } = opts;
+    const { family = 'brass', midi = 60, intensity = 1, when = 0, modulation = 0, kind = null, sampled = true } = opts;
     const notify = this.heard(opts);
     if (this.muted) return;
     const t = Math.max(when || this.now, this.now);
@@ -159,7 +161,7 @@ export class AudioEngine {
       return;
     }
 
-    if (this._playSampled(family, midi, amp, t, modulation, kind)) {
+    if (sampled && this._playSampled(family, midi, amp, t, modulation, kind)) {
       if (this.onNote && notify) this.onNote(midi, family, opts);
       return;
     }
@@ -246,7 +248,7 @@ export class AudioEngine {
     const src = this.ctx.createBufferSource();
     src.buffer = buf;
     const g = this.ctx.createGain();
-    g.gain.value = amp * 0.55;
+    g.gain.value = amp * 0.8;
     src.connect(g);
     this._out(g, 1, 1.0);
     src.start(t);
@@ -282,6 +284,14 @@ export class AudioEngine {
       line[idx] = 0.5 * (cur + line[(idx + 1) % n]) * decay;
       idx = (idx + 1) % n;
     }
+
+    // Four passes of smoothing leave the noise burst at a random, quiet level, so
+    // the pluck came out 8 to 12 dB under every other voice (measured offline,
+    // 2026-10-16). Scale it to a fixed peak: the gain below then means the same
+    // thing for every note.
+    let peak = 0;
+    for (let i = 0; i < total; i++) peak = Math.max(peak, Math.abs(out[i]));
+    if (peak > 0) for (let i = 0; i < total; i++) out[i] /= peak;
 
     if (this._ksCache.size > 96) this._ksCache.clear();
     this._ksCache.set(key, buf);

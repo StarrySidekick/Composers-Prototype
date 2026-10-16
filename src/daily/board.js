@@ -4,9 +4,15 @@
 // doodads plus the daily's own pieces (src/daily/pieces.js), so a drum is the
 // castle's drum and a horn the castle's horn. Around them:
 //
-//   the launcher  Coda at one tile, facing one way. Tapping him sends ONE wave
-//                 from there, like a plunger. On a day that allows it (`can:
-//                 "turn"`), dragging from him aims him.
+//   Coda          always just below the bottom-left tile (Timothy, 2026-10-16).
+//                 Tapping him sends ONE wave up into that tile, on the next
+//                 beat, like a plunger.
+//   the run       the wave plays whatever it meets, right or wrong, and goes on
+//                 until it ends by itself: off the board, into a peg or a
+//                 timpani, or round a loop it can only repeat. Then it is
+//                 judged: the notes it played must be the tune, all of it, in
+//                 order, and nothing more. A finger may touch the board while
+//                 the wave is in flight, and some days need it.
 //   handles       what a finger may do to a piece, set per tile in the day's
 //                 `overrides` as `can`:
 //                   turn   tap turns it: a drum by 90 (or `step` degrees), a
@@ -38,8 +44,12 @@ import { TautString, TuningPeg, Solo } from './pieces.js';
 export const COLS = 8;
 export const ROWS = 14;
 export const SOLFEGE = ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti'];
-// A wave that has not finished in this many sixteenths is going round in circles.
-export const MAX_STEPS = 256;
+// A safety net: no run lasts longer than this many sixteenths.
+export const MAX_STEPS = 512;
+// Where Coda stands: off the board, under its bottom-left tile, facing up.
+export const CODA = { x: 0, y: ROWS };
+// Tempo: day 1 at 100, five more each day after.
+export const bpmOfDay = (i) => 100 + 5 * i;
 
 // The daily's characters, laid over the castle's legend for every day. `=` and
 // `H` mean a string held between pegs here, crossed to play; `o` a tuning peg.
@@ -98,20 +108,23 @@ export function noteName(midi, key) {
 export class Board {
   // `day` is one entry of daily/days.json. `audio` is optional: without it the
   // board is silent and runs as fast as it is stepped (the tests, the solver).
-  constructor(day, { audio = null } = {}) {
+  // `quick` ends a run at its first wrong or extra note, for the solver, which
+  // only needs to know whether a setting plays the tune.
+  constructor(day, { audio = null, quick = false } = {}) {
     this.day = day;
     this.audio = audio;
+    this.quick = quick;
     this.room = new Room({
       id: day.id, name: day.title, wing: day.wing ?? 'strings',
       music: day.music, legend: { ...DAILY_LEGEND, ...(day.legend ?? {}) }, overrides: day.overrides, layout: day.layout,
     });
     this.key = { root: this.room.music.root, mode: this.room.music.mode };
-    this.launch = { x: day.launch.x, y: day.launch.y, dir: { ...(DIR[day.launch.dir] ?? DIR.up) }, can: day.launch.can ?? '' };
+    this.launch = { x: CODA.x, y: CODA.y, dir: { ...DIR.up } };
     this.target = targetOf(day.motif);
     this.tries = 0;
     this.moves = 0;
     this.onToast = null;
-    this.onNote = null;      // (note, index, verdict) each time a tune note is heard
+    this.onNote = null;      // (note, index, right) each time the wave plays a note
     this.when = null;        // () => audio time of the sixteenth being stepped
     this.idle();
     this.ctx = this.makeContext();
@@ -126,7 +139,9 @@ export class Board {
     this.heard = [];
     this.verdict = null;
     this.trail = [];
+    this.looped = false;
     this._wave = null;
+    this._seen = new Set();
   }
 
   // Pegs face the string they hold (the art's stem points at it).
@@ -184,9 +199,9 @@ export class Board {
 
   // A tap on a piece: turn it, tune it, or (a fixed instrument) hear what it
   // plays. Returns what happened: 'turn' | 'tune' | 'listen' | null. Coda is not
-  // a piece: tapping him is the page's business (play).
+  // a piece: tapping him is the page's business (play). Allowed while the wave
+  // is in flight: turning a drum behind it sends it elsewhere next time round.
   tap(x, y) {
-    if (this.running) return null;
     const d = this.pieceAt(x, y);
     if (!d) return null;
     const h = handlesOf(d);
@@ -196,25 +211,22 @@ export class Board {
       d.hit = 1; d.flash = 1;
       if (d.typeName === 'drum') d.strike?.(0.5, this.ctx);
       if (d instanceof TuningPeg) this.preview(d);
-      this.moves++;
+      this.touched();
       return 'turn';
     }
     if (h.tune) {
       d.onPlayerInteract(this.ctx);
-      this.moves++;
+      this.touched();
       return 'tune';
     }
     return this.preview(d) ? 'listen' : null;
   }
 
-  // Aim Coda (a day whose launcher can turn). Returns whether he turned.
-  aim(dirName_) {
-    const dir = DIR[dirName_];
-    if (!dir || this.running || !this.launch.can.includes('turn')) return false;
-    if (dir.x === this.launch.dir.x && dir.y === this.launch.dir.y) return false;
-    this.launch.dir = { ...dir };
+  // A touch that changed the board. Counted, and it means a wave going round
+  // may now go somewhere new, so its loop is no longer known to repeat.
+  touched() {
     this.moves++;
-    return true;
+    this._seen.clear();
   }
 
   // A peg's string and the peg at its other end, if it holds one.
@@ -231,7 +243,7 @@ export class Board {
   // tile of string and lays it over nothing but floor.
   canMove(from, to) {
     const d = this.pieceAt(from.x, from.y);
-    if (!d || !handlesOf(d).move || this.running) return false;
+    if (!d || !handlesOf(d).move) return false;
     if (from.x === to.x && from.y === to.y) return false;
     if (!this.room.inBounds(to.x, to.y) || this.isLauncher(to.x, to.y)) return false;
     const held = this.strung(d);
@@ -251,7 +263,9 @@ export class Board {
     return true;
   }
 
-  move(from, to) {
+  // `count`: false for each tile of one drag after the first, so a peg slid
+  // three tiles under one finger is one touch.
+  move(from, to, { count = true } = {}) {
     if (!this.canMove(from, to)) return false;
     const d = this.pieceAt(from.x, from.y);
     const held = this.strung(d);
@@ -270,7 +284,7 @@ export class Board {
       }
     }
     this.settle();
-    this.moves++;
+    if (count) this.touched(); else this._seen.clear();
     return true;
   }
 
@@ -336,7 +350,7 @@ export class Board {
 
   // ---- a run -----------------------------------------------------------------
 
-  // Play: one wave from Coda. It moves on the next sixteenth.
+  // Play: one wave from Coda, up into the bottom-left tile on the next step.
   fire() {
     this.idle();
     this.running = true;
@@ -355,19 +369,20 @@ export class Board {
   }
 
   // Everything the wave plays comes through here, from inside its step. The
-  // sixteenth's time is `this.when()`, so it lands on the grid.
+  // sixteenth's time is `this.when()`, so it lands on the grid. Every pitched
+  // note is written down, right or wrong; the run is judged when it ends.
   sound(opts) {
     const w = this._wave;
     const when = this.when?.() ?? 0;
     this.audio?.play({ ...opts, when, heard: false });
     // A tap's own sound (a hole covering, a slide pulled), or percussion: never judged.
-    if (!this.running || !w || opts.family === 'percussion' || opts.family === 'sour' || this.verdict) return;
+    if (!this.running || !w || opts.family === 'percussion' || opts.family === 'sour') return;
     const note = { midi: opts.midi, family: opts.family, degree: toDegree(opts.midi, this.key).degree, step: this.step, x: w.x, y: w.y };
     const i = this.heard.length;
+    const right = i < this.target.length && note.degree === this.target[i];
     this.heard.push(note);
-    if (note.degree !== this.target[i]) this.verdict = { kind: 'wrong', at: i, wanted: this.target[i], got: note.degree };
-    else if (this.heard.length === this.target.length) this.verdict = { kind: 'solved' };
-    this.onNote?.(note, i, this.verdict);
+    if (this.quick && !right) this.verdict = this.judge();
+    this.onNote?.(note, i, right);
   }
 
   // One sixteenth. Returns true while the run goes on.
@@ -387,22 +402,52 @@ export class Board {
     }
     this.room.waves = this.room.waves.filter(w => w.alive);
     if (this.verdict) return this.finish();
-    if (!this.room.waves.length) return this.finish({ kind: 'short', at: this.heard.length, wanted: this.target[this.heard.length] });
-    if (this.step >= MAX_STEPS) return this.finish({ kind: 'loop', at: this.heard.length });
+    if (!this.room.waves.length || this.step >= MAX_STEPS) return this.finish();
+    // Round a loop: every wave where it was before, going the same way, with no
+    // touch since. Nothing on the board changes by itself, so it would only go
+    // round again forever, playing what it just played. A wave an instrument is
+    // holding till the beat sits still on purpose, so none is checked then.
+    if (this.room.waves.some(w => w.held)) return true;
+    const at = this.room.waves.map(w => `${w.x},${w.y},${w.dir.x},${w.dir.y}`).sort().join('|');
+    if (this._seen.has(at)) { this.looped = true; return this.finish(); }
+    this._seen.add(at);
     return true;
   }
 
   finish(v = null) {
-    if (v && !this.verdict) this.verdict = v;
+    this.verdict = v ?? this.verdict ?? this.judge();
     this.running = false;
     this.room.waves = [];
     return false;
   }
 
+  // The notes the wave played against the tune: all of it, in order, nothing
+  // more. The first note out of place names what went wrong.
+  judge() {
+    const t = this.target, h = this.heard;
+    for (let i = 0; i < Math.min(t.length, h.length); i++) {
+      if (h[i].degree !== t[i]) return { kind: 'wrong', at: i, wanted: t[i], got: h[i].degree };
+    }
+    if (h.length < t.length) return { kind: 'short', at: h.length, wanted: t[h.length] };
+    if (h.length > t.length) return { kind: 'long', at: t.length, got: h[t.length].degree, extra: h.length - t.length };
+    return { kind: 'solved' };
+  }
+
   // The whole run at once, no clock: for the solver, the tests, and "show me".
-  simulate() {
+  // `timed` are touches made in flight, each `at` a step: it happens once the
+  // wave has taken that many steps. One that does nothing is written down in
+  // `this.missed`, so a stale solution fails by name.
+  simulate(timed = []) {
     this.fire();
-    while (this.tick());
+    this.missed = [];
+    const due = [...timed].sort((a, b) => a.at - b.at);
+    do {
+      while (due.length && due[0].at <= this.step) {
+        const t = due.shift();
+        if (!touch(this, t)) this.missed.push(t);
+      }
+    } while (this.tick());
+    this.missed.push(...due);
     return { verdict: this.verdict, heard: this.heard, steps: this.step, trail: this.trail };
   }
 
@@ -417,25 +462,32 @@ export class Board {
       const h = handlesOf(d);
       if (h.turn || h.tune || h.move) out.push({ piece: d, ...h, states: cycleOf(d) });
     }
-    if (this.launch.can.includes('turn')) out.push({ launcher: true, aim: true, states: 4 });
     return out;
   }
 }
 
-// Apply a recorded solution (`daily/days.json` "solution") the way a finger would:
-// taps through tap(), drags through move(), Coda aimed through aim(). Returns
-// false at the first step that does nothing, so a stale solution fails loudly.
-export function applySolution(board, steps = []) {
-  for (const s of steps) {
-    if (s.tap) {
-      const [x, y] = s.tap;
-      for (let i = 0; i < (s.times ?? 1); i++) if (!board.tap(x, y)) return false;
-    } else if (s.move) {
-      const [[fx, fy], [tx, ty]] = s.move;
-      if (!board.move({ x: fx, y: fy }, { x: tx, y: ty })) return false;
-    } else if (s.aim) {
-      if (!board.aim(s.aim)) return false;
-    }
+// One recorded touch, the way a finger makes it: a tap (some number of times)
+// through tap(), a drag through move(). Returns false when it does nothing.
+function touch(board, s) {
+  if (s.tap) {
+    const [x, y] = s.tap;
+    for (let i = 0; i < (s.times ?? 1); i++) if (!board.tap(x, y)) return false;
+    return true;
   }
+  if (s.move) {
+    const [[fx, fy], [tx, ty]] = s.move;
+    return board.move({ x: fx, y: fy }, { x: tx, y: ty });
+  }
+  return false;
+}
+
+// Apply a recorded solution (`daily/days.json` "solution") the way a finger
+// would, before the wave goes: taps through tap(), drags through move(). Touches
+// with an `at` are made in flight: pass them to simulate() (`timedOf`). Returns
+// false at the first touch that does nothing, so a stale solution fails loudly.
+export function applySolution(board, steps = []) {
+  for (const s of steps) if (s.at == null && !touch(board, s)) return false;
   return true;
 }
+
+export const timedOf = (steps = []) => steps.filter(s => s.at != null);
