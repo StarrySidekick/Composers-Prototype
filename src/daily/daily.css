@@ -57,7 +57,7 @@ body.dev .d-tempo { display: grid; place-items: center; }
   display: block; width: 100%; padding: 0 6px; margin: 0;
   border: 0; background: transparent; color: var(--ink);
 }
-.d-staff svg { display: block; width: 100%; height: auto; max-height: 92px; }
+.d-staff svg { display: block; width: 100%; height: auto; max-height: 124px; }
 
 /* ---- the board ---- */
 .d-stage { flex: 1; min-height: 0; display: grid; place-items: center; position: relative; }

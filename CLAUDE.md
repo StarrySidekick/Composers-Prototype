@@ -165,7 +165,7 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   degrees ([step, length, degree]); exports drop the lengths. `src/music/` is pure
   ES modules that run in node too: keep it free of the DOM outside `songbook/`.
 - **The daily board is its own page (2026-10-15).** Read `docs/DAILY.md` first.
-  `daily.html` (title screen: **daily**) is an 8 x 14 pinball table of the
+  `daily.html` (title screen: **daily**) is an 8 x 8 pinball table of the
   castle's own doodads, one wave from Coda, ten days in `daily/days.json`, each
   a well-known public-domain tune for now (Timothy, 2026-10-16; his songbook
   motifs are in git history). **Coda is always under the bottom-left tile** and
@@ -181,6 +181,14 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   string sounds when the wave CROSSES it, never along it; its note is
   `7 - length + wraps` on its two pegs; a peg on a block slides along its
   string. The castle's `s` string still sounds along, and no day uses it.
+  **Since 2026-10-17:** every tile no instrument needs is a solid block (`Z`,
+  the castle's `block` art; it stops the wave silently), red herrings are rare,
+  the board runs edge to edge with the cell grid and nothing inside a cell, and
+  a day has a `type`: `melodic` (judged by degree; the staff shows noteheads
+  only, `renderStaff({ show: 'pitch' })`), `rhythmic` (by time after the first
+  note; one-line staff, `show: 'rhythm'`) or `advanced` (both; the full score).
+  The ten days are melodic. Staff notes turn green right, red wrong, the only
+  colour on the page. The save is `ck-daily-v2`.
   Percussion is never judged. Handles live in a tile's override as `can`
   (`turn`, `tune`, `move`; a peg winds on `turn`). Tapping Coda plays, tapping
   the sheet music plays the tune. A crossed string plays the synth's pluck
@@ -427,16 +435,20 @@ every handle does something, every note on the way is in the day's scale, drums
 are never judged, the solved wave ends by itself, and the solver finds an answer
 on every day small enough to play (none, on the day that needs a touch in
 flight); plus the pieces and rules on small tables (a crossed string plays, a
-wrap raises it, a slid peg lowers it, a wrong note plays on, a note after the
-tune fails it, a loop is stopped, a drum turned in flight changes the road).
+wrap raises it, a slid peg lowers it, a block stops the wave, a wrong note plays
+on, a note after the tune fails it, a loop is stopped, a drum turned in flight
+changes the road, rhythmic and advanced judging) and the three staffs.
 `node test/daily-touch.mjs` is the page on a 390 x 844 phone with real touch
-events: no lines on the floor (read off the canvas pixels), wind, turn, a peg
+events: the board edge to edge, the grid at tile edges and nothing inside a
+tile (read off the canvas pixels), the melodic staff and its green and red,
+wind, turn, a peg
 block's string fastened under the finger, tap Coda to play, tap the music, the
 tempo and its developer buttons, a drum turned in flight solving day 10, a
 plucked string within 6 dB of a horn, the title chip. Proved by injection: stop
-runs at the first wrong note and ignore touches in flight (8 checks fail); put
-the grid back, the quiet pluck, or refuse taps while the wave runs (each fails
-by name).
+runs at the first wrong note and ignore touches in flight (8 checks fail); a
+rhythm judge ignoring time, stems on the melodic staff, a block that lets the
+wave through, a line through every tile, a board short of the screen's edges,
+the quiet pluck, or taps refused while the wave runs (each fails by name).
 
 ### And a report, for when you are making rooms rather than fixing them
 

@@ -1,8 +1,8 @@
 // The daily board: one wave, a pinball table of instruments, and a tune to make.
 //
-// A day is an 8 x 14 room (portrait, a phone's shape) built from the castle's
-// doodads plus the daily's own pieces (src/daily/pieces.js), so a drum is the
-// castle's drum and a horn the castle's horn. Around them:
+// A day is an 8 x 8 room built from the castle's doodads plus the daily's own
+// pieces (src/daily/pieces.js), so a drum is the castle's drum and a horn the
+// castle's horn. Tiles no instrument needs are solid blocks. Around them:
 //
 //   Coda          always just below the bottom-left tile (Timothy, 2026-10-16).
 //                 Tapping him sends ONE wave up into that tile, on the next
@@ -24,8 +24,12 @@
 //                 A piece with no `can` is fixed. The page draws the difference.
 //   the tune      the day's motif, in scale degrees (src/music/motif.js shape).
 //                 Every pitched note the wave sets off is heard in order and
-//                 compared with it by degree: do is do in any octave, because a
-//                 string's length sets its octave as well as its note.
+//                 compared with it, by the day's `type` (Timothy, 2026-10-17):
+//                   melodic   by degree only: do is do in any octave, because a
+//                             string's length sets its octave as well as its note
+//                   rhythmic  by time only: each note as far after the first as
+//                             the tune's is, in sixteenths
+//                   advanced  both
 //
 // Drums, hats and cymbals keep time; they are not the tune. Percussion is heard
 // and never judged, the same way a note lock ignores it.
@@ -42,11 +46,13 @@ import '../doodads/index.js';
 import { TautString, TuningPeg, Solo } from './pieces.js';
 
 export const COLS = 8;
-export const ROWS = 14;
+export const ROWS = 8;
+export const KINDS = ['melodic', 'rhythmic', 'advanced'];
 export const SOLFEGE = ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti'];
 // A safety net: no run lasts longer than this many sixteenths.
 export const MAX_STEPS = 512;
-// Where Coda stands: off the board, under its bottom-left tile, facing up.
+// Where Coda stands: off the board, under its bottom-left tile, facing up. A
+// board of another height puts him under its own (Board.launch).
 export const CODA = { x: 0, y: ROWS };
 // Tempo: day 1 at 100, five more each day after.
 export const bpmOfDay = (i) => 100 + 5 * i;
@@ -60,7 +66,9 @@ export const DAILY_LEGEND = {
   'v': { type: 'solo', voice: 'violin' },
   'y': { type: 'solo', voice: 'trumpet' },
   'f': { type: 'solo', voice: 'flute' },
+  'Z': { type: 'block' },
 };
+// Z: a solid block, where no instrument is needed.
 
 const deg7 = d => ((d % 7) + 7) % 7;
 const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
@@ -119,8 +127,10 @@ export class Board {
       music: day.music, legend: { ...DAILY_LEGEND, ...(day.legend ?? {}) }, overrides: day.overrides, layout: day.layout,
     });
     this.key = { root: this.room.music.root, mode: this.room.music.mode };
-    this.launch = { x: CODA.x, y: CODA.y, dir: { ...DIR.up } };
+    this.launch = { x: 0, y: this.room.height, dir: { ...DIR.up } };
+    this.kind = KINDS.includes(day.type) ? day.type : 'melodic';
     this.target = targetOf(day.motif);
+    this.onsets = targetSpans(day.motif).map(t => t.from);
     this.tries = 0;
     this.moves = 0;
     this.onToast = null;
@@ -379,10 +389,27 @@ export class Board {
     if (!this.running || !w || opts.family === 'percussion' || opts.family === 'sour') return;
     const note = { midi: opts.midi, family: opts.family, degree: toDegree(opts.midi, this.key).degree, step: this.step, x: w.x, y: w.y };
     const i = this.heard.length;
-    const right = i < this.target.length && note.degree === this.target[i];
     this.heard.push(note);
+    const right = this.isRight(i);
     if (this.quick && !right) this.verdict = this.judge();
     this.onNote?.(note, i, right);
+  }
+
+  // Is the i-th note the wave played the tune's i-th, by the day's type? Pitch
+  // by degree; time as sixteenths after the run's first note, against the
+  // tune's own.
+  isRight(i) {
+    const h = this.heard[i];
+    if (!h || i >= this.target.length) return false;
+    const pitch = h.degree === this.target[i];
+    const time = h.step - this.heard[0].step === this.onsets[i] - this.onsets[0];
+    return this.kind === 'melodic' ? pitch : this.kind === 'rhythmic' ? time : pitch && time;
+  }
+
+  // How many sixteenths late (positive) or early the i-th note came, against the tune.
+  offBy(i) {
+    const h = this.heard[i];
+    return h ? (h.step - this.heard[0].step) - (this.onsets[i] - this.onsets[0]) : 0;
   }
 
   // One sixteenth. Returns true while the run goes on.
@@ -422,11 +449,12 @@ export class Board {
   }
 
   // The notes the wave played against the tune: all of it, in order, nothing
-  // more. The first note out of place names what went wrong.
+  // more. The first note out of place names what went wrong: its pitch, and
+  // (`off`) how many sixteenths early or late it came.
   judge() {
     const t = this.target, h = this.heard;
     for (let i = 0; i < Math.min(t.length, h.length); i++) {
-      if (h[i].degree !== t[i]) return { kind: 'wrong', at: i, wanted: t[i], got: h[i].degree };
+      if (!this.isRight(i)) return { kind: 'wrong', at: i, wanted: t[i], got: h[i].degree, off: this.offBy(i) };
     }
     if (h.length < t.length) return { kind: 'short', at: h.length, wanted: t[h.length] };
     if (h.length > t.length) return { kind: 'long', at: t.length, got: h[t.length].degree, extra: h.length - t.length };
