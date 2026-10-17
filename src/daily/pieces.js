@@ -83,7 +83,8 @@ export class TautString extends Doodad {
     const n = this.note(ctx.room);
     if (!n) return false;
     for (const t of this.run(ctx.room).tiles) t.vibrate = 1;
-    ctx.play({ family: 'strings', midi: ctx.room.music.getNote(n.degree, n.octave), intensity });
+    // Plucked, always: the recorded cello is bowed and swells in late.
+    ctx.play({ family: 'strings', midi: ctx.room.music.getNote(n.degree, n.octave), intensity, sampled: false });
     return true;
   }
 

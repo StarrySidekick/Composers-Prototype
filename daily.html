@@ -23,6 +23,12 @@
       <span class="d-when" id="d-when">Day 1</span>
       <b class="d-title" id="d-title"></b>
     </div>
+    <!-- The tempo. Developer mode adds ten slower and ten faster. -->
+    <div class="d-bpm" id="d-bpm">
+      <button class="d-tempo" id="d-slower" aria-label="Ten slower">&minus;</button>
+      <span><b id="d-bpm-n">100</b> bpm</span>
+      <button class="d-tempo" id="d-faster" aria-label="Ten faster">+</button>
+    </div>
     <button class="d-icon" id="d-reset" aria-label="Set the board back">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4 3.5v4h4"/></svg>
     </button>
@@ -43,6 +49,7 @@
       <div class="d-row d-spread"><h2>Days</h2><button class="d-icon" id="d-menu-close" aria-label="Close">&times;</button></div>
       <div class="d-days" id="d-days"></div>
       <label class="d-row"><input type="checkbox" id="d-names" checked> show note names on the board</label>
+      <label class="d-row"><input type="checkbox" id="d-dev"> developer mode: tempo buttons</label>
       <div class="d-row">
         <button class="d-btn" id="d-howto-open">how to play</button>
         <a class="d-btn" href="index.html">Composer's Key</a>
@@ -53,7 +60,7 @@
   <div class="d-sheet" id="d-howto" hidden role="dialog" aria-label="How to play">
     <div class="d-card">
       <h2>Make the tune</h2>
-      <p>The music at the top is today's tune: <b>tap it</b> to hear it. Set the board so one wave plays it, note for note, then <b>tap Coda</b> to send the wave. Tap him again to stop it.</p>
+      <p>The music at the top is today's tune: <b>tap it</b> to hear it. Set the board so one wave plays it, note for note, then <b>tap Coda</b>, bottom left, to send the wave up. It plays everything it meets, right or wrong, until it stops by itself; tap him again to stop it sooner. You can keep touching the board while it flies.</p>
       <ul class="d-legend">
         <li><i class="g-turn"></i> an arrow: tap to turn a drum, or wind a peg</li>
         <li><i class="g-tune"></i> a dial: tap to tune it</li>

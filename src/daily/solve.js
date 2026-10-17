@@ -3,19 +3,19 @@
 // tap finishes, both show up here as numbers.
 //
 // Brute force on purpose. A configuration is a list of touches (drags first, then
-// taps, then aiming Coda) applied to a fresh Board exactly as a finger applies
-// them, so the solver and the page cannot disagree about what a touch does. Each
-// run stops at the first wrong note, which is where nearly every configuration
-// ends.
+// taps) applied to a fresh Board exactly as a finger applies them, so the solver
+// and the page cannot disagree about what a touch does. Each run is a quick one
+// (Board `quick`): it stops at the first wrong note, which is where nearly every
+// configuration ends, where a real run plays on to the end.
+//
+// Touches before the wave goes, only. A day that needs a touch in flight shows
+// up here as no answer at all, which is how its test proves the touch is needed.
 
 import { Board } from './board.js';
 
-const AIMS = ['up', 'right', 'down', 'left'];
-
-// The choices for one handle: a tap count, where a movable piece goes (any tile
-// Board.canMove allows, so a peg only slides along its string), or Coda's aim.
+// The choices for one handle: a tap count, or where a movable piece goes (any
+// tile Board.canMove allows, so a peg only slides along its string).
 function choices(board, h) {
-  if (h.launcher) return AIMS.map(aim => ({ aim }));
   const taps = Array.from({ length: h.states }, (_, i) => i);
   if (!h.move) return taps.map(n => ({ taps: n }));
   const from = { x: h.piece.x, y: h.piece.y };
@@ -49,20 +49,16 @@ export function solve(day, { max = 3e6, keep = 5 } = {}) {
   const best = [];
 
   const play = (picks) => {
-    const b = new Board(day);
+    const b = new Board(day, { quick: true });
     const touches = [];
     const moves = [], taps = [];
     for (const [h, c] of picks) {
-      if (h.launcher) { if (b.launch.dir.x !== (c.aim === 'right' ? 1 : c.aim === 'left' ? -1 : 0) || b.launch.dir.y !== (c.aim === 'down' ? 1 : c.aim === 'up' ? -1 : 0)) taps.push({ aim: c.aim }); continue; }
       let { x, y } = h.piece;
       if (c.to) { moves.push({ move: [[x, y], c.to] }); [x, y] = c.to; }
       if (c.taps) taps.push({ tap: [x, y], times: c.taps });
     }
     for (const t of moves) if (!b.move({ x: t.move[0][0], y: t.move[0][1] }, { x: t.move[1][0], y: t.move[1][1] })) return;
-    for (const t of taps) {
-      if (t.aim) b.aim(t.aim);
-      else for (let i = 0; i < t.times; i++) b.tap(t.tap[0], t.tap[1]);
-    }
+    for (const t of taps) for (let i = 0; i < t.times; i++) b.tap(t.tap[0], t.tap[1]);
     touches.push(...moves, ...taps);
     configs++;
     b.simulate();

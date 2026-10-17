@@ -167,16 +167,26 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
 - **The daily board is its own page (2026-10-15).** Read `docs/DAILY.md` first.
   `daily.html` (title screen: **daily**) is an 8 x 14 pinball table of the
   castle's own doodads, one wave from Coda, ten days in `daily/days.json`, each
-  a motif of Timothy's from the songbook. **Since 2026-10-16 its strings are its
+  a well-known public-domain tune for now (Timothy, 2026-10-16; his songbook
+  motifs are in git history). **Coda is always under the bottom-left tile** and
+  the wave goes up into (0,13); a day has no `launch`. **A run plays on past a
+  wrong note** until the wave ends by itself (off the board, a peg, a timpani,
+  or a loop, stopped when every wave repeats a state with no touch since) and is
+  judged then: the tune exactly, nothing more (`Board.judge`); the solver uses
+  `quick` runs that stop at the first wrong note. **The board takes touches in
+  flight**; a solution touch with `at` is made after that many steps. Tempo is
+  100 plus 5 a day (`bpmOfDay`). **Since 2026-10-16 its strings are its
   own** (`src/daily/pieces.js`, characters in `DAILY_LEGEND`, not
   `DEFAULT_LEGEND`: `= H` string, `o` peg, `v y f` violin, trumpet, flute): a
   string sounds when the wave CROSSES it, never along it; its note is
   `7 - length + wraps` on its two pegs; a peg on a block slides along its
   string. The castle's `s` string still sounds along, and no day uses it.
   Percussion is never judged. Handles live in a tile's override as `can`
-  (`turn`, `tune`, `move`; a peg winds on `turn`); Coda aims on
-  `launch.can: 'turn'`. Tapping Coda plays, tapping the sheet music plays the
-  tune. A day must not play its tune untouched, its recorded `solution` must,
+  (`turn`, `tune`, `move`; a peg winds on `turn`). Tapping Coda plays, tapping
+  the sheet music plays the tune. A crossed string plays the synth's pluck
+  (`AudioEngine.play` takes `sampled: false`): the recorded cello is bowed and
+  late. The pluck was 8 to 12 dB under every other voice until 2026-10-16; it is
+  normalised now, which made the castle's strings louder too. A day must not play its tune untouched, its recorded `solution` must,
   and the solver must find it (`node tools/daily-solve.mjs`).
   `src/daily/board.js`, `pieces.js` and `solve.js` run in node: keep the DOM out
   of them.
@@ -414,15 +424,19 @@ real Live reads the same; see docs/MUSIC.md.
 `node test/daily.mjs` (node only) holds each of the ten days to being a fair
 puzzle: untouched it is not the tune, its recorded solution touch by touch is,
 every handle does something, every note on the way is in the day's scale, drums
-are never judged, and the solver finds an answer on every day small enough to
-play in a test; plus the board's own pieces on a small table (a crossed string
-plays, a wrap raises it a step, a slid peg lowers it and stays on its line, a
-little instrument plays from any side). `node test/daily-touch.mjs` is the page
-on a 390 x 844 phone with real touch events: wind a peg, turn a drum, slide a peg
-block, tap Coda to play, tap the music to hear it, the gear's days, aim Coda by
-dragging, the solved card, the title chip. Proved by injection: make a tap on
-Coda do nothing and drop the drag's lift above the finger, and 8 checks fail by
-name.
+are never judged, the solved wave ends by itself, and the solver finds an answer
+on every day small enough to play (none, on the day that needs a touch in
+flight); plus the pieces and rules on small tables (a crossed string plays, a
+wrap raises it, a slid peg lowers it, a wrong note plays on, a note after the
+tune fails it, a loop is stopped, a drum turned in flight changes the road).
+`node test/daily-touch.mjs` is the page on a 390 x 844 phone with real touch
+events: no lines on the floor (read off the canvas pixels), wind, turn, a peg
+block's string fastened under the finger, tap Coda to play, tap the music, the
+tempo and its developer buttons, a drum turned in flight solving day 10, a
+plucked string within 6 dB of a horn, the title chip. Proved by injection: stop
+runs at the first wrong note and ignore touches in flight (8 checks fail); put
+the grid back, the quiet pluck, or refuse taps while the wave runs (each fails
+by name).
 
 ### And a report, for when you are making rooms rather than fixing them
 
