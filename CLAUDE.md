@@ -169,7 +169,7 @@ Canonical design source: `~/Desktop/Composer's Key/Composers Key Design Document
   castle's own doodads, one wave from Coda, ten days in `daily/days.json`, each
   a well-known public-domain tune for now (Timothy, 2026-10-16; his songbook
   motifs are in git history). **Coda is always under the bottom-left tile** and
-  the wave goes up into (0,13); a day has no `launch`. **A run plays on past a
+  the wave goes up into (0,7); a day has no `launch`. **A run plays on past a
   wrong note** until the wave ends by itself (off the board, a peg, a timpani,
   or a loop, stopped when every wave repeats a state with no touch since) and is
   judged then: the tune exactly, nothing more (`Board.judge`); the solver uses
