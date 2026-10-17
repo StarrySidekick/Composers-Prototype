@@ -39,7 +39,7 @@ minutes, drawn by how carved it is, against the 3 to 5 hours the game should las
 
 `songbook.html` (or **songbook** on the title screen) is a library of your own
 music and a motif writer for the game. Run `node tools/music-library.mjs
-~/Desktop/Albums ~/Music/Ableton` on the computer with the music: it reads every
+~/Desktop/Albums ~/Desktop/Songs` on the computer with the music: it reads every
 Ableton project's MIDI clips, matches each bounce to its project, guesses keys and
 writes `library/` (git-ignored). The writer takes notes as scale degrees, draws
 them as sheet music, plays them through the game's instruments and copies them

@@ -44,6 +44,9 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ck-writer-'));
 const tune = [62, 65, 69, 67, 65, 64, 62, 60, 62].map((m, i) => ({ beat: i / 2, beats: 0.5, midi: m, vel: 90 }));
 fs.mkdirSync(path.join(tmp, 'Albums/Test Album'), { recursive: true });
 fs.writeFileSync(path.join(tmp, 'Albums/Test Album/01 Tide Song.mid'), writeMidi({ bpm: 96, tracks: [{ name: 'Flute', notes: tune }] }));
+// Two parts, so there is a piece whose whole arrangement is more than one track.
+const bassline = [38, 38, 45, 43].map((m, i) => ({ beat: i, beats: 1, midi: m, vel: 80 }));
+fs.writeFileSync(path.join(tmp, 'Albums/Test Album/02 Duet.mid'), writeMidi({ bpm: 96, tracks: [{ name: 'Flute', notes: tune }, { name: 'Cello', notes: bassline }] }));
 const library = await buildLibrary([path.join(tmp, 'Albums')], { out: path.join(tmp, 'out'), log: () => {} });
 const libraryText = fs.readFileSync(path.join(tmp, 'out/library.json'), 'utf8');
 
@@ -194,6 +197,33 @@ console.log('The library');
   const bass = await page.evaluate(() => window.CK_SONGBOOK.writer.motif);
   ok(bass.name.includes('bass') && bass.family === 'strings' && bass.notes.length === 8, "the game's own layers open in the writer", JSON.stringify({ n: bass.name, f: bass.family, c: bass.notes.length }));
   ok(await page.evaluate(() => document.documentElement.scrollWidth) <= 390, 'the library fits the phone too');
+
+  // The whole piece: every arranged track at once, not one part at a time.
+  // (Open in writer, above, left the writer showing; come back before looking.)
+  await page.locator('#tab-library').tap();
+  await page.waitForSelector('#library .detail .clip', { state: 'visible' });
+  ok(await page.locator('#library .detail .track').filter({ hasText: 'The whole piece' }).count() === 0,
+    'a one-track piece is its own whole piece, so no extra row');
+  await page.locator('#l-search').fill('Duet');      // find it the way a thumb would
+  await page.locator('#library .item .head').first().tap();
+  await page.waitForSelector('#library .detail .clip', { state: 'visible' });
+  const whole = page.locator('#library .detail .track').filter({ hasText: 'The whole piece' });
+  const wholeText = await whole.count() ? (await whole.first().innerText()).replace(/\s+/g, ' ') : '(no row)';
+  ok(wholeText.includes('2 tracks') && wholeText.includes(`${tune.length + bassline.length} notes`),
+    'two tracks play together, every note of both', wholeText);
+  const sounded = await page.evaluate(async () => {
+    const played = [];
+    const audio = await window.CK_SONGBOOK.getAudio();
+    const real = audio.play.bind(audio);
+    audio.play = o => { played.push(o.midi); return real(o); };
+    document.querySelector('#library .detail .track').querySelector('button').click();
+    await new Promise(r => setTimeout(r, 900));
+    audio.play = real;
+    return played;
+  });
+  ok(sounded.some(m => tune.map(n => n.midi).includes(m)) && sounded.some(m => bassline.map(n => n.midi).includes(m)),
+    'pressing it sounds notes from both tracks, not just the first', JSON.stringify(sounded));
+
   ok(!errors.length, 'nothing threw', errors.join('\n'));
   await ctx.close();
 }
@@ -213,7 +243,9 @@ console.log('As the private page (a stand-in for the artifact runtime)');
     'the library goes in as a document per piece and per track', paths.join(' '));
   const head = await page.evaluate(i => window.fakeDb.get(`pieces/${i}`), id);
   ok(!head.tracks && head.trackNames?.[0]?.name === 'Flute', "a piece's document leaves its notes to the track documents");
-  await page.locator('#library .item .head').first().tap();
+  // By name, not by position: read back from the database the pieces come in
+  // document-id order, which is not the order the library file is in.
+  await page.locator('#library .item').filter({ hasText: library.pieces[0].title }).locator('.head').first().tap();
   await page.waitForSelector('#l-status');
   await page.selectOption('#l-status', 'candidate');
   await page.fill('#l-tags', 'wood, #lullaby');

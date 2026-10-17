@@ -3,7 +3,7 @@
    ---------------------------------------------------------------------
    Run it on the computer that has the music:
 
-     node tools/music-library.mjs ~/Desktop/Albums ~/Music/Ableton [--out library]
+     node tools/music-library.mjs ~/Desktop/Albums ~/Desktop/Songs [--out library]
 
    It walks every folder you name and finds:
 
