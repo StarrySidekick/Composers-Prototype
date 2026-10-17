@@ -461,6 +461,43 @@ Guesses he should check:
   that is "take up more of the grid", done by lures. Whether they are fun needs
   his thumbs.
 
+### 2026-10-17: smaller, fuller, three kinds of puzzle
+
+*"let's try 8x8 actually, so we fill more grid space. also, since we aren't
+judging rhythm as a grading thing in these levels, remove the element of the
+sheet music that shows different note lengths. there are three different types
+of puzzles: melodic, rhythmic, and advanced (melodic and rhythmic combined),
+only advanced levels should show full sheet music. rhythmic levels should show
+just rhythmic sheet music without pitch, and melodic levels should just show
+notes without lengths. notes up top should turn green if played correctly, and
+red if incorrect. there shouldn't really be any elements of the level that are
+vestigial, red herring instruments should be used sparingly. use solid block
+textures in places where there aren't any instruments in order to fill the
+space. push the board to the full sides of the screen to increase visibility.
+we still need grid lines, just not the horizontal subdivisions within them like
+before"* (spelling tidied)
+
+Done (`docs/DAILY.md`): 8 x 8 boards, edge to edge, the cell grid back with
+nothing inside a cell. Every tile is the road, an instrument the wave plays, a
+piece it needs, or a solid block (Unity's block art); one red herring at most.
+A day has a kind: melodic (noteheads only), rhythmic (one-line rhythm, judged by
+time), advanced (the whole score, judged on both). Staff notes turn green and
+red. The ten tunes on ten new boards, all melodic; the longest, Ode to Joy's
+fifteen notes, fits because the road crosses the same string more than once.
+
+Guesses he should check:
+
+- **Rhythmic and advanced are built, not yet played.** The judge and the staff
+  are there and tested on small tables; no day uses them, because the forge
+  cannot yet lay instruments out to a rhythm. And in a rhythmic day, should a
+  drum hit count as a note? Today drums are never judged.
+- **Green and red are the only colour on the page.** He asked for them; the
+  black and white rule still holds everywhere else.
+- **"Solid block textures"** is read as Unity's pushable-block art (the
+  `block` slot), since castle walls draw only an outline.
+- **The save started over** (`ck-daily-v2`): the old boards' solved marks did
+  not belong to these.
+
 ## Something that needs Timothy
 
 **The GDD should come into this repo.** It currently lives at

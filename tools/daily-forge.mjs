@@ -17,14 +17,18 @@
 // trays=   little instruments on the way that start off it          (default 0)
 // timed=1  the wave comes back through one drum that must face a new way the
 //          second time: a touch in flight, between the two visits
-// lures=   a piece with the RIGHT next note, the wrong way out of a drum (default 2)
-// decoys=  strings and little instruments anywhere else             (default 4)
+// window=  with timed=1, the least number of steps between those visits: the
+//          time a thumb has to make the touch                      (default 0)
+// lures=   a piece with the RIGHT next note, the wrong way out of a drum (default 1)
+// decoys=  strings and little instruments anywhere else             (default 0)
 // decoysolo= how often a lure or decoy is a little instrument       (default 0.35)
 // solo=    how often a note is a little instrument, 0 to 1          (default 0.25)
 // horn=    how often a note is a horn, 0 to 1                       (default 0.1)
 // reuse=   how often a repeated note crosses a piece already there  (default 0.7)
 // straight= how often the wave goes straight on to the next note    (default 0.4)
 // leadin=  how often it starts up the left edge and turns right     (default 0.7)
+// fill=    the least share of the board the road and its instruments must
+//          use, 0 to 1; the rest is blocks                         (default 0)
 // timpani=1  the last note may be a timpani (it absorbs, so only last)
 // unique=0   keep a board with more than one answer, or too big to count
 //
@@ -33,12 +37,14 @@
 // degree), a little instrument on the path, a straight horn 7 - degree long (a
 // slide making up some of it), or, for a note the board already has straight
 // ahead, that piece crossed again. Between notes the wave goes straight on, or a
-// drum turns it. After the last note it needs a clear lane off the board or into
-// a peg, so it ends without another sound. Then lures and decoys, then the
-// handles are scrambled, each change recorded as the touches that undo it, and
-// the board is kept only if it is not the tune untouched, its scramble played
-// back is, and the solver (src/daily/solve.js) finds that answer and no other;
-// with timed=1, finds NO answer, since without the touch in flight there is none.
+// drum turns it. After the last note it runs into a block (or off the board),
+// so it ends without another sound. Then a lure, then the handles are
+// scrambled, each change recorded as the touches that undo it, then every tile
+// left over becomes a solid block (Timothy, 2026-10-17: nothing vestigial, red
+// herrings sparingly, blocks where no instrument is), and the board is kept
+// only if it is not the tune untouched, its scramble played back is, and the
+// solver (src/daily/solve.js) finds that answer and no other; with timed=1,
+// finds NO answer, since without the touch in flight there is none.
 //
 // It prints a day for daily/days.json (give it an id, a title and a hint), the
 // board, and the solver's count. A trayed instrument can go to any free tile, a
@@ -120,7 +126,7 @@ function walk() {
   // the board), so a day of strings only always has one.
   const stringsOnly = !num('solo', 0.25) && !num('horn', 0.1);
   if (stringsOnly || rnd() < num('leadin', 0.7)) {
-    const up = int(0, 9);
+    const up = int(0, H - 2);
     for (let i = 0; i < up; i++) start.set(key(0, H - 1 - i), { kind: 'path' });
     y = H - 1 - up;
     start.set(key(0, y), { kind: 'drum', rot: ROT['up>right'], path: true, din: 'up', dout: 'right', next: 0 });
@@ -148,17 +154,15 @@ function* options(cells, n, x, y, dir, retimed) {
   const d = target[n], last = n === target.length - 1;
   const free = (tx, ty) => inb(tx, ty) && !cells.has(key(tx, ty));
   const open = (tx, ty) => inb(tx, ty) && (!cells.has(key(tx, ty)) || cells.get(key(tx, ty)).kind === 'path');
-  // A clear way out after the last note: off the board, or into a peg.
+  // A quiet end after the last note: off the board, into a peg, or into a
+  // block laid on the next tile.
   const lane = (tx, ty, dd) => {
     const [dx, dy] = DIRS[dd];
-    const out = [];
-    for (let ax = tx + dx, ay = ty + dy; inb(ax, ay); ax += dx, ay += dy) {
-      const c = cells.get(key(ax, ay));
-      if (c?.kind === 'peg') return out;
-      if (c && c.kind !== 'path') return null;
-      out.push([ax, ay]);
-    }
-    return out;
+    const nx = tx + dx, ny = ty + dy;
+    if (!inb(nx, ny)) return [];
+    const c = cells.get(key(nx, ny));
+    if (!c) return [[nx, ny]];
+    return c.kind === 'peg' || c.kind === 'block' ? [] : null;
   };
   const r = rnd();
   const first = r < num('solo', 0.25) ? 'solo' : r < num('solo', 0.25) + num('horn', 0.1) ? 'horn' : 'string';
@@ -220,12 +224,12 @@ function* options(cells, n, x, y, dir, retimed) {
         return c2;
       };
       if (last) {
-        // The lane runs on ahead of the last piece, never through it (a string
+        // The tile ahead of the last piece, never the piece itself (a string
         // lies across the way, a horn behind its bell).
         const out = kind === 'timpani' ? [] : lane(tx, ty, dir);
         if (!out) continue;
         const c2 = laid();
-        for (const [a, b] of out) if (!c2.has(key(a, b))) c2.set(key(a, b), { kind: 'path', lane: true });
+        for (const [a, b] of out) if (!c2.has(key(a, b))) c2.set(key(a, b), { kind: 'block', stop: true });
         yield { cells: c2, x: tx, y: ty, dir, retimed };
         continue;
       }
@@ -304,6 +308,7 @@ function toDay(cells, solution = []) {
       if (c.part !== 'straight') overrides.push({ x, y, rot: c.rot, ...(c.extend != null ? { extend: c.extend } : {}), ...can });
     }
     if (c.kind === 'timpani') { rows[y][x] = 'p'; overrides.push({ x, y, degree: c.degree, ...can }); }
+    if (c.kind === 'block') rows[y][x] = 'Z';
   }
   overrides.sort((a, b) => a.y - b.y || a.x - b.x);
   return {
@@ -365,8 +370,8 @@ for (let a = 0; a < num('tries', 6000) && !found; a++) {
   // The retimed drum faces its first way; the touch in flight turns it the second.
   const again = [...cells.entries()].find(([, c]) => c.retimed);
   if (!again && !plays(toDay(cells))) { no('path does not play it'); continue; }
-  scatter(cells, num('lures', 2), true);
-  scatter(cells, num('decoys', 4), false);
+  scatter(cells, num('lures', 1), true);
+  scatter(cells, num('decoys', 0), false);
 
   // Scramble: each change is recorded as the touches that undo it. Moves come
   // first in the answer, so a tap names the tile a piece ends up on.
@@ -408,22 +413,32 @@ for (let a = 0; a < num('tries', 6000) && !found; a++) {
     peg.can = 'move';
     const from = home.find(([, c]) => c === peg)[0].split(',').map(Number);
     moves.push({ move: [to, from] });
+    // The string has to reach back home: keep its way clear of blocks.
+    const [sx, sy] = [Math.sign(from[0] - to[0]), Math.sign(from[1] - to[1])];
+    for (let x = to[0] + sx, y = to[1] + sy; x !== from[0] + sx || y !== from[1] + sy; x += sx, y += sy) {
+      if (!cells.has(key(x, y))) cells.set(key(x, y), { kind: 'path', keep: true });
+    }
   }
   if (stuck) { no('no room to slide a peg'); continue; }
   const empty = [];
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (!cells.has(key(x, y))) empty.push([x, y]);
   for (const [k, c] of solos.slice(0, trays)) {
     const [fx, fy] = empty.splice(int(0, empty.length - 1), 1)[0];
-    cells.delete(k);
+    cells.set(k, { kind: 'path' });          // its place on the road stays open
     cells.set(key(fx, fy), { ...c, can: 'move' });
     moves.push({ move: [[fx, fy], k.split(',').map(Number)] });
   }
+  // Everything left over is a block.
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (!cells.has(key(x, y))) cells.set(key(x, y), { kind: 'block' });
+  const used = [...cells.values()].filter(c => c.kind !== 'block').length / (W * H);
+  if (used < num('fill', 0)) { no('too much of the board left as blocks'); continue; }
   const solution = [...moves, ...taps];
   if (again) {
     const [k, c] = again;
     c.can = 'turn';
     const v = visits(toDay(cells), solution, k);
     if (v.length < 2) { no('timed drum not visited twice'); continue; }
+    if (v[1] - v[0] < num('window', 0)) { no('too little time between the visits'); continue; }
     solution.push({ tap: k.split(',').map(Number), times: ((c.rot2 - c.rot) / 90 % 4 + 4) % 4, at: Math.floor((v[0] + v[1]) / 2) });
   }
   const day = toDay(cells, solution);

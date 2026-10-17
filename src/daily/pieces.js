@@ -223,3 +223,25 @@ export class Solo extends Doodad {
   }
 }
 defineDoodad('solo', Solo);
+
+// A solid block: fills a tile no instrument needs (Timothy, 2026-10-17: "use
+// solid block textures in places where there aren't any instruments"). A wave
+// that meets one stops there, silently. Drawn with the castle's `block` art,
+// Unity's pushable block.
+export class Block extends Doodad {
+  constructor(spec, x, y) {
+    super(spec, x, y);
+    this.solid = true;
+    this.blocksWave = true;
+  }
+  get spriteKey() { return 'block'; }
+  onWaveEntered(wave) { wave.destroy(); }
+  draw(c, s) {
+    c.fillStyle = '#1c1c1c';
+    c.fillRect(1, 1, s - 2, s - 2);
+    c.strokeStyle = '#ffffff';
+    c.lineWidth = 2;
+    c.strokeRect(s * 0.1, s * 0.1, s * 0.8, s * 0.8);
+  }
+}
+defineDoodad('block', Block);

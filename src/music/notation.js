@@ -140,13 +140,19 @@ export function layoutEvents(notes, { bars, beatsPerBar = 4 } = {}) {
 const S = 10;                 // space between staff lines, px
 const HALF = S / 2;
 
+// `show` (the daily board's three kinds of puzzle, Timothy 2026-10-17):
+//   'full'    the score: pitch and rhythm. The default, and the songbook's.
+//   'pitch'   noteheads only, evenly spaced: which notes, not how long
+//   'rhythm'  one line, every note on it: how long, not which
 export function renderStaff({ notes = [], bars = 1, key = { root: 0, mode: 'ionian' }, clef = null,
-  width = 360, beatsPerBar = 4, playStep = null, title = '', marks = null } = {}) {
+  width = 360, beatsPerBar = 4, playStep = null, title = '', marks = null, show = 'full' } = {}) {
   const bar = beatsPerBar * 4;
   if (!clef) {
     const ms = notes.map(n => n.midi).sort((a, b) => a - b);
     clef = ms.length && ms[Math.floor(ms.length / 2)] < 60 ? 'bass' : 'treble';
   }
+  if (show === 'pitch') return renderPitches({ notes, key, clef, width, playStep, title, marks });
+  const rhythm = show === 'rhythm';
   const bottom = BOTTOM[clef];
   const alters = signatureAlters(key);
   const { sf } = keySignature(key);
@@ -157,6 +163,8 @@ export function renderStaff({ notes = [], bars = 1, key = { root: 0, mode: 'ioni
   for (const ev of events) {
     if (ev.bar !== curBar) { curBar = ev.bar; barState = new Map(); }
     if (ev.rest) { held = null; continue; }
+    // Rhythm only: one head on the middle line, whatever the pitch.
+    if (rhythm) { ev.heads = [{ midi: ev.notes[0].midi, pos: 4, acc: null }]; continue; }
     ev.heads = ev.notes.map(n => {
       const sp = spell(n.midi, key);
       // A tied note carries its accidental, even over a bar line; the next
@@ -178,7 +186,7 @@ export function renderStaff({ notes = [], bars = 1, key = { root: 0, mode: 'ioni
   }
   const barW = Array.from({ length: bars }, (_, b) => events.filter(e => e.bar === b).reduce((a, e) => a + e.w, 0) + 12);
 
-  const clefW = 44, keyW = Math.abs(sf) * 8 + (sf ? 4 : 0), timeW = 18;
+  const clefW = rhythm ? 26 : 44, keyW = rhythm ? 0 : Math.abs(sf) * 8 + (sf ? 4 : 0), timeW = 18;
   const lines = [];
   let cur = [], used = 0;
   for (let b = 0; b < bars; b++) {
@@ -199,14 +207,15 @@ export function renderStaff({ notes = [], bars = 1, key = { root: 0, mode: 'ioni
   lines.forEach((lineBars, li) => {
     const top = firstTop + li * lineH;          // y of the top line
     const yOf = pos => top + (8 - pos) * HALF;
-    // Staff lines.
-    for (let i = 0; i < 5; i++) parts.push(`<line x1="0" x2="${width}" y1="${top + i * S}" y2="${top + i * S}" class="sl"/>`);
-    parts.push(`<line x1="0.5" x2="0.5" y1="${top}" y2="${top + 4 * S}" class="bl"/>`);
+    // Staff lines: five, or for rhythm one, with the percussion clef's two bars.
+    for (let i = 0; i < 5; i++) if (!rhythm || i === 2) parts.push(`<line x1="0" x2="${width}" y1="${top + i * S}" y2="${top + i * S}" class="sl"/>`);
+    parts.push(`<line x1="0.5" x2="0.5" y1="${top + (rhythm ? S : 0)}" y2="${top + (rhythm ? 3 : 4) * S}" class="bl"/>`);
     let x = 4;
-    parts.push(clef === 'treble' ? trebleClef(x + 13, yOf(2)) : bassClef(x + 5, yOf(6)));
+    if (rhythm) parts.push(`<rect x="${x + 5}" y="${top + S}" width="3.2" height="${2 * S}" class="f"/><rect x="${x + 11}" y="${top + S}" width="3.2" height="${2 * S}" class="f"/>`);
+    else parts.push(clef === 'treble' ? trebleClef(x + 13, yOf(2)) : bassClef(x + 5, yOf(6)));
     x += clefW;
     // Key signature.
-    for (let i = 0; i < Math.abs(sf); i++) {
+    for (let i = 0; i < (rhythm ? 0 : Math.abs(sf)); i++) {
       const letter = sf > 0 ? SHARP_ORDER[i] : FLAT_ORDER[i];
       const pos = sigPos(letter, sf > 0, clef);
       parts.push(accidental(sf > 0 ? 1 : -1, x + i * 8 + 3, yOf(pos)));
@@ -231,12 +240,13 @@ export function renderStaff({ notes = [], bars = 1, key = { root: 0, mode: 'ioni
         x += ev.w * stretch;
       }
       x += 12 * stretch;
-      parts.push(`<line x1="${x - 6 * stretch}" x2="${x - 6 * stretch}" y1="${top}" y2="${top + 4 * S}" class="bl"/>`);
+      parts.push(`<line x1="${x - 6 * stretch}" x2="${x - 6 * stretch}" y1="${top + (rhythm ? S : 0)}" y2="${top + (rhythm ? 3 : 4) * S}" class="bl"/>`);
     }
     // The last bar of the piece ends in a double bar.
     if (isLast) {
       const xe = x - 6 * stretch;
-      parts.push(`<line x1="${xe - 4}" x2="${xe - 4}" y1="${top}" y2="${top + 4 * S}" class="bl"/><line x1="${xe}" x2="${xe}" y1="${top}" y2="${top + 4 * S}" class="bl" stroke-width="3"/>`);
+      const y1 = top + (rhythm ? S : 0), y2 = top + (rhythm ? 3 : 4) * S;
+      parts.push(`<line x1="${xe - 4}" x2="${xe - 4}" y1="${y1}" y2="${y2}" class="bl"/><line x1="${xe}" x2="${xe}" y1="${y1}" y2="${y2}" class="bl" stroke-width="3"/>`);
     }
   });
 
@@ -252,7 +262,7 @@ export function renderStaff({ notes = [], bars = 1, key = { root: 0, mode: 'ioni
   flush();
   for (const g of beams) {
     const avg = g.flatMap(e => e.heads.map(h => h.pos)).reduce((a, b, _, arr) => a + b / arr.length, 0);
-    const up = avg < 4;
+    const up = rhythm || avg < 4;
     const ys = g.flatMap(e => e.heads.map(h => e.yOf(h.pos)));
     const beamY = up ? Math.min(...ys) - 3.2 * S : Math.max(...ys) + 3.2 * S;
     for (const e of g) { e.up = up; e.stemTo = beamY; }
@@ -267,7 +277,7 @@ export function renderStaff({ notes = [], bars = 1, key = { root: 0, mode: 'ioni
     const mark = marks?.find(m => ev.start >= m.from && ev.start < m.to);
     const cls = on ? ' on' : mark ? ` ${mark.cls}` : '';
     if (ev.rest) { parts.push(rest(ev.d, ev.x + 2, ev.top, cls)); return; }
-    const up = ev.up ?? (ev.heads.reduce((a, h) => a + h.pos, 0) / ev.heads.length < 4);
+    const up = ev.up ?? (rhythm || ev.heads.reduce((a, h) => a + h.pos, 0) / ev.heads.length < 4);
     const hollow = ev.d >= 8;
     const ys = ev.heads.map(h => ev.yOf(h.pos));
     // Ledger lines.
@@ -330,8 +340,63 @@ export function renderStaff({ notes = [], bars = 1, key = { root: 0, mode: 'ioni
     });
   }
 
-  const style = `<style>.sl{stroke:currentColor;stroke-width:1;opacity:.75}.bl{stroke:currentColor;stroke-width:1.2}.st{stroke:currentColor;stroke-width:1.3}.f{fill:currentColor}.o{fill:none;stroke:currentColor;stroke-width:1.6}.tie{fill:none;stroke:currentColor;stroke-width:1.3}.cl{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.ts{fill:currentColor;font:bold 19px Georgia,'Times New Roman',serif;text-anchor:middle}.t{fill:currentColor;font-family:inherit}.on{fill:var(--hot,#fff);stroke:var(--hot,#fff);filter:drop-shadow(0 0 3px currentColor)}.no{opacity:.3}</style>`;
+  const style = `<style>.sl{stroke:currentColor;stroke-width:1;opacity:.75}.bl{stroke:currentColor;stroke-width:1.2}.st{stroke:currentColor;stroke-width:1.3}.f{fill:currentColor}.o{fill:none;stroke:currentColor;stroke-width:1.6}.tie{fill:none;stroke:currentColor;stroke-width:1.3}.cl{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.ts{fill:currentColor;font:bold 19px Georgia,'Times New Roman',serif;text-anchor:middle}.t{fill:currentColor;font-family:inherit}.on{fill:var(--hot,#fff);stroke:var(--hot,#fff);filter:drop-shadow(0 0 3px currentColor)}.no{opacity:.3}${MARKS}</style>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(title || 'staff')}">${style}${parts.join('')}</svg>`;
+}
+
+// Marks for a note judged: right green, wrong red (the daily board's staff).
+const MARKS = '.ok{fill:#3fb950;stroke:#3fb950}.bad{fill:#f85149;stroke:#f85149}.o.ok,.o.bad{fill:none}';
+
+// Pitch only: the notes as plain noteheads, evenly spaced, with clef, key and
+// ledger lines, and nothing that says how long: no stems, beams, flags, dots,
+// rests, ties, bar lines or time signature. A chord is its heads stacked. An
+// accidental is shown on every note that leaves the key, since there are no
+// bars to carry it.
+function renderPitches({ notes, key, clef, width, playStep, title, marks }) {
+  const bottom = BOTTOM[clef];
+  const alters = signatureAlters(key);
+  const { sf } = keySignature(key);
+  const byStart = new Map();
+  for (const n of notes) {
+    if (!byStart.has(n.start)) byStart.set(n.start, { start: n.start, len: n.len, notes: [] });
+    byStart.get(n.start).notes.push(n);
+  }
+  const groups = [...byStart.values()].sort((a, b) => a.start - b.start);
+  const topPad = title ? 22 : 0;
+  const top = topPad + 3.2 * S;
+  const yOf = pos => top + (8 - pos) * HALF;
+  const height = topPad + 9 * S + 2.4 * S;
+  const parts = [];
+  if (title) parts.push(`<text x="2" y="14" class="t" font-size="13">${esc(title)}</text>`);
+  for (let i = 0; i < 5; i++) parts.push(`<line x1="0" x2="${width}" y1="${top + i * S}" y2="${top + i * S}" class="sl"/>`);
+  parts.push(`<line x1="0.5" x2="0.5" y1="${top}" y2="${top + 4 * S}" class="bl"/>`);
+  let x = 4;
+  parts.push(clef === 'treble' ? trebleClef(x + 13, yOf(2)) : bassClef(x + 5, yOf(6)));
+  x += 44;
+  for (let i = 0; i < Math.abs(sf); i++) {
+    const letter = sf > 0 ? SHARP_ORDER[i] : FLAT_ORDER[i];
+    parts.push(accidental(sf > 0 ? 1 : -1, x + i * 8 + 3, yOf(sigPos(letter, sf > 0, clef))));
+  }
+  x += Math.abs(sf) * 8 + (sf ? 4 : 0) + 14;
+  const end = width - 12;
+  const step = groups.length > 1 ? Math.min(34, (end - x - 8) / (groups.length - 1)) : 0;
+  groups.forEach((g, i) => {
+    const hx = x + i * step;
+    const on = playStep != null && playStep >= g.start && playStep < g.start + g.len;
+    const mark = marks?.find(m => g.start >= m.from && g.start < m.to);
+    const cls = on ? ' on' : mark ? ` ${mark.cls}` : '';
+    for (const n of g.notes) {
+      const sp = spell(n.midi, key);
+      const pos = sp.step - bottom;
+      for (let p = -2; p >= pos; p -= 2) parts.push(`<line x1="${hx - 8}" x2="${hx + 8}" y1="${yOf(p)}" y2="${yOf(p)}" class="sl"/>`);
+      for (let p = 10; p <= pos; p += 2) parts.push(`<line x1="${hx - 8}" x2="${hx + 8}" y1="${yOf(p)}" y2="${yOf(p)}" class="sl"/>`);
+      parts.push(head(hx, yOf(pos), false, cls));
+      if (sp.alter !== alters[sp.letter]) parts.push(accidental(sp.alter, hx - 14, yOf(pos)));
+    }
+  });
+  parts.push(`<line x1="${end - 4}" x2="${end - 4}" y1="${top}" y2="${top + 4 * S}" class="bl"/><line x1="${end}" x2="${end}" y1="${top}" y2="${top + 4 * S}" class="bl" stroke-width="3"/>`);
+  const style = `<style>.sl{stroke:currentColor;stroke-width:1;opacity:.75}.bl{stroke:currentColor;stroke-width:1.2}.st{stroke:currentColor;stroke-width:1.3}.f{fill:currentColor}.o{fill:none;stroke:currentColor;stroke-width:1.6}.cl{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.t{fill:currentColor;font-family:inherit}.on{fill:var(--hot,#fff);stroke:var(--hot,#fff);filter:drop-shadow(0 0 3px currentColor)}${MARKS}</style>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(title || 'notes')}">${style}${parts.join('')}</svg>`;
 }
 
 function sigPos(letter, sharp, clef) {

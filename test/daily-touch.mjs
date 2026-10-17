@@ -7,8 +7,10 @@
 
      - the first visit opens how to play; after that a day opens on the board
      - nothing covers the gear, the tempo, the reset, the music or Coda, who
-       stands under the bottom-left tile
-     - the floor has no lines on it: not between cells, not through them
+       stands under the bottom-left tile; the board runs edge to edge
+     - the floor has the grid along the tiles' edges and nothing inside a tile
+     - a melodic day's staff shows the notes without lengths; a wrong run turns
+       notes red and the right one green
      - tapping a peg winds it; tapping a drum turns it; a fixed string plays its
        note unheard and costs no touch
      - tapping Coda plays: day 1 solved by touch lights the staff and shows the
@@ -50,7 +52,7 @@ const open = async (day) => {
   });
 };
 
-// The centre of a board tile on the screen (row 14 is Coda's, under the board).
+// The centre of a board tile on the screen (row 8 is Coda's, under the board).
 const tile = (x, y) => page.evaluate(([x, y]) => {
   const v = window.DAILY.view;
   const r = document.getElementById('d-board').getBoundingClientRect();
@@ -85,37 +87,67 @@ for (const sel of ['#d-menu-btn', '#d-bpm', '#d-reset', '#d-staff']) {
   ok(`${sel} is on screen and nothing covers it`, p.visible && !p.covered, `covered by ${p.by}`);
 }
 const coda = await page.evaluate(() => window.DAILY.board.launch);
-ok('Coda stands under the bottom-left tile', coda.x === 0 && coda.y === 14, JSON.stringify(coda));
+ok('Coda stands under the bottom-left tile', coda.x === 0 && coda.y === 8, JSON.stringify(coda));
+const edge = await page.evaluate(() => { const r = document.getElementById('d-board').getBoundingClientRect(); return { left: r.left, right: r.right, vw: innerWidth }; });
+ok('the board runs edge to edge', Math.abs(edge.left) < 1 && Math.abs(edge.right - edge.vw) < 1, JSON.stringify(edge));
 const cp = await tile(coda.x, coda.y);
 const codaHit = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.id, [cp.x, cp.y]);
 ok('nothing covers Coda', codaHit === 'd-board', codaHit);
 ok('there is no play button and no listen button', !(await page.$('#d-play')) && !(await page.$('#d-listen')));
 
-// The floor: one colour edge to edge. Read the pixels across two empty tiles,
-// over their shared edge, at the middle of the tile and a quarter down.
-const lines = await page.evaluate(() => {
+// The floor: the grid along the tiles' edges, and inside a tile one colour.
+// Two empty tiles side by side: a line down their shared edge, nothing across
+// either of them, at a quarter and half way down. Measured on day 1 emptied,
+// since a real board is too full of blocks to have two empty tiles side by side.
+await page.evaluate(() => {
+  const d = window.DAILY.days.days[0];
+  window.__saved = { layout: d.layout, overrides: d.overrides };
+  d.layout = d.layout.map(r => '.'.repeat(r.length)); d.overrides = [];
+  window.DAILY.openDay(0);
+});
+await page.waitForTimeout(300);
+const floor = await page.evaluate(() => {
   const { board, view } = window.DAILY;
   const cv = document.getElementById('d-board');
   const c = cv.getContext('2d');
   const k = cv.width / cv.getBoundingClientRect().width;
-  for (let y = 0; y < 13; y++) for (let x = 1; x < 7; x++) {
-    if ([[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]].some(([a, b]) => board.pieceAt(a, b))) continue;
-    const px = (u) => Math.round((view.ox + u * view.tile) * k);
-    const py = (v) => Math.round((view.oy + v * view.tile) * k);
-    const seen = new Set();
+  const px = (u) => Math.round((view.ox + u * view.tile) * k);
+  const py = (v) => Math.round((view.oy + v * view.tile) * k);
+  const rgb = (d, i) => `${d[i]},${d[i + 1]},${d[i + 2]}`;
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 7; x++) {
+    if (board.pieceAt(x, y) || board.pieceAt(x + 1, y)) continue;
+    const inside = new Set();
     for (const v of [y + 0.25, y + 0.5]) {
-      const row = c.getImageData(px(x + 0.2), py(v), px(x + 1.8) - px(x + 0.2), 1).data;
-      for (let i = 0; i < row.length; i += 4) seen.add(`${row[i]},${row[i + 1]},${row[i + 2]}`);
+      for (const u0 of [x, x + 1]) {
+        const row = c.getImageData(px(u0 + 0.15), py(v), px(u0 + 0.85) - px(u0 + 0.15), 1).data;
+        for (let i = 0; i < row.length; i += 4) inside.add(rgb(row, i));
+      }
     }
     for (const u of [x + 0.25, x + 0.5]) {
-      const col = c.getImageData(px(u), py(y + 0.2), 1, py(y + 1.8) - py(y + 0.2)).data;
-      for (let i = 0; i < col.length; i += 4) seen.add(`${col[i]},${col[i + 1]},${col[i + 2]}`);
+      const col = c.getImageData(px(u), py(y + 0.15), 1, py(y + 0.85) - py(y + 0.15)).data;
+      for (let i = 0; i < col.length; i += 4) inside.add(rgb(col, i));
     }
-    return { at: [x, y], colours: [...seen] };
+    const line = c.getImageData(px(x + 1), py(y + 0.5), 1, 1).data;
+    return { at: [x, y], inside: [...inside], line: rgb(line, 0) };
   }
   return null;
 });
-ok('the floor has no lines on it: one colour across a cell edge, both ways', lines && lines.colours.length === 1, JSON.stringify(lines));
+ok('inside a tile the floor is one colour: nothing runs through it', floor && floor.inside.length === 1, JSON.stringify(floor));
+ok('and the grid runs along the tiles\' edges', floor && floor.line !== floor.inside[0], JSON.stringify(floor));
+await page.evaluate(() => { Object.assign(window.DAILY.days.days[0], window.__saved); window.DAILY.openDay(0); });
+
+const staffStems = await page.evaluate(() => document.querySelectorAll('#d-staff line.st').length);
+const staffHeads = await page.evaluate(() => document.querySelectorAll('#d-staff ellipse').length);
+ok('a melodic day\'s staff: seven notes, no stems', staffHeads === 7 && staffStems === 0, `${staffHeads} heads, ${staffStems} stems`);
+
+// As it stands the board is wrong: a run turns the staff's notes red where they
+// are wrong (and green where right).
+await page.evaluate(() => { window.DAILY.board.room.music.bpm = 900; });
+await tap((await tile(0, 8)).x, (await tile(0, 8)).y);
+await page.waitForFunction(() => !window.DAILY.board.running && window.DAILY.board.verdict, null, { timeout: 8000 }).catch(() => {});
+const red = await page.evaluate(() => [...document.querySelectorAll('#d-staff ellipse')].filter(e => getComputedStyle(e).fill === 'rgb(248, 81, 73)').length);
+ok('a wrong run turns its wrong notes red', red > 0, `${red} red`);
+await page.evaluate(() => { window.DAILY.openDay(0); window.played = []; });
 
 ok('the tempo reads 100 on day 1', await page.textContent('#d-bpm-n') === '100');
 ok('the tempo buttons are hidden out of developer mode', await page.evaluate(() => getComputedStyle(document.getElementById('d-faster')).display === 'none'));
@@ -142,14 +174,14 @@ await tap(cp.x, cp.y);
 await page.waitForFunction(() => !window.DAILY.board.running && window.DAILY.board.verdict, null, { timeout: 8000 }).catch(() => {});
 const v = await page.evaluate(() => window.DAILY.board.verdict);
 ok('a tap on Coda sends the wave, and it plays Mary Had a Little Lamb', v?.kind === 'solved', JSON.stringify(v));
-const lit = await page.evaluate(() => document.querySelectorAll('#d-staff .on').length);
-ok('the staff lights the notes the wave played', lit >= 7, `${lit} marks`);
+const green = await page.evaluate(() => [...document.querySelectorAll('#d-staff ellipse')].filter(e => getComputedStyle(e).fill === 'rgb(63, 185, 80)').length);
+ok('the staff turns every note the wave played green', green === 7, `${green} green`);
 await page.waitForSelector('#d-done:not([hidden])', { timeout: 3000 }).catch(() => {});
 const card = await page.evaluate(() => ({ shown: !document.getElementById('d-done').hidden, text: document.getElementById('d-done-from').textContent }));
 ok('the solved card names the song', card.shown && /Mary Had a Little Lamb/.test(card.text), JSON.stringify(card));
 const notes = await page.evaluate(() => window.played.filter(p => p.family !== 'percussion'));
 ok('the run\'s notes reach the speaker unheard by anything else', notes.length === 7 && notes.every(n => !n.heard), JSON.stringify(notes));
-const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('ck-daily-v1') || '{}'));
+const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('ck-daily-v2') || '{}'));
 ok('the day is remembered as solved', saved.days?.mary?.solved === true, JSON.stringify(saved));
 await press('#d-done-close');
 
@@ -218,7 +250,7 @@ await page.evaluate(async () => {
   applySolution(window.DAILY.board, window.DAILY.days.days[9].solution);
   window.DAILY.board.room.music.bpm = 100;
 });
-const c10 = await tile(0, 14);
+const c10 = await tile(0, 8);
 await tap(c10.x, c10.y);
 await page.waitForFunction((at) => window.DAILY.board.step >= at, timed.at, { timeout: 15000 }).catch(() => {});
 const inFlight = await page.evaluate(() => window.DAILY.board.running);

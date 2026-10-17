@@ -16,7 +16,7 @@ import { TuningPeg } from './pieces.js';
 import { BoardView } from './view.js';
 
 const $ = (id) => document.getElementById(id);
-const SAVE_KEY = 'ck-daily-v1';
+const SAVE_KEY = 'ck-daily-v2';             // v2: the 8 x 8 boards (2026-10-17); v1 was the 8 x 14 ones
 const SOUND_KEY = 'ck-sound-v1';          // the castle's sound choice, same device
 const DEV_KEY = 'ck-dev-v1';              // the castle's developer mode, same device
 const DAY_MS = 86400000;
@@ -171,20 +171,23 @@ function renderDays() {
 
 // ---- the tune: sheet music, lit as it is played ------------------------------------
 
-// The staff, with each note the wave has played lit ('on') where it is the
-// tune's note and dimmed ('no') where it is not, or the playhead while the tune
-// plays.
+// The staff, drawn for the day's kind of puzzle (Timothy, 2026-10-17): a
+// melodic day shows the notes without their lengths, a rhythmic day the rhythm
+// without pitch, an advanced day the whole score. Each note the wave has played
+// turns green where it is right and red where it is not; the playhead lights
+// the notes while the tune plays.
+const SHOW = { melodic: 'pitch', rhythmic: 'rhythm', advanced: 'full' };
 function renderTune(playStep = null) {
   const m = DAYS.days[index].motif;
   const spans = targetSpans(m);
   const marks = [];
   board.heard.forEach((h, i) => {
     const s = spans[i];
-    if (s) marks.push({ ...s, cls: h.degree === board.target[i] ? 'on' : 'no' });
+    if (s) marks.push({ ...s, cls: board.isRight(i) ? 'ok' : 'bad' });
   });
   const width = Math.max(240, Math.min(588, $('d-staff').clientWidth - 12 || 360));
   try {
-    $('d-staff').innerHTML = renderStaff({ notes: motifPitches(m), bars: m.bars, key: m.key, width, playStep, marks });
+    $('d-staff').innerHTML = renderStaff({ notes: motifPitches(m), bars: m.bars, key: m.key, width, playStep, marks, show: SHOW[board.kind] });
   } catch (err) { $('d-staff').innerHTML = ''; console.warn('[staff]', err); }
 }
 
@@ -233,7 +236,7 @@ function finished() {
   const v = board.verdict;
   const day = DAYS.days[index];
   for (const [i, h] of board.heard.entries()) {
-    view.marks.push({ x: h.x, y: h.y, ok: h.degree === board.target[i] });
+    view.marks.push({ x: h.x, y: h.y, ok: board.isRight(i) });
   }
   renderTune();
   if (v?.kind === 'solved') {
@@ -251,7 +254,9 @@ function finished() {
   }
   const n = board.heard.length;
   const circles = board.looped ? ' Then it went round in circles.' : '';
-  if (v?.kind === 'wrong') say(`Note ${v.at + 1} was ${named(v.got)}; the tune wants ${named(v.wanted)}.${circles}`);
+  const when = (off) => `${Math.abs(off)} ${Math.abs(off) === 1 ? 'sixteenth' : 'sixteenths'} ${off > 0 ? 'late' : 'early'}`;
+  if (v?.kind === 'wrong' && board.kind !== 'melodic' && v.off && (board.kind === 'rhythmic' || v.got === v.wanted)) say(`Note ${v.at + 1} came ${when(v.off)}.${circles}`);
+  else if (v?.kind === 'wrong') say(`Note ${v.at + 1} was ${named(v.got)}; the tune wants ${named(v.wanted)}.${circles}`);
   else if (v?.kind === 'short') say((n ? `The wave played ${n} of ${board.target.length} notes. Next comes ${named(v.wanted)}.` : `The wave played nothing. The tune starts on ${named(board.target[0])}.`) + circles);
   else if (v?.kind === 'long') say(`That was the whole tune, then ${v.extra} more ${v.extra === 1 ? 'note' : 'notes'}. The wave should stop after the last one.`);
   else if (v?.kind === 'stopped') say('Stopped.', 1500);
@@ -365,8 +370,9 @@ function clearRun() {
 
 // ---- layout and the frame loop -------------------------------------------------------------
 
-// The board takes all the width it can, and the height left by the bar and the
-// tune, with one row more under it for Coda.
+// The board runs edge to edge (Timothy, 2026-10-17), as tall as that makes it,
+// with one row more under it for Coda; the height left by the bar and the tune
+// only limits it on a short screen.
 function fit() {
   const wrap = $('d-stage');
   const cv = $('d-board');
@@ -374,7 +380,7 @@ function fit() {
   const availH = window.innerHeight - used - 4;
   const availW = Math.min(wrap.clientWidth || window.innerWidth, 600);
   const rows = board.room.height + 1;
-  const tile = Math.max(24, Math.floor(Math.min(availW / board.room.width, availH / rows)));
+  const tile = Math.max(24, Math.min(availW / board.room.width, availH / rows));
   cv.style.width = `${tile * board.room.width}px`;
   cv.style.height = `${tile * rows}px`;
   view.resize(board.room);

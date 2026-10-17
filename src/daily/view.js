@@ -12,9 +12,11 @@
 //   Coda      under the bottom-left tile, in a row of his own below the board,
 //             with a chevron up the way the wave leaves him.
 //
-// The floor is plain, its mode's tint and nothing else: no staves, no cell grid
-// (Timothy, 2026-10-16, twice). White line-work only, like everything else:
-// handles in the same ink as the art, the trail the same white, quieter.
+// The floor is its mode's tint and the cell grid, a line along each tile's
+// edge and nothing inside a tile: no staves (Timothy, 2026-10-16, and 10-17:
+// "we still need grid lines, just not the horizontal subdivisions within
+// them"). White line-work only, like everything else: handles in the same ink
+// as the art, the trail the same white, quieter.
 
 import { Renderer } from '../render/renderer.js';
 import { PALETTE } from '../render/palette.js';
@@ -46,7 +48,7 @@ export class BoardView extends Renderer {
     c.save();
     c.translate(this.ox, this.oy);
 
-    this._floor(room, s);
+    this._floor(room, s, p);
     this._trail(board, s);
 
     for (let y = 0; y < room.height; y++) {
@@ -70,11 +72,20 @@ export class BoardView extends Renderer {
     c.restore();
   }
 
-  // The floor: its mode's tint, and no lines at all.
-  _floor(room, s) {
+  // The floor: its mode's tint, and the grid along the tiles' edges only.
+  _floor(room, s, p) {
     const c = this.c;
     c.fillStyle = this.floorColour(room);
     c.fillRect(0, 0, room.width * s, room.height * s);
+    c.save();
+    c.strokeStyle = p.grid;
+    c.globalAlpha = 0.7;
+    c.lineWidth = 1;
+    c.beginPath();
+    for (let x = 0; x <= room.width; x++) { const px = Math.round(x * s) + 0.5; c.moveTo(px, 0); c.lineTo(px, room.height * s); }
+    for (let y = 0; y <= room.height; y++) { const py = Math.round(y * s) + 0.5; c.moveTo(0, py); c.lineTo(room.width * s, py); }
+    c.stroke();
+    c.restore();
   }
 
   // The block a sliding peg stands on: a square of line-work, under the peg.

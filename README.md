@@ -48,7 +48,7 @@ out as a score layer, a cue or a lock phrase. `docs/MUSIC.md` has the lot.
 ## The daily board
 
 `daily.html` (or **daily** on the title screen) is a break from the castle: an
-8 x 14 table of the game's instruments, one wave, and one tune a
+8 x 8 table of the game's instruments, one wave, and one tune a
 day to make, written as sheet music at the top (tap it to hear it). Wind a peg to
 raise a string, slide a peg block to lengthen one, turn a drum, drag a little
 violin onto the wave's road, then tap Coda, bottom left, and watch the wave
